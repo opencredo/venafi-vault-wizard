@@ -45,7 +45,7 @@ func (v *vault) GetPluginDir() (string, error) {
 	secret, err := v.Client.Logical().Read("sys/config/state/sanitized")
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return "", err
+		return "", fmt.Errorf("error reading sys/config/state: %w", ErrReadingVaultPath)
 	}
 
 	dir, ok := secret.Data["plugin_directory"].(string)
