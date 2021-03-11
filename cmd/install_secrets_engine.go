@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/opencredo/venafi-vault-wizard/helpers"
 	"github.com/opencredo/venafi-vault-wizard/vault"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -18,6 +20,8 @@ var installPKIBackendCommand = &cobra.Command{
 func init() {
 	installCommand.AddCommand(installPKIBackendCommand)
 }
+
+const pluginURL = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
 
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	pterm.Error.ShowLineNumber = false
@@ -46,7 +50,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 		}
 		return
 	}
-	vaultCheckSpinner.Success("Vault Plugin Directory found!")
+	vaultCheckSpinner.Success("Vault Plugin Directory found")
 
 	pterm.Println()
 	pterm.Printf("The Vault server plugin directory is correctly configured as %s\n", pluginDir)
@@ -54,12 +58,34 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 	pterm.DefaultSection.Println("Installing plugin to Vault")
 
 	pluginInstallSpinner, _ := pterm.DefaultSpinner.Start("Installing plugin to Vault server...")
-	err = vaultClient.CopyFile("/config/randomfile.txt")
+	plugin, sha, err := helpers.DownloadPluginAndUnzip(pluginURL)
 	if err != nil {
-		pluginInstallSpinner.Fail(fmt.Sprintf("Error copying file %s", err))
+		pluginInstallSpinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
 		return
 	}
-	pluginInstallSpinner.Success("Plugin Installed!")
 
+	pluginInstallSpinner.UpdateText("Successfully downloaded plugin, copying to Vault server over SSH...")
+
+	err = vaultClient.WriteFile(bytes.NewReader(plugin), fmt.Sprintf("%s/venafi-pki-backend", pluginDir))
+	if err != nil {
+		pluginInstallSpinner.Fail(fmt.Sprintf("Error copying plugin to Vault: %s", err))
+		return
+	}
+	pluginInstallSpinner.Success("Plugin copied to Vault server")
+
+	const pluginName = "venafi-pki-backend"
+
+	pluginEnableSpinner, _ := pterm.DefaultSpinner.Start("Enabling plugin in Vault plugin catalog...")
+	err = vaultClient.RegisterPlugin(pluginName, pluginName, sha)
+	if err != nil {
+		pluginEnableSpinner.Fail(fmt.Sprintf("Error registering plugin in Vault catalog: %s", err))
+		return
+	}
+	pluginEnableSpinner.Success("Successfully registered plugin in Vault plugin catalog")
+
+	pterm.Println()
+	pterm.Printf("The Venafi plugin has been installed as %s\n", pluginName)
+
+	pterm.Println()
 	pterm.DefaultHeader.Println("Success! Vault is configured to work with Venafi")
 }

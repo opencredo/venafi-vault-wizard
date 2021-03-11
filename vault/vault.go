@@ -3,14 +3,17 @@ package vault
 import (
 	"fmt"
 	vaultAPI "github.com/hashicorp/vault/api"
+	"io"
 )
 
 // Vault represents a HashiCorp Vault instance and the operations available on it
 type Vault interface {
 	// GetPluginDir queries the server for the local plugin directory
 	GetPluginDir() (directory string, err error)
-	// CopyFile connects the Vault server via SSH and writes some random text to a file (will eventually copy the plugin)
-	CopyFile(destination string) error
+	// WriteFile connects the Vault server via SSH and writes some random text to a file (will eventually copy the plugin)
+	WriteFile(sourceFile io.Reader, hostDestination string) error
+	// RegisterPlugin adds the plugin to the Vault Plugin Catalog
+	RegisterPlugin(name, command, sha string) error
 }
 
 type vault struct {
@@ -54,4 +57,18 @@ func (v *vault) GetPluginDir() (string, error) {
 	}
 
 	return dir, nil
+}
+
+func (v *vault) RegisterPlugin(name, command, sha string) error {
+	vaultPath := fmt.Sprintf("sys/plugins/catalog/secret/%s", name)
+	_, err := v.Client.Logical().Write(vaultPath, map[string]interface{}{
+		"command": command,
+		"sha_256": sha,
+	})
+	if err != nil {
+		// TODO: parse out error codes and adjust error message accordingly
+		return fmt.Errorf("error writing sys/plugins/catalog/secret: %w", ErrWritingVaultPath)
+	}
+
+	return nil
 }
