@@ -16,8 +16,24 @@ func init() {
 		"vault.local:22",
 		"Hostname and port of Vault server",
 	)
+	installCommand.PersistentFlags().StringVar(
+		&venafiAPIKey,
+		"venafiAPIKey",
+		"",
+		"API Key used to access Venafi Cloud",
+	)
+	installCommand.MarkPersistentFlagRequired("venafiAPIKey")
+	installCommand.PersistentFlags().StringVar(
+		&venafiZoneID,
+		"venafiZone",
+		"",
+		"Venafi Cloud Project Zone in which to create certificates",
+	)
+	installCommand.MarkPersistentFlagRequired("venafiZone")
 }
 
 var (
-	sshAddress string
+	sshAddress   string
+	venafiAPIKey string
+	venafiZoneID string
 )
