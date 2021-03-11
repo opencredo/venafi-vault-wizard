@@ -3,6 +3,7 @@ package vault
 import (
 	"fmt"
 	vaultAPI "github.com/hashicorp/vault/api"
+	vaultConsts "github.com/hashicorp/vault/sdk/helper/consts"
 	"io"
 )
 
@@ -14,6 +15,12 @@ type Vault interface {
 	WriteFile(sourceFile io.Reader, hostDestination string) error
 	// RegisterPlugin adds the plugin to the Vault Plugin Catalog
 	RegisterPlugin(name, command, sha string) error
+	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
+	MountPlugin(name, path string) error
+	// WriteValue writes to the specified path. Equivalent to `$ vault write path value1=v1 value2=v2`
+	WriteValue(path string, value map[string]interface{}) error
+	// ReadValue reads from the specified path. Equivalent to `$ vault read path`
+	ReadValue(path string) (map[string]interface{}, error)
 }
 
 type vault struct {
@@ -60,10 +67,11 @@ func (v *vault) GetPluginDir() (string, error) {
 }
 
 func (v *vault) RegisterPlugin(name, command, sha string) error {
-	vaultPath := fmt.Sprintf("sys/plugins/catalog/secret/%s", name)
-	_, err := v.Client.Logical().Write(vaultPath, map[string]interface{}{
-		"command": command,
-		"sha_256": sha,
+	err := v.Client.Sys().RegisterPlugin(&vaultAPI.RegisterPluginInput{
+		Name:    name,
+		Type:    vaultConsts.PluginTypeSecrets,
+		Command: command,
+		SHA256:  sha,
 	})
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
@@ -71,4 +79,36 @@ func (v *vault) RegisterPlugin(name, command, sha string) error {
 	}
 
 	return nil
+}
+
+func (v *vault) MountPlugin(name, path string) error {
+	err := v.Client.Sys().Mount(path, &vaultAPI.MountInput{
+		Type: name,
+	})
+	if err != nil {
+		// TODO: parse out error codes and adjust error message accordingly
+		return fmt.Errorf("error mounting plugin %s at path %s: %w", name, path, err)
+	}
+
+	return nil
+}
+
+func (v *vault) WriteValue(path string, value map[string]interface{}) error {
+	_, err := v.Client.Logical().Write(path, value)
+	if err != nil {
+		// TODO: parse out error codes and adjust error message accordingly
+		return err
+	}
+
+	return nil
+}
+
+func (v *vault) ReadValue(path string) (map[string]interface{}, error) {
+	secret, err := v.Client.Logical().Read(path)
+	if err != nil {
+		// TODO: parse out error codes and adjust error message accordingly
+		return nil, err
+	}
+
+	return secret.Data, nil
 }

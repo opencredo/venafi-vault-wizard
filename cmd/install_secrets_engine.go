@@ -21,7 +21,11 @@ func init() {
 	installCommand.AddCommand(installPKIBackendCommand)
 }
 
-const pluginURL = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
+const (
+	pluginName      = "venafi-pki-backend"
+	pluginURL       = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
+	pluginMountPath = "venafi-pki"
+)
 
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	pterm.Error.ShowLineNumber = false
@@ -57,35 +61,118 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 
 	pterm.DefaultSection.Println("Installing plugin to Vault")
 
-	pluginInstallSpinner, _ := pterm.DefaultSpinner.Start("Installing plugin to Vault server...")
-	plugin, sha, err := helpers.DownloadPluginAndUnzip(pluginURL)
+	sha, err := installPlugin(vaultClient, pluginDir)
 	if err != nil {
-		pluginInstallSpinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
 		return
 	}
 
-	pluginInstallSpinner.UpdateText("Successfully downloaded plugin, copying to Vault server over SSH...")
-
-	err = vaultClient.WriteFile(bytes.NewReader(plugin), fmt.Sprintf("%s/venafi-pki-backend", pluginDir))
+	err = enablePlugin(vaultClient, sha)
 	if err != nil {
-		pluginInstallSpinner.Fail(fmt.Sprintf("Error copying plugin to Vault: %s", err))
 		return
 	}
-	pluginInstallSpinner.Success("Plugin copied to Vault server")
-
-	const pluginName = "venafi-pki-backend"
-
-	pluginEnableSpinner, _ := pterm.DefaultSpinner.Start("Enabling plugin in Vault plugin catalog...")
-	err = vaultClient.RegisterPlugin(pluginName, pluginName, sha)
-	if err != nil {
-		pluginEnableSpinner.Fail(fmt.Sprintf("Error registering plugin in Vault catalog: %s", err))
-		return
-	}
-	pluginEnableSpinner.Success("Successfully registered plugin in Vault plugin catalog")
 
 	pterm.Println()
 	pterm.Printf("The Venafi plugin has been installed as %s\n", pluginName)
 
+	pterm.DefaultSection.Println("Configuring plugin")
+
+	err = mountPlugin(vaultClient, pluginMountPath)
+	if err != nil {
+		return
+	}
+
+	pterm.Println()
+	pterm.Printf("The plugin has been mounted at as %s\n", pluginMountPath)
+
+	err = addVenafiSecret(vaultClient, "cloud")
+	if err != nil {
+		return
+	}
+
+	err = addVenafiRole(vaultClient, "cloud", "cloud")
+	if err != nil {
+		return
+	}
+
+	pterm.Println()
+	pterm.DefaultBasicText.WithStyle(&pterm.Style{pterm.FgGreen}).
+		Printf(
+			"Finished! You can try and request a certificate using:\n"+
+				"$ vault write %s/issue/%s common_name=\"test.example.com\"\n", pluginMountPath, "cloud")
+
 	pterm.Println()
 	pterm.DefaultHeader.Println("Success! Vault is configured to work with Venafi")
+}
+
+func installPlugin(client vault.Vault, pluginDir string) (string, error) {
+	spinner, _ := pterm.DefaultSpinner.Start("Installing plugin to Vault server...")
+	plugin, sha, err := helpers.DownloadPluginAndUnzip(pluginURL)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
+		return "", err
+	}
+
+	spinner.UpdateText("Successfully downloaded plugin, copying to Vault server over SSH...")
+
+	err = client.WriteFile(bytes.NewReader(plugin), fmt.Sprintf("%s/venafi-pki-backend", pluginDir))
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error copying plugin to Vault: %s", err))
+		return "", err
+	}
+
+	spinner.Success("Plugin copied to Vault server")
+	return sha, nil
+}
+
+func enablePlugin(client vault.Vault, sha string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Enabling plugin in Vault plugin catalog...")
+	err := client.RegisterPlugin(pluginName, pluginName, sha)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error registering plugin in Vault catalog: %s", err))
+		return err
+	}
+
+	spinner.Success("Successfully registered plugin in Vault plugin catalog")
+	return nil
+}
+
+func mountPlugin(client vault.Vault, mountPath string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Mounting plugin ...")
+	err := client.MountPlugin(pluginName, mountPath)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error mounting plugin: %s", err))
+		return err
+	}
+
+	spinner.Success("Plugin mounted")
+	return nil
+}
+
+func addVenafiSecret(client vault.Vault, secretName string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Adding Venafi secret...")
+	err := client.WriteValue("venafi-pki/venafi/"+secretName, map[string]interface{}{
+		"apikey": venafiAPIKey,
+		"zone":   venafiZoneID,
+	})
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error configuring Venafi secret: %s", err))
+		return err
+	}
+
+	spinner.Success("Venafi secret configured at venafi-pki/venafi/" + secretName)
+	return nil
+}
+
+func addVenafiRole(client vault.Vault, roleName, secretName string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Adding Venafi secret...")
+	err := client.WriteValue("venafi-pki/roles/"+roleName, map[string]interface{}{
+		"venafi_secret": secretName,
+	})
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error configuring Venafi role: %s", err))
+		return err
+	}
+
+	spinner.Success("Venafi role configured")
+	return nil
 }
