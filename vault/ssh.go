@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -10,7 +11,12 @@ import (
 
 func (v *vault) WriteFile(sourceFile io.Reader, hostDestination string) error {
 	// TODO: parameterisable auth details
-	sftpClient, close, err := newSFTPClient(v.Config.SSHAddress, "testuser", "password")
+	sshConn, err := newSSHClient(v.Config.SSHAddress, "vagrant", "vagrant")
+	if err != nil {
+		return err
+	}
+
+	sftpClient, close, err := newSFTPClient(sshConn)
 	if err != nil {
 		return err
 	}
@@ -28,7 +34,7 @@ func (v *vault) WriteFile(sourceFile io.Reader, hostDestination string) error {
 		return err
 	}
 
-	err = dstFile.Chmod(0775)
+	err = makeFileExecutable(dstFile)
 	if err != nil {
 		return err
 	}
@@ -36,17 +42,28 @@ func (v *vault) WriteFile(sourceFile io.Reader, hostDestination string) error {
 	return nil
 }
 
-func newSFTPClient(address, username, password string) (*sftp.Client, func(), error) {
-	config := &ssh.ClientConfig{
-		User:            username,
-		Auth:            []ssh.AuthMethod{ssh.Password(password)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-	conn, err := ssh.Dial("tcp", address, config)
+func (v *vault) AddIPCLockCapabilityToFile(filename string) error {
+	// TODO: parameterisable auth details
+	conn, err := newSSHClient(v.Config.SSHAddress, "vagrant", "vagrant")
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
+	session, err := conn.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.Run(fmt.Sprintf("sudo setcap cap_ipc_lock=ep %s", filename))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func newSFTPClient(conn *ssh.Client) (*sftp.Client, func(), error) {
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		conn.Close()
@@ -59,4 +76,27 @@ func newSFTPClient(address, username, password string) (*sftp.Client, func(), er
 	}
 
 	return sftpClient, closeConns, nil
+}
+
+func newSSHClient(address, username, password string) (*ssh.Client, error) {
+	config := &ssh.ClientConfig{
+		User:            username,
+		Auth:            []ssh.AuthMethod{ssh.Password(password)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	conn, err := ssh.Dial("tcp", address, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func makeFileExecutable(file *sftp.File) error {
+	err := file.Chmod(0775)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

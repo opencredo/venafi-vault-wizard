@@ -21,6 +21,11 @@ type Vault interface {
 	WriteValue(path string, value map[string]interface{}) error
 	// ReadValue reads from the specified path. Equivalent to `$ vault read path`
 	ReadValue(path string) (map[string]interface{}, error)
+	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
+	IsMLockDisabled() (bool, error)
+	// AddIPCLockCapabilityToFile attempts to call setcap over SSH to add IPC_LOCK capability to an executable. Requires
+	// sudo privileges
+	AddIPCLockCapabilityToFile(filename string) error
 }
 
 type vault struct {
@@ -52,13 +57,12 @@ func NewVault(config *Config) (Vault, error) {
 }
 
 func (v *vault) GetPluginDir() (string, error) {
-	secret, err := v.Client.Logical().Read("sys/config/state/sanitized")
+	config, err := v.getVaultConfig()
 	if err != nil {
-		// TODO: parse out error codes and adjust error message accordingly
-		return "", fmt.Errorf("error reading sys/config/state: %w", ErrReadingVaultPath)
+		return "", fmt.Errorf("error reading sys/config/state: %w", err)
 	}
 
-	dir, ok := secret.Data["plugin_directory"].(string)
+	dir, ok := config["plugin_directory"].(string)
 	if dir == "" || !ok {
 		return "", ErrPluginDirNotConfigured
 	}
@@ -87,6 +91,7 @@ func (v *vault) MountPlugin(name, path string) error {
 	})
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
+		// TODO: check for "Unrecognized remote plugin message" and see whether it's mlock or api_addr
 		return fmt.Errorf("error mounting plugin %s at path %s: %w", name, path, err)
 	}
 
@@ -107,8 +112,26 @@ func (v *vault) ReadValue(path string) (map[string]interface{}, error) {
 	secret, err := v.Client.Logical().Read(path)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return nil, err
+		return nil, ErrReadingVaultPath
 	}
 
 	return secret.Data, nil
+}
+
+func (v *vault) getVaultConfig() (map[string]interface{}, error) {
+	return v.ReadValue("sys/config/state/sanitized")
+}
+
+func (v *vault) IsMLockDisabled() (bool, error) {
+	config, err := v.getVaultConfig()
+	if err != nil {
+		return false, err
+	}
+
+	disabled, ok := config["disable_mlock"].(bool)
+	if !ok {
+		return false, fmt.Errorf("error")
+	}
+
+	return disabled, nil
 }
