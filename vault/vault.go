@@ -59,7 +59,7 @@ func (v *vault) GetPluginDir() (string, error) {
 	}
 
 	dir, ok := secret.Data["plugin_directory"].(string)
-	if !ok {
+	if dir == "" || !ok {
 		return "", ErrPluginDirNotConfigured
 	}
 
