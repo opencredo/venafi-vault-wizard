@@ -28,6 +28,11 @@ func (v *vault) WriteFile(sourceFile io.Reader, hostDestination string) error {
 		return err
 	}
 
+	err = dstFile.Chmod(0775)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
