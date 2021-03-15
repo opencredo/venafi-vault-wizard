@@ -1,11 +1,14 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/opencredo/venafi-vault-wizard/tasks"
-	"github.com/opencredo/venafi-vault-wizard/vault"
+	vaultAPI "github.com/hashicorp/vault/api"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
+	"github.com/opencredo/venafi-vault-wizard/tasks"
 )
 
 var installPKIBackendCommand = &cobra.Command{
@@ -28,17 +31,33 @@ const (
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	pterm.Error.ShowLineNumber = false
 
-	vaultClient, err := vault.NewVault(&vault.Config{
-		APIAddress: vaultAddress,
-		Token:      vaultToken,
-		SSHAddress: sshAddress,
-	})
+	apiClient, err := vaultAPI.NewClient(vaultAPI.DefaultConfig())
+	if err != nil {
+		return
+	}
+
+	// TODO: get from command-line
+	sshClient, err := ssh.NewClient(sshAddress, "vagrant", "vagrant")
+	if err != nil {
+		return
+	}
+
+	vaultClient, err := vault.NewVault(
+		&vault.Config{
+			APIAddress: vaultAddress,
+			Token:      vaultToken,
+			SSHAddress: sshAddress,
+		},
+		apiClient,
+		sshClient,
+	)
 	if err != nil {
 		return
 	}
 
 	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
 		VaultClient:     vaultClient,
+		Downloader:      download_plugin.NewPluginDownloader(),
 		PluginURL:       pluginURL,
 		PluginName:      pluginName,
 		PluginMountPath: pluginMountPath,
@@ -47,15 +66,14 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 		return
 	}
 
-	pterm.Println()
-	pterm.Printf("The plugin has been mounted at as %s\n", pluginMountPath)
-
-	err = addVenafiSecret(vaultClient, "cloud")
-	if err != nil {
-		return
-	}
-
-	err = addVenafiRole(vaultClient, "cloud", "cloud")
+	err = tasks.ConfigureVenafiPKIBackend(&tasks.ConfigureVenafiPKIBackendInput{
+		VaultClient:     vaultClient,
+		PluginMountPath: pluginMountPath,
+		SecretName:      "cloud", // TODO: override on command line
+		RoleName:        "cloud",
+		VenafiAPIKey:    venafiAPIKey,
+		VenafiZoneID:    venafiZoneID,
+	})
 	if err != nil {
 		return
 	}
@@ -68,33 +86,4 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 
 	pterm.Println()
 	pterm.DefaultHeader.Println("Success! Vault is configured to work with Venafi")
-}
-
-func addVenafiSecret(client vault.Vault, secretName string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Adding Venafi secret...")
-	err := client.WriteValue("venafi-pki/venafi/"+secretName, map[string]interface{}{
-		"apikey": venafiAPIKey,
-		"zone":   venafiZoneID,
-	})
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error configuring Venafi secret: %s", err))
-		return err
-	}
-
-	spinner.Success("Venafi secret configured at venafi-pki/venafi/" + secretName)
-	return nil
-}
-
-func addVenafiRole(client vault.Vault, roleName, secretName string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Adding Venafi secret...")
-	err := client.WriteValue("venafi-pki/roles/"+roleName, map[string]interface{}{
-		"venafi_secret": secretName,
-	})
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error configuring Venafi role: %s", err))
-		return err
-	}
-
-	spinner.Success("Venafi role configured")
-	return nil
 }

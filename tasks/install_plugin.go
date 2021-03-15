@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/opencredo/venafi-vault-wizard/helpers"
-	"github.com/opencredo/venafi-vault-wizard/vault"
+
 	"github.com/pterm/pterm"
+
+	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
 )
 
 type InstallPluginInput struct {
 	VaultClient     vault.Vault
+	Downloader      download_plugin.PluginDownloader
 	PluginURL       string
 	PluginName      string
 	PluginMountPath string
@@ -38,7 +41,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	pluginPath := fmt.Sprintf("%s/%s", pluginDir, input.PluginName)
 
-	sha, err := installPlugin(input.VaultClient, pluginPath, input.PluginURL)
+	sha, err := installPlugin(input.VaultClient, input.Downloader, pluginPath, input.PluginURL)
 	if err != nil {
 		return err
 	}
@@ -63,12 +66,15 @@ func InstallPlugin(input *InstallPluginInput) error {
 		return err
 	}
 
+	pterm.Println()
+	pterm.Printf("The plugin has been mounted at as %s\n", input.PluginMountPath)
+
 	return nil
 }
 
-func installPlugin(client vault.Vault, pluginPath, pluginURL string) (string, error) {
+func installPlugin(client vault.Vault, downloader download_plugin.PluginDownloader, pluginPath, pluginURL string) (string, error) {
 	spinner, _ := pterm.DefaultSpinner.Start("Installing plugin to Vault server...")
-	plugin, sha, err := helpers.DownloadPluginAndUnzip(pluginURL)
+	plugin, sha, err := downloader.DownloadPluginAndUnzip(pluginURL)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
 		return "", err
