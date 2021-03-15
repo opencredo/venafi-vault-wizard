@@ -1,12 +1,14 @@
-package helpers_test
+package download_plugin_test
 
 import (
-	"github.com/opencredo/venafi-vault-wizard/helpers"
+	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
+
 	"testing"
 )
 
 func TestDownloadPluginAndUnzip(t *testing.T) {
-	_, actualSHA, err := helpers.DownloadPluginAndUnzip("https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip")
+	dl := download_plugin.NewPluginDownloader()
+	_, actualSHA, err := dl.DownloadPluginAndUnzip("https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip")
 	if err != nil {
 		t.Fatalf("Error downloading plugin: %s", err)
 	}

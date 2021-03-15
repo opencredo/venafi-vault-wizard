@@ -2,17 +2,17 @@ package vault
 
 import (
 	"fmt"
+
 	vaultAPI "github.com/hashicorp/vault/api"
 	vaultConsts "github.com/hashicorp/vault/sdk/helper/consts"
-	"io"
+
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
 )
 
 // Vault represents a HashiCorp Vault instance and the operations available on it
 type Vault interface {
 	// GetPluginDir queries the server for the local plugin directory
 	GetPluginDir() (directory string, err error)
-	// WriteFile connects the Vault server via SSH and writes some random text to a file (will eventually copy the plugin)
-	WriteFile(sourceFile io.Reader, hostDestination string) error
 	// RegisterPlugin adds the plugin to the Vault Plugin Catalog
 	RegisterPlugin(name, command, sha string) error
 	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
@@ -23,14 +23,14 @@ type Vault interface {
 	ReadValue(path string) (map[string]interface{}, error)
 	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
 	IsMLockDisabled() (bool, error)
-	// AddIPCLockCapabilityToFile attempts to call setcap over SSH to add IPC_LOCK capability to an executable. Requires
-	// sudo privileges
-	AddIPCLockCapabilityToFile(filename string) error
+	// Inherit WriteFile and AddIPCCapbabilityToFile methods from SSH module
+	ssh.Client
 }
 
 type vault struct {
-	Config *Config
-	Client *vaultAPI.Client
+	Config      *Config
+	VaultClient *vaultAPI.Client
+	ssh.Client
 }
 
 // Config represents the configuration values needed to connect to Vault via the API and SSH
@@ -44,16 +44,11 @@ type Config struct {
 }
 
 // NewVault returns an instance of the Vault client
-func NewVault(config *Config) (Vault, error) {
-	client, err := vaultAPI.NewClient(&vaultAPI.Config{
-		Address: config.APIAddress,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error getting vault client: %w", ErrInvalidAddress)
-	}
+func NewVault(config *Config, apiClient *vaultAPI.Client, sshClient ssh.Client) (Vault, error) {
+	apiClient.SetAddress(config.APIAddress)
+	apiClient.SetToken(config.Token)
 
-	client.SetToken(config.Token)
-	return &vault{config, client}, nil
+	return &vault{config, apiClient, sshClient}, nil
 }
 
 func (v *vault) GetPluginDir() (string, error) {
@@ -71,7 +66,7 @@ func (v *vault) GetPluginDir() (string, error) {
 }
 
 func (v *vault) RegisterPlugin(name, command, sha string) error {
-	err := v.Client.Sys().RegisterPlugin(&vaultAPI.RegisterPluginInput{
+	err := v.VaultClient.Sys().RegisterPlugin(&vaultAPI.RegisterPluginInput{
 		Name:    name,
 		Type:    vaultConsts.PluginTypeSecrets,
 		Command: command,
@@ -86,7 +81,7 @@ func (v *vault) RegisterPlugin(name, command, sha string) error {
 }
 
 func (v *vault) MountPlugin(name, path string) error {
-	err := v.Client.Sys().Mount(path, &vaultAPI.MountInput{
+	err := v.VaultClient.Sys().Mount(path, &vaultAPI.MountInput{
 		Type: name,
 	})
 	if err != nil {
@@ -99,7 +94,7 @@ func (v *vault) MountPlugin(name, path string) error {
 }
 
 func (v *vault) WriteValue(path string, value map[string]interface{}) error {
-	_, err := v.Client.Logical().Write(path, value)
+	_, err := v.VaultClient.Logical().Write(path, value)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
 		return err
@@ -109,7 +104,7 @@ func (v *vault) WriteValue(path string, value map[string]interface{}) error {
 }
 
 func (v *vault) ReadValue(path string) (map[string]interface{}, error) {
-	secret, err := v.Client.Logical().Read(path)
+	secret, err := v.VaultClient.Logical().Read(path)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
 		return nil, ErrReadingVaultPath
