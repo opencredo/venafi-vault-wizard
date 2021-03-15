@@ -4,11 +4,11 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault/api"
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
-	"github.com/opencredo/venafi-vault-wizard/tasks"
+	"github.com/opencredo/venafi-vault-wizard/app/downloader"
+	"github.com/opencredo/venafi-vault-wizard/app/tasks"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/lib"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
 var installPKIBackendCommand = &cobra.Command{
@@ -38,18 +38,18 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 	}
 	defer sshClient.Close()
 
-	vaultClient := vault.NewVault(
-		&vault.Config{
+	vaultClient := api.NewClient(
+		&api.Config{
 			APIAddress: vaultAddress,
 			Token:      vaultToken,
 		},
-		api.NewVaultAPI(),
-		sshClient,
+		lib.NewVaultAPI(),
 	)
 
 	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
 		VaultClient:     vaultClient,
-		Downloader:      download_plugin.NewPluginDownloader(),
+		SSHClient:       sshClient,
+		Downloader:      downloader.NewPluginDownloader(),
 		PluginURL:       pluginURL,
 		PluginName:      pluginName,
 		PluginMountPath: pluginMountPath,

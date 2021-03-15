@@ -1,4 +1,4 @@
-package download_plugin
+package downloader
 
 import (
 	"archive/zip"

@@ -1,8 +1,10 @@
-package api
+package lib
 
 import vaultAPI "github.com/hashicorp/vault/api"
 
-type VaultAPIClient interface {
+// VaultAPIWrapper encapsulates the dependency on the HashiCorp Go Vault package, both to allow it to be injected, but
+// also to make its interface slightly simpler to its clients
+type VaultAPIWrapper interface {
 	SetAddress(address string) error
 	SetToken(token string)
 	Read(path string) (map[string]interface{}, error)
@@ -15,7 +17,7 @@ type vaultAPIClient struct {
 	*vaultAPI.Client
 }
 
-func NewVaultAPI() VaultAPIClient {
+func NewVaultAPI() VaultAPIWrapper {
 	client, _ := vaultAPI.NewClient(vaultAPI.DefaultConfig())
 	return &vaultAPIClient{client}
 }

@@ -1,4 +1,4 @@
-package vault
+package api
 
 import (
 	"testing"
@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/opencredo/venafi-vault-wizard/app/vault"
 	"github.com/opencredo/venafi-vault-wizard/mocks"
 )
 
@@ -22,17 +23,15 @@ func Test_vault_GetPluginDir(t *testing.T) {
 		},
 		"plugin_dir_not_configured": {
 			storedPluginDir: "",
-			wantErr:         ErrPluginDirNotConfigured,
+			wantErr:         vault.ErrPluginDirNotConfigured,
 		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vaultAPIClient := new(mocks.VaultAPIClient)
-			vaultSSHClient := new(mocks.VaultSSHClient)
+			vaultAPIClient := new(mocks.VaultAPIWrapper)
 			defer vaultAPIClient.AssertExpectations(t)
-			defer vaultSSHClient.AssertExpectations(t)
 
-			vaultClient := getTestVaultClient(vaultAPIClient, vaultSSHClient)
+			vaultClient := getTestVaultClient(vaultAPIClient)
 
 			expectConfigToBeRead(vaultAPIClient, tc.storedPluginDir, false)
 
@@ -46,23 +45,22 @@ func Test_vault_GetPluginDir(t *testing.T) {
 	}
 }
 
-func getTestVaultClient(apiClient *mocks.VaultAPIClient, sshClient *mocks.VaultSSHClient) Vault {
+func getTestVaultClient(apiClient *mocks.VaultAPIWrapper) VaultAPIClient {
 	apiClient.On("SetAddress", "apiaddr").Return(nil)
 	apiClient.On("SetToken", "tok").Return(nil)
 
-	vaultClient := NewVault(
+	vaultClient := NewClient(
 		&Config{
 			APIAddress: "apiaddr",
 			Token:      "tok",
 		},
 		apiClient,
-		sshClient,
 	)
 
 	return vaultClient
 }
 
-func expectConfigToBeRead(apiClient *mocks.VaultAPIClient, pluginDir string, mlockDisabled bool) {
+func expectConfigToBeRead(apiClient *mocks.VaultAPIWrapper, pluginDir string, mlockDisabled bool) {
 	apiClient.On("Read", "sys/config/state/sanitized").Return(
 		map[string]interface{}{
 			"plugin_directory": pluginDir,
@@ -73,12 +71,10 @@ func expectConfigToBeRead(apiClient *mocks.VaultAPIClient, pluginDir string, mlo
 }
 
 func Test_vault_RegisterPlugin(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIClient)
-	vaultSSHClient := new(mocks.VaultSSHClient)
+	vaultAPIClient := new(mocks.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
-	defer vaultSSHClient.AssertExpectations(t)
 
-	vaultClient := getTestVaultClient(vaultAPIClient, vaultSSHClient)
+	vaultClient := getTestVaultClient(vaultAPIClient)
 
 	vaultAPIClient.On(
 		"RegisterPlugin",
@@ -93,12 +89,10 @@ func Test_vault_RegisterPlugin(t *testing.T) {
 }
 
 func Test_vault_MountPlugin(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIClient)
-	vaultSSHClient := new(mocks.VaultSSHClient)
+	vaultAPIClient := new(mocks.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
-	defer vaultSSHClient.AssertExpectations(t)
 
-	vaultClient := getTestVaultClient(vaultAPIClient, vaultSSHClient)
+	vaultClient := getTestVaultClient(vaultAPIClient)
 
 	var backendName = "backend"
 	var mountPath = "path"
@@ -116,12 +110,10 @@ func Test_vault_MountPlugin(t *testing.T) {
 }
 
 func Test_vault_IsMLockDisabled(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIClient)
-	vaultSSHClient := new(mocks.VaultSSHClient)
+	vaultAPIClient := new(mocks.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
-	defer vaultSSHClient.AssertExpectations(t)
 
-	vaultClient := getTestVaultClient(vaultAPIClient, vaultSSHClient)
+	vaultClient := getTestVaultClient(vaultAPIClient)
 
 	expectConfigToBeRead(vaultAPIClient, "", false)
 
