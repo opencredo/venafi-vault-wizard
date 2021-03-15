@@ -6,6 +6,7 @@ import (
 	vaultAPI "github.com/hashicorp/vault/api"
 	vaultConsts "github.com/hashicorp/vault/sdk/helper/consts"
 
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault/api"
 	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
 )
 
@@ -24,13 +25,13 @@ type Vault interface {
 	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
 	IsMLockDisabled() (bool, error)
 	// Inherit WriteFile and AddIPCCapbabilityToFile methods from SSH module
-	ssh.Client
+	ssh.VaultSSHClient
 }
 
 type vault struct {
 	Config      *Config
-	VaultClient *vaultAPI.Client
-	ssh.Client
+	VaultClient api.VaultAPIClient
+	ssh.VaultSSHClient
 }
 
 // Config represents the configuration values needed to connect to Vault via the API and SSH
@@ -39,16 +40,14 @@ type Config struct {
 	APIAddress string
 	// Authentication token to perform Vault operations. Must have sufficient permissions
 	Token string
-	// Address of the Vault server that can be used for SSH access.
-	SSHAddress string
 }
 
 // NewVault returns an instance of the Vault client
-func NewVault(config *Config, apiClient *vaultAPI.Client, sshClient ssh.Client) (Vault, error) {
+func NewVault(config *Config, apiClient api.VaultAPIClient, sshClient ssh.VaultSSHClient) Vault {
 	apiClient.SetAddress(config.APIAddress)
 	apiClient.SetToken(config.Token)
 
-	return &vault{config, apiClient, sshClient}, nil
+	return &vault{config, apiClient, sshClient}
 }
 
 func (v *vault) GetPluginDir() (string, error) {
@@ -66,7 +65,7 @@ func (v *vault) GetPluginDir() (string, error) {
 }
 
 func (v *vault) RegisterPlugin(name, command, sha string) error {
-	err := v.VaultClient.Sys().RegisterPlugin(&vaultAPI.RegisterPluginInput{
+	err := v.VaultClient.RegisterPlugin(&vaultAPI.RegisterPluginInput{
 		Name:    name,
 		Type:    vaultConsts.PluginTypeSecrets,
 		Command: command,
@@ -81,7 +80,7 @@ func (v *vault) RegisterPlugin(name, command, sha string) error {
 }
 
 func (v *vault) MountPlugin(name, path string) error {
-	err := v.VaultClient.Sys().Mount(path, &vaultAPI.MountInput{
+	err := v.VaultClient.Mount(path, &vaultAPI.MountInput{
 		Type: name,
 	})
 	if err != nil {
@@ -94,23 +93,23 @@ func (v *vault) MountPlugin(name, path string) error {
 }
 
 func (v *vault) WriteValue(path string, value map[string]interface{}) error {
-	_, err := v.VaultClient.Logical().Write(path, value)
+	_, err := v.VaultClient.Write(path, value)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return err
+		return ErrWritingVaultPath
 	}
 
 	return nil
 }
 
 func (v *vault) ReadValue(path string) (map[string]interface{}, error) {
-	secret, err := v.VaultClient.Logical().Read(path)
+	secret, err := v.VaultClient.Read(path)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
 		return nil, ErrReadingVaultPath
 	}
 
-	return secret.Data, nil
+	return secret, nil
 }
 
 func (v *vault) getVaultConfig() (map[string]interface{}, error) {

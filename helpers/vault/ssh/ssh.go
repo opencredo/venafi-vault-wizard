@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type Client interface {
+type VaultSSHClient interface {
 	// WriteFile writes a file to the SSH server, overwriting what's already there
 	WriteFile(sourceFile io.Reader, hostDestination string) error
 	// AddIPCLockCapabilityToFile attempts to call setcap over SSH to add IPC_LOCK capability to an executable. Requires
@@ -23,7 +23,7 @@ type sshClient struct {
 	Client *ssh.Client
 }
 
-func NewClient(address, username, password string) (Client, error) {
+func NewClient(address, username, password string) (VaultSSHClient, error) {
 	config := &ssh.ClientConfig{
 		User:            username,
 		Auth:            []ssh.AuthMethod{ssh.Password(password)},

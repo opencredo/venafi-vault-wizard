@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	vaultAPI "github.com/hashicorp/vault/api"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
 	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
+	"github.com/opencredo/venafi-vault-wizard/helpers/vault/api"
 	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
 	"github.com/opencredo/venafi-vault-wizard/tasks"
 )
@@ -31,11 +31,6 @@ const (
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	pterm.Error.ShowLineNumber = false
 
-	apiClient, err := vaultAPI.NewClient(vaultAPI.DefaultConfig())
-	if err != nil {
-		return
-	}
-
 	// TODO: get from command-line
 	sshClient, err := ssh.NewClient(sshAddress, "vagrant", "vagrant")
 	if err != nil {
@@ -43,18 +38,14 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 	}
 	defer sshClient.Close()
 
-	vaultClient, err := vault.NewVault(
+	vaultClient := vault.NewVault(
 		&vault.Config{
 			APIAddress: vaultAddress,
 			Token:      vaultToken,
-			SSHAddress: sshAddress,
 		},
-		apiClient,
+		api.NewVaultAPI(),
 		sshClient,
 	)
-	if err != nil {
-		return
-	}
 
 	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
 		VaultClient:     vaultClient,
