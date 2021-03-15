@@ -7,13 +7,16 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/opencredo/venafi-vault-wizard/helpers/download_plugin"
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
+	"github.com/opencredo/venafi-vault-wizard/app/downloader"
+	"github.com/opencredo/venafi-vault-wizard/app/vault"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
 type InstallPluginInput struct {
-	VaultClient     vault.Vault
-	Downloader      download_plugin.PluginDownloader
+	VaultClient     api.VaultAPIClient
+	SSHClient       ssh.VaultSSHClient
+	Downloader      downloader.PluginDownloader
 	PluginURL       string
 	PluginName      string
 	PluginMountPath string
@@ -43,17 +46,17 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	pluginPath := fmt.Sprintf("%s/%s", pluginDir, input.PluginName)
 
-	sha, err := installPlugin(input.VaultClient, input.Downloader, pluginPath, input.PluginURL)
+	sha, err := input.installPlugin(pluginPath)
 	if err != nil {
 		return err
 	}
 
-	err = enablePluginMlock(input.VaultClient, pluginPath)
+	err = input.enablePluginMlock(pluginPath)
 	if err != nil {
 		return err
 	}
 
-	err = enablePlugin(input.VaultClient, input.PluginName, sha)
+	err = input.enablePlugin(sha)
 	if err != nil {
 		return err
 	}
@@ -63,7 +66,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	pterm.DefaultSection.Println("Configuring plugin")
 
-	err = mountPlugin(input.VaultClient, input.PluginName, input.PluginMountPath)
+	err = input.mountPlugin()
 	if err != nil {
 		return err
 	}
@@ -74,17 +77,17 @@ func InstallPlugin(input *InstallPluginInput) error {
 	return nil
 }
 
-func installPlugin(client vault.Vault, downloader download_plugin.PluginDownloader, pluginPath, pluginURL string) (string, error) {
+func (i *InstallPluginInput) installPlugin(pluginPath string) (string, error) {
 	spinner, _ := pterm.DefaultSpinner.Start("Installing plugin to Vault server...")
-	plugin, sha, err := downloader.DownloadPluginAndUnzip(pluginURL)
+	plugin, sha, err := i.Downloader.DownloadPluginAndUnzip(i.PluginURL)
 	if err != nil {
-		spinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
+		spinner.Fail(fmt.Sprintf("Could not download plugin from %s: %s", i.PluginURL, err))
 		return "", err
 	}
 
 	spinner.UpdateText("Successfully downloaded plugin, copying to Vault server over SSH...")
 
-	err = client.WriteFile(bytes.NewReader(plugin), pluginPath)
+	err = i.SSHClient.WriteFile(bytes.NewReader(plugin), pluginPath)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error copying plugin to Vault: %s", err))
 		return "", err
@@ -95,9 +98,9 @@ func installPlugin(client vault.Vault, downloader download_plugin.PluginDownload
 	return sha, nil
 }
 
-func enablePluginMlock(client vault.Vault, pluginFilepath string) error {
+func (i *InstallPluginInput) enablePluginMlock(pluginFilepath string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Checking if mlock is disabled...")
-	mlockDisabled, err := client.IsMLockDisabled()
+	mlockDisabled, err := i.VaultClient.IsMLockDisabled()
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error checking whether mlock is disabled: %s", err))
 		return err
@@ -106,7 +109,7 @@ func enablePluginMlock(client vault.Vault, pluginFilepath string) error {
 	if !mlockDisabled {
 		spinner.UpdateText("Mlock is enabled on the Vault server, attempting to add IPC_LOCK capability to plugin...")
 
-		err := client.AddIPCLockCapabilityToFile(pluginFilepath)
+		err := i.SSHClient.AddIPCLockCapabilityToFile(pluginFilepath)
 		if err != nil {
 			spinner.Warning("Error adding IPC_LOCK capability to plugin, might be needed for mlock: %s", err)
 			return nil
@@ -120,9 +123,9 @@ func enablePluginMlock(client vault.Vault, pluginFilepath string) error {
 	return nil
 }
 
-func enablePlugin(client vault.Vault, pluginName, sha string) error {
+func (i *InstallPluginInput) enablePlugin(sha string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Enabling plugin in Vault plugin catalog...")
-	err := client.RegisterPlugin(pluginName, pluginName, sha)
+	err := i.VaultClient.RegisterPlugin(i.PluginName, i.PluginName, sha)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error registering plugin in Vault catalog: %s", err))
 		return err
@@ -132,9 +135,9 @@ func enablePlugin(client vault.Vault, pluginName, sha string) error {
 	return nil
 }
 
-func mountPlugin(client vault.Vault, pluginName, mountPath string) error {
+func (i *InstallPluginInput) mountPlugin() error {
 	spinner, _ := pterm.DefaultSpinner.Start("Mounting plugin ...")
-	err := client.MountPlugin(pluginName, mountPath)
+	err := i.VaultClient.MountPlugin(i.PluginName, i.PluginMountPath)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error mounting plugin: %s", err))
 		return err

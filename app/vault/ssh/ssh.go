@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// VaultSSHClient represents a Vault server and the operations available on it over an SSH Connection. For operations
+// involving the Vault API, see the vault/api/VaultAPIClient interface instead
 type VaultSSHClient interface {
 	// WriteFile writes a file to the SSH server, overwriting what's already there
 	WriteFile(sourceFile io.Reader, hostDestination string) error

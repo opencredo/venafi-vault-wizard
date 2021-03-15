@@ -1,4 +1,4 @@
-package vault
+package api
 
 import (
 	"fmt"
@@ -6,15 +6,16 @@ import (
 	vaultAPI "github.com/hashicorp/vault/api"
 	vaultConsts "github.com/hashicorp/vault/sdk/helper/consts"
 
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault/api"
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault/ssh"
+	"github.com/opencredo/venafi-vault-wizard/app/vault"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/lib"
 )
 
-// Vault represents a HashiCorp Vault instance and the operations available on it
-type Vault interface {
+// VaultAPIClient represents a HashiCorp Vault instance and the operations available on it via the Vault API. For
+// operations involving SSH, see the vault/ssh/VaultSSHClient interface instead.
+type VaultAPIClient interface {
 	// GetPluginDir queries the server for the local plugin directory
 	GetPluginDir() (directory string, err error)
-	// RegisterPlugin adds the plugin to the Vault Plugin Catalog
+	// RegisterPlugin adds the plugin to the VaultPlugin Catalog
 	RegisterPlugin(name, command, sha string) error
 	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
 	MountPlugin(name, path string) error
@@ -24,17 +25,14 @@ type Vault interface {
 	ReadValue(path string) (map[string]interface{}, error)
 	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
 	IsMLockDisabled() (bool, error)
-	// Inherit WriteFile and AddIPCCapbabilityToFile methods from SSH module
-	ssh.VaultSSHClient
 }
 
-type vault struct {
+type vaultAPIClient struct {
 	Config      *Config
-	VaultClient api.VaultAPIClient
-	ssh.VaultSSHClient
+	VaultClient lib.VaultAPIWrapper
 }
 
-// Config represents the configuration values needed to connect to Vault via the API and SSH
+// Config represents the configuration values needed to connect to Vault via the API
 type Config struct {
 	// Address of the Vault server that the API is served on. Equivalent of setting VAULT_ADDR for the vault CLI
 	APIAddress string
@@ -42,15 +40,15 @@ type Config struct {
 	Token string
 }
 
-// NewVault returns an instance of the Vault client
-func NewVault(config *Config, apiClient api.VaultAPIClient, sshClient ssh.VaultSSHClient) Vault {
+// NewClient returns an instance of the Vault API client
+func NewClient(config *Config, apiClient lib.VaultAPIWrapper) VaultAPIClient {
 	apiClient.SetAddress(config.APIAddress)
 	apiClient.SetToken(config.Token)
 
-	return &vault{config, apiClient, sshClient}
+	return &vaultAPIClient{config, apiClient}
 }
 
-func (v *vault) GetPluginDir() (string, error) {
+func (v *vaultAPIClient) GetPluginDir() (string, error) {
 	config, err := v.getVaultConfig()
 	if err != nil {
 		return "", fmt.Errorf("error reading sys/config/state: %w", err)
@@ -58,13 +56,13 @@ func (v *vault) GetPluginDir() (string, error) {
 
 	dir, ok := config["plugin_directory"].(string)
 	if dir == "" || !ok {
-		return "", ErrPluginDirNotConfigured
+		return "", vault.ErrPluginDirNotConfigured
 	}
 
 	return dir, nil
 }
 
-func (v *vault) RegisterPlugin(name, command, sha string) error {
+func (v *vaultAPIClient) RegisterPlugin(name, command, sha string) error {
 	err := v.VaultClient.RegisterPlugin(&vaultAPI.RegisterPluginInput{
 		Name:    name,
 		Type:    vaultConsts.PluginTypeSecrets,
@@ -73,13 +71,13 @@ func (v *vault) RegisterPlugin(name, command, sha string) error {
 	})
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return fmt.Errorf("error writing sys/plugins/catalog/secret: %w", ErrWritingVaultPath)
+		return fmt.Errorf("error writing sys/plugins/catalog/secret: %w", vault.ErrWritingVaultPath)
 	}
 
 	return nil
 }
 
-func (v *vault) MountPlugin(name, path string) error {
+func (v *vaultAPIClient) MountPlugin(name, path string) error {
 	err := v.VaultClient.Mount(path, &vaultAPI.MountInput{
 		Type: name,
 	})
@@ -92,31 +90,31 @@ func (v *vault) MountPlugin(name, path string) error {
 	return nil
 }
 
-func (v *vault) WriteValue(path string, value map[string]interface{}) error {
+func (v *vaultAPIClient) WriteValue(path string, value map[string]interface{}) error {
 	_, err := v.VaultClient.Write(path, value)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return ErrWritingVaultPath
+		return vault.ErrWritingVaultPath
 	}
 
 	return nil
 }
 
-func (v *vault) ReadValue(path string) (map[string]interface{}, error) {
+func (v *vaultAPIClient) ReadValue(path string) (map[string]interface{}, error) {
 	secret, err := v.VaultClient.Read(path)
 	if err != nil {
 		// TODO: parse out error codes and adjust error message accordingly
-		return nil, ErrReadingVaultPath
+		return nil, vault.ErrReadingVaultPath
 	}
 
 	return secret, nil
 }
 
-func (v *vault) getVaultConfig() (map[string]interface{}, error) {
+func (v *vaultAPIClient) getVaultConfig() (map[string]interface{}, error) {
 	return v.ReadValue("sys/config/state/sanitized")
 }
 
-func (v *vault) IsMLockDisabled() (bool, error) {
+func (v *vaultAPIClient) IsMLockDisabled() (bool, error) {
 	config, err := v.getVaultConfig()
 	if err != nil {
 		return false, err

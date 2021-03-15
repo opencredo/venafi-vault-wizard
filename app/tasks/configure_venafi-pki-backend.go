@@ -5,11 +5,11 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/opencredo/venafi-vault-wizard/helpers/vault"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
 type ConfigureVenafiPKIBackendInput struct {
-	VaultClient     vault.Vault
+	VaultClient     api.VaultAPIClient
 	PluginMountPath string
 	SecretName      string
 	RoleName        string
