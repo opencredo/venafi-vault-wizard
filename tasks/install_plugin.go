@@ -20,6 +20,8 @@ type InstallPluginInput struct {
 }
 
 func InstallPlugin(input *InstallPluginInput) error {
+	pterm.DefaultSection.Println("Checking Vault")
+
 	vaultCheckSpinner, _ := pterm.DefaultSpinner.Start("Checking Vault...")
 	vaultCheckSpinner.UpdateText("Checking Vault Plugin Directory...")
 

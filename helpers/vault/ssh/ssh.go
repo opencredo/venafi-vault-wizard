@@ -15,6 +15,8 @@ type Client interface {
 	// AddIPCLockCapabilityToFile attempts to call setcap over SSH to add IPC_LOCK capability to an executable. Requires
 	// sudo privileges
 	AddIPCLockCapabilityToFile(filename string) error
+	// Close closes the underlying SSH connection
+	Close() error
 }
 
 type sshClient struct {
@@ -43,7 +45,7 @@ func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) erro
 	defer close()
 
 	// Delete file if it exists already, otherwise create a new file
-	// TODO: check if plugin exists already as this sometimes fails?
+	// TODO: fails if plugin is in use, see if we can mitigate or warn user
 	dstFile, err := sftpClient.OpenFile(hostDestination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 	if err != nil {
 		return err
@@ -66,12 +68,10 @@ func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) erro
 func newSFTPClient(conn *ssh.Client) (*sftp.Client, func(), error) {
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
-		conn.Close()
 		return nil, nil, err
 	}
 
 	closeConns := func() {
-		conn.Close()
 		sftpClient.Close()
 	}
 
@@ -101,4 +101,8 @@ func (c *sshClient) AddIPCLockCapabilityToFile(filename string) error {
 	}
 
 	return nil
+}
+
+func (c *sshClient) Close() error {
+	return c.Client.Close()
 }

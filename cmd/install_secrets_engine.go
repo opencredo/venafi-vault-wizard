@@ -41,6 +41,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 	if err != nil {
 		return
 	}
+	defer sshClient.Close()
 
 	vaultClient, err := vault.NewVault(
 		&vault.Config{

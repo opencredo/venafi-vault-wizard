@@ -44,7 +44,7 @@ func (i *ConfigureVenafiPKIBackendInput) addVenafiSecret() error {
 		return err
 	}
 
-	spinner.Success("Venafi secret configured at" + secretPath)
+	spinner.Success("Venafi secret configured at " + secretPath)
 	return nil
 }
 
