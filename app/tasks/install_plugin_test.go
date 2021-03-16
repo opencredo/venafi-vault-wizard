@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -12,14 +11,20 @@ import (
 )
 
 func TestInstallPlugin(t *testing.T) {
-	pterm.DisableOutput()
-
 	vaultAPIClient := new(mocks.VaultAPIClient)
 	vaultSSHClient := new(mocks.VaultSSHClient)
 	downloader := new(mocks.PluginDownloader)
+	report := new(mocks.Report)
+	section := new(mocks.Section)
+	check := new(mocks.Check)
 	defer vaultAPIClient.AssertExpectations(t)
 	defer vaultSSHClient.AssertExpectations(t)
 	defer downloader.AssertExpectations(t)
+	defer report.AssertExpectations(t)
+	defer section.AssertExpectations(t)
+	defer check.AssertExpectations(t)
+
+	reportExpectations(report, section, check)
 
 	var pluginURL = "https://github.com/Venafi/plugin/releases/release.zip"
 	var pluginName = "venafi-pki-backend"
@@ -46,9 +51,18 @@ func TestInstallPlugin(t *testing.T) {
 		VaultClient:     vaultAPIClient,
 		SSHClient:       vaultSSHClient,
 		Downloader:      downloader,
+		Reporter:        report,
 		PluginURL:       pluginURL,
 		PluginName:      pluginName,
 		PluginMountPath: pluginMountPath,
 	})
 	require.NoError(t, err)
+}
+
+func reportExpectations(report *mocks.Report, section *mocks.Section, check *mocks.Check) {
+	report.On("AddSection", mock.AnythingOfType("string")).Return(section)
+	section.On("AddCheck", mock.AnythingOfType("string")).Return(check)
+	section.On("Info", mock.AnythingOfType("string"))
+	check.On("UpdateStatus", mock.AnythingOfType("string"))
+	check.On("Success", mock.AnythingOfType("string"))
 }

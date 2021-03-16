@@ -9,6 +9,6 @@ require (
 	github.com/pterm/pterm v0.12.12
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
-	github.com/vektra/mockery/v2 v2.6.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 )

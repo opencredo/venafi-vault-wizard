@@ -1,10 +1,12 @@
 package cmd
 
 import (
-	"github.com/pterm/pterm"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/opencredo/venafi-vault-wizard/app/downloader"
+	"github.com/opencredo/venafi-vault-wizard/app/reporter/pretty"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/lib"
@@ -29,7 +31,7 @@ const (
 )
 
 func installPKIBackend(_ *cobra.Command, _ []string) {
-	pterm.Error.ShowLineNumber = false
+	report := pretty.NewReport()
 
 	// TODO: get from command-line
 	sshClient, err := ssh.NewClient(sshAddress, "vagrant", "vagrant")
@@ -50,6 +52,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 		VaultClient:     vaultClient,
 		SSHClient:       sshClient,
 		Downloader:      downloader.NewPluginDownloader(),
+		Reporter:        report,
 		PluginURL:       pluginURL,
 		PluginName:      pluginName,
 		PluginMountPath: pluginMountPath,
@@ -60,6 +63,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 
 	err = tasks.ConfigureVenafiPKIBackend(&tasks.ConfigureVenafiPKIBackendInput{
 		VaultClient:     vaultClient,
+		Reporter:        report,
 		PluginMountPath: pluginMountPath,
 		SecretName:      "cloud", // TODO: override on command line
 		RoleName:        "cloud",
@@ -70,12 +74,12 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 		return
 	}
 
-	pterm.Println()
-	pterm.DefaultBasicText.WithStyle(&pterm.Style{pterm.FgGreen}).
-		Printf(
-			"Finished! You can try and request a certificate using:\n"+
-				"$ vault write %s/issue/%s common_name=\"test.example.com\"\n", pluginMountPath, "cloud")
-
-	pterm.Println()
-	pterm.DefaultHeader.Println("Success! Vault is configured to work with Venafi")
+	report.Finish(
+		fmt.Sprintf(
+			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
+			pluginMountPath,
+			"cloud",
+		),
+		"Success! Vault is configured to work with Venafi",
+	)
 }
