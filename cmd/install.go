@@ -11,12 +11,6 @@ var installCommand = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(installCommand)
 	installCommand.PersistentFlags().StringVar(
-		&sshAddress,
-		"sshAddress",
-		"vault.local:22",
-		"Hostname and port of Vault server",
-	)
-	installCommand.PersistentFlags().StringVar(
 		&venafiAPIKey,
 		"venafiAPIKey",
 		"",
@@ -33,7 +27,6 @@ func init() {
 }
 
 var (
-	sshAddress   string
 	venafiAPIKey string
 	venafiZoneID string
 )

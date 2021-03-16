@@ -10,6 +10,9 @@ import (
 var (
 	vaultAddress string
 	vaultToken   string
+	sshUser      string
+	sshPassword  string
+	sshPort      uint
 )
 
 var rootCmd = &cobra.Command{
@@ -30,6 +33,24 @@ func init() {
 		"vaultToken",
 		"root",
 		"Token used to authenticate with Vault",
+	)
+	rootCmd.PersistentFlags().StringVar(
+		&sshUser,
+		"sshUser",
+		"username",
+		"Username with which to log into Vault server over SSH (must have sudo privileges)",
+	)
+	rootCmd.PersistentFlags().StringVar(
+		&sshPassword,
+		"sshPassword",
+		"password",
+		"Password for SSH user to log into Vault server with",
+	)
+	rootCmd.PersistentFlags().UintVar(
+		&sshPort,
+		"sshPort",
+		22,
+		"Port on which SSH is running on the Vault server",
 	)
 }
 
