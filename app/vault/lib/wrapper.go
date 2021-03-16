@@ -37,7 +37,11 @@ func (v *vaultAPIClient) Write(path string, data map[string]interface{}) (map[st
 		return nil, err
 	}
 
-	return secret.Data, nil
+	if secret == nil {
+		return nil, nil
+	} else {
+		return secret.Data, nil
+	}
 }
 
 func (v *vaultAPIClient) RegisterPlugin(input *vaultAPI.RegisterPluginInput) error {
