@@ -1,7 +1,7 @@
 BIN=$(CURDIR)/bin
 
 .PHONY: test
-test: generate-mocks
+test:
 	go test -v ./...
 
 .PHONY: fmt
