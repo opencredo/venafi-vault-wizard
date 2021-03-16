@@ -19,9 +19,12 @@ $ export VAULT_ADDR=http://192.168.33.10:8200
 $ vault status
 $ ./vvw install venafi-pki-backend \
   --vaultAddress=http://192.168.33.10:8200 \
-  --sshAddress=192.168.33.10:22 \
-  --vaultToken="<DISPLAYED IN VAGRANT UP OUTPUT>" \
+  --vaultToken=$VAULT_TOKEN \
   --venafiAPIKey="<VENAFI CLOUD API KEY HERE>" \
   --venafiZone="<VENAFI CLOUD ZONE ID HERE>"
+  --sshUser=vagrant \
+  --sshPassword=vagrant \
+  --sshPort=22
+
 $ vault write venafi-pki/issue/cloud common_name="test.example.com"
 ```

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 
@@ -33,9 +34,17 @@ const (
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	report := pretty.NewReport()
 
-	// TODO: get from command-line
-	sshClient, err := ssh.NewClient(sshAddress, "vagrant", "vagrant")
+	vaultURL, err := url.Parse(vaultAddress)
 	if err != nil {
+		fmt.Println("Invalid Vault Address")
+		return
+	}
+
+	vaultSSHAddress := fmt.Sprintf("%s:%d", vaultURL.Hostname(), sshPort)
+
+	sshClient, err := ssh.NewClient(vaultSSHAddress, sshUser, sshPassword)
+	if err != nil {
+		fmt.Println("Error making SSH connection")
 		return
 	}
 	defer sshClient.Close()
