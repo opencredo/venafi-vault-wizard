@@ -23,6 +23,8 @@ type VaultAPIClient interface {
 	WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error)
 	// ReadValue reads from the specified path. Equivalent to `$ vault read path`
 	ReadValue(path string) (map[string]interface{}, error)
+	// GetVaultConfig reads the config from sys/config/state/sanitized and returns it as a map
+	GetVaultConfig() (map[string]interface{}, error)
 	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
 	IsMLockDisabled() (bool, error)
 }
@@ -49,7 +51,7 @@ func NewClient(config *Config, apiClient lib.VaultAPIWrapper) VaultAPIClient {
 }
 
 func (v *vaultAPIClient) GetPluginDir() (string, error) {
-	config, err := v.getVaultConfig()
+	config, err := v.GetVaultConfig()
 	if err != nil {
 		return "", err
 	}
@@ -106,12 +108,12 @@ func (v *vaultAPIClient) ReadValue(path string) (map[string]interface{}, error) 
 	return secret, nil
 }
 
-func (v *vaultAPIClient) getVaultConfig() (map[string]interface{}, error) {
+func (v *vaultAPIClient) GetVaultConfig() (map[string]interface{}, error) {
 	return v.ReadValue("sys/config/state/sanitized")
 }
 
 func (v *vaultAPIClient) IsMLockDisabled() (bool, error) {
-	config, err := v.getVaultConfig()
+	config, err := v.GetVaultConfig()
 	if err != nil {
 		return false, err
 	}

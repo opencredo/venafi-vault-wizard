@@ -3,7 +3,7 @@ package vault
 import "errors"
 
 var (
-	ErrUnauthorised           = errors.New("the Vault request was unauthorised, check whether the token is valid")
+	ErrUnauthorised           = errors.New("the Vault request was unauthorised, check whether the token is valid and has sufficient permissions to perform operation")
 	ErrNotFound               = errors.New("path not found, either it was incorrect or a backend isn't mounted properly")
 	ErrVaultSealed            = errors.New("the Vault server is either sealed or down for maintenance")
 	ErrPluginDirNotConfigured = errors.New("plugin_directory not set in Vault config file")
