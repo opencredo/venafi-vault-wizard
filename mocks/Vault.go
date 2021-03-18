@@ -149,7 +149,7 @@ func (_m *Vault) WriteFile(sourceFile io.Reader, hostDestination string) error {
 }
 
 // WriteValue provides a mock function with given fields: path, value
-func (_m *Vault) WriteValue(path string, value map[string]interface{}) error {
+func (_m *Vault) WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error) {
 	ret := _m.Called(path, value)
 
 	var r0 error
@@ -159,5 +159,5 @@ func (_m *Vault) WriteValue(path string, value map[string]interface{}) error {
 		r0 = ret.Error(0)
 	}
 
-	return r0
+	return nil, r0
 }

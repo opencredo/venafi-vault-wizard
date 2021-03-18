@@ -20,7 +20,7 @@ type VaultAPIClient interface {
 	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
 	MountPlugin(name, path string) error
 	// WriteValue writes to the specified path. Equivalent to `$ vault write path value1=v1 value2=v2`
-	WriteValue(path string, value map[string]interface{}) error
+	WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error)
 	// ReadValue reads from the specified path. Equivalent to `$ vault read path`
 	ReadValue(path string) (map[string]interface{}, error)
 	// IsMLockDisabled checks to see if the server was run with the disable_mlock option
@@ -51,7 +51,7 @@ func NewClient(config *Config, apiClient lib.VaultAPIWrapper) VaultAPIClient {
 func (v *vaultAPIClient) GetPluginDir() (string, error) {
 	config, err := v.getVaultConfig()
 	if err != nil {
-		return "", fmt.Errorf("error reading sys/config/state: %w", err)
+		return "", err
 	}
 
 	dir, ok := config["plugin_directory"].(string)
@@ -70,8 +70,7 @@ func (v *vaultAPIClient) RegisterPlugin(name, command, sha string) error {
 		SHA256:  sha,
 	})
 	if err != nil {
-		// TODO: parse out error codes and adjust error message accordingly
-		return fmt.Errorf("error writing sys/plugins/catalog/secret: %w", vault.ErrWritingVaultPath)
+		return fmt.Errorf("error writing sys/plugins/catalog/secret: %w", err)
 	}
 
 	return nil
@@ -82,7 +81,6 @@ func (v *vaultAPIClient) MountPlugin(name, path string) error {
 		Type: name,
 	})
 	if err != nil {
-		// TODO: parse out error codes and adjust error message accordingly
 		// TODO: check for "Unrecognized remote plugin message" and see whether it's mlock or api_addr
 		return fmt.Errorf("error mounting plugin %s at path %s: %w", name, path, err)
 	}
@@ -90,21 +88,19 @@ func (v *vaultAPIClient) MountPlugin(name, path string) error {
 	return nil
 }
 
-func (v *vaultAPIClient) WriteValue(path string, value map[string]interface{}) error {
-	_, err := v.VaultClient.Write(path, value)
+func (v *vaultAPIClient) WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error) {
+	secret, err := v.VaultClient.Write(path, value)
 	if err != nil {
-		// TODO: parse out error codes and adjust error message accordingly
-		return vault.ErrWritingVaultPath
+		return nil, fmt.Errorf("error writing to path %s: %w", path, err)
 	}
 
-	return nil
+	return secret, nil
 }
 
 func (v *vaultAPIClient) ReadValue(path string) (map[string]interface{}, error) {
 	secret, err := v.VaultClient.Read(path)
 	if err != nil {
-		// TODO: parse out error codes and adjust error message accordingly
-		return nil, vault.ErrReadingVaultPath
+		return nil, fmt.Errorf("error reading from path %s: %w", path, err)
 	}
 
 	return secret, nil
@@ -122,7 +118,7 @@ func (v *vaultAPIClient) IsMLockDisabled() (bool, error) {
 
 	disabled, ok := config["disable_mlock"].(bool)
 	if !ok {
-		return false, fmt.Errorf("error")
+		return false, fmt.Errorf("error, `disable_mlock` option not found in config")
 	}
 
 	return disabled, nil

@@ -25,7 +25,7 @@ func NewVaultAPI() VaultAPIWrapper {
 func (v *vaultAPIClient) Read(path string) (map[string]interface{}, error) {
 	secret, err := v.Logical().Read(path)
 	if err != nil {
-		return nil, err
+		return nil, normaliseError(err)
 	}
 
 	return secret.Data, nil
@@ -34,7 +34,7 @@ func (v *vaultAPIClient) Read(path string) (map[string]interface{}, error) {
 func (v *vaultAPIClient) Write(path string, data map[string]interface{}) (map[string]interface{}, error) {
 	secret, err := v.Logical().Write(path, data)
 	if err != nil {
-		return nil, err
+		return nil, normaliseError(err)
 	}
 
 	if secret == nil {
@@ -45,9 +45,11 @@ func (v *vaultAPIClient) Write(path string, data map[string]interface{}) (map[st
 }
 
 func (v *vaultAPIClient) RegisterPlugin(input *vaultAPI.RegisterPluginInput) error {
-	return v.Sys().RegisterPlugin(input)
+	err := v.Sys().RegisterPlugin(input)
+	return normaliseError(err)
 }
 
 func (v *vaultAPIClient) Mount(path string, input *vaultAPI.MountInput) error {
-	return v.Sys().Mount(path, input)
+	err := v.Sys().Mount(path, input)
+	return normaliseError(err)
 }

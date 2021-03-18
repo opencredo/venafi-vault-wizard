@@ -37,7 +37,7 @@ func (i *ConfigureVenafiPKIBackendInput) addVenafiSecret(reportSection reporter.
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
 	secretPath := fmt.Sprintf("%s/venafi/%s", i.PluginMountPath, i.SecretName)
-	err := i.VaultClient.WriteValue(secretPath, map[string]interface{}{
+	_, err := i.VaultClient.WriteValue(secretPath, map[string]interface{}{
 		"apikey": i.VenafiAPIKey,
 		"zone":   i.VenafiZoneID,
 	})
@@ -54,7 +54,7 @@ func (i *ConfigureVenafiPKIBackendInput) addVenafiRole(reportSection reporter.Se
 	check := reportSection.AddCheck("Adding Venafi role...")
 
 	rolePath := fmt.Sprintf("%s/roles/%s", i.PluginMountPath, i.RoleName)
-	err := i.VaultClient.WriteValue(rolePath, map[string]interface{}{
+	_, err := i.VaultClient.WriteValue(rolePath, map[string]interface{}{
 		"venafi_secret": i.SecretName,
 	})
 	if err != nil {
