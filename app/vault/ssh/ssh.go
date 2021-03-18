@@ -1,9 +1,11 @@
 package ssh
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -47,9 +49,16 @@ func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) erro
 	defer close()
 
 	// Delete file if it exists already, otherwise create a new file
-	// TODO: fails if plugin is in use, see if we can mitigate or warn user
 	dstFile, err := sftpClient.OpenFile(hostDestination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 	if err != nil {
+		if errors.Is(err, os.ErrPermission) {
+			return ErrNoPermissions
+		} else if errors.Is(err, os.ErrNotExist) {
+			return ErrNotFound
+		} else if strings.Contains(err.Error(), "SSH_FX_FAILURE") {
+			// FIXME: can this error occur for any other reasons?
+			return ErrFileBusy
+		}
 		return err
 	}
 	defer dstFile.Close()

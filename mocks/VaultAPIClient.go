@@ -103,15 +103,24 @@ func (_m *VaultAPIClient) RegisterPlugin(name string, command string, sha string
 }
 
 // WriteValue provides a mock function with given fields: path, value
-func (_m *VaultAPIClient) WriteValue(path string, value map[string]interface{}) error {
+func (_m *VaultAPIClient) WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error) {
 	ret := _m.Called(path, value)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) map[string]interface{}); ok {
 		r0 = rf(path, value)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, map[string]interface{}) error); ok {
+		r1 = rf(path, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

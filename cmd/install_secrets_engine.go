@@ -36,6 +36,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 
 	vaultURL, err := url.Parse(vaultAddress)
 	if err != nil {
+		// TODO: report error better. maybe a reporter.Section or Check for getting these clients set up
 		fmt.Println("Invalid Vault Address")
 		return
 	}
@@ -44,6 +45,7 @@ func installPKIBackend(_ *cobra.Command, _ []string) {
 
 	sshClient, err := ssh.NewClient(vaultSSHAddress, sshUser, sshPassword)
 	if err != nil {
+		// TODO: check errors here and report better than just a simple print
 		fmt.Println("Error making SSH connection")
 		return
 	}

@@ -29,10 +29,10 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	pluginDir, err := input.VaultClient.GetPluginDir()
 	if err != nil {
-		if errors.Is(err, vault.ErrReadingVaultPath) {
-			pluginDirCheck.Error(fmt.Sprintf("Error getting plugin directory: %s", err))
-		} else if errors.Is(err, vault.ErrPluginDirNotConfigured) {
+		if errors.Is(err, vault.ErrPluginDirNotConfigured) {
 			pluginDirCheck.Error("The plugin_directory hasn't been configured correctly in the Vault Server Config")
+		} else {
+			pluginDirCheck.Error(fmt.Sprintf("Error while trying to read plugin_directory: %s", err))
 		}
 		return err
 	}
@@ -84,6 +84,11 @@ func (i *InstallPluginInput) installPlugin(reportSection reporter.Section, plugi
 
 	err = i.SSHClient.WriteFile(bytes.NewReader(plugin), pluginPath)
 	if err != nil {
+		if errors.Is(err, ssh.ErrFileBusy) {
+			check.Warning("File already exists and is busy, so cannot overwrite")
+			return sha, nil
+		}
+
 		check.Error(fmt.Sprintf("Error copying plugin to Vault: %s", err))
 		return "", err
 	}
