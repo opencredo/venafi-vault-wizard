@@ -2,16 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/spf13/cobra"
 
 	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter/pretty"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
-	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
-	"github.com/opencredo/venafi-vault-wizard/app/vault/lib"
-	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
 var installPKIBackendCommand = &cobra.Command{
@@ -34,30 +30,11 @@ const (
 func installPKIBackend(_ *cobra.Command, _ []string) {
 	report := pretty.NewReport()
 
-	vaultURL, err := url.Parse(vaultAddress)
+	sshClient, vaultClient, closeFunc, err := getClients(report)
 	if err != nil {
-		// TODO: report error better. maybe a reporter.Section or Check for getting these clients set up
-		fmt.Println("Invalid Vault Address")
 		return
 	}
-
-	vaultSSHAddress := fmt.Sprintf("%s:%d", vaultURL.Hostname(), sshPort)
-
-	sshClient, err := ssh.NewClient(vaultSSHAddress, sshUser, sshPassword)
-	if err != nil {
-		// TODO: check errors here and report better than just a simple print
-		fmt.Println("Error making SSH connection")
-		return
-	}
-	defer sshClient.Close()
-
-	vaultClient := api.NewClient(
-		&api.Config{
-			APIAddress: vaultAddress,
-			Token:      vaultToken,
-		},
-		lib.NewVaultAPI(),
-	)
+	defer closeFunc()
 
 	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
 		VaultClient:     vaultClient,
