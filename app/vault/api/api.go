@@ -17,8 +17,12 @@ type VaultAPIClient interface {
 	GetPluginDir() (directory string, err error)
 	// RegisterPlugin adds the plugin to the VaultPlugin Catalog
 	RegisterPlugin(name, command, sha string) error
+	// GetPlugin returns information about a registered plugin (command, sha, args etc)
+	GetPlugin(name string) (map[string]interface{}, error)
 	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
 	MountPlugin(name, path string) error
+	// GetMountPluginName checks which backend is used for particular mount
+	GetMountPluginName(path string) (string, error)
 	// WriteValue writes to the specified path. Equivalent to `$ vault write path value1=v1 value2=v2`
 	WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error)
 	// ReadValue reads from the specified path. Equivalent to `$ vault read path`
@@ -78,6 +82,22 @@ func (v *vaultAPIClient) RegisterPlugin(name, command, sha string) error {
 	return nil
 }
 
+func (v *vaultAPIClient) GetPlugin(name string) (map[string]interface{}, error) {
+	plugin, err := v.VaultClient.GetPlugin(&vaultAPI.GetPluginInput{
+		Name: name,
+		Type: vaultConsts.PluginTypeSecrets,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting details for plugin %s: %w", name, err)
+	}
+
+	return map[string]interface{}{
+		"command": plugin.Command,
+		"args":    plugin.Args,
+		"sha":     plugin.SHA256,
+	}, nil
+}
+
 func (v *vaultAPIClient) MountPlugin(name, path string) error {
 	err := v.VaultClient.Mount(path, &vaultAPI.MountInput{
 		Type: name,
@@ -88,6 +108,20 @@ func (v *vaultAPIClient) MountPlugin(name, path string) error {
 	}
 
 	return nil
+}
+
+func (v *vaultAPIClient) GetMountPluginName(path string) (string, error) {
+	mounts, err := v.VaultClient.ListMounts()
+	if err != nil {
+		return "", fmt.Errorf("error listing mounts: %w", err)
+	}
+
+	mount, ok := mounts[path+"/"]
+	if !ok {
+		return "", fmt.Errorf("nothing mounted at path %s: %w", path, vault.ErrPluginNotMounted)
+	}
+
+	return mount.Type, nil
 }
 
 func (v *vaultAPIClient) WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error) {

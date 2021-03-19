@@ -31,10 +31,21 @@ func NewRootCommand() *cobra.Command {
 		Long:  "Installs a plugin to allow Vault to request certificates from Venafi, or to provision them on behalf of Venafi",
 	}
 
+	verifyCmd := &cobra.Command{
+		Use:   "verify",
+		Short: "Verifies correct installation of a Venafi Vault plugin",
+		Long:  "Verifies that the installation of either of the Venafi Vault plugins was successful and that it is configured correctly",
+	}
+
 	rootCmd.AddCommand(installCmd)
+	rootCmd.AddCommand(verifyCmd)
 	installCmd.AddCommand(
 		newInstallPKIBackendCmd(cfg),
 		newInstallPKIMonitorCommand(cfg),
+	)
+	verifyCmd.AddCommand(
+		newVerifyPKIBackendCmd(cfg),
+		newVerifyPKIMonitorCmd(cfg),
 	)
 
 	return rootCmd

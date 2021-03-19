@@ -26,7 +26,6 @@ func InstallPlugin(input *InstallPluginInput) error {
 	// Check vault before doing anything
 	checkVaultSection := input.Reporter.AddSection("Checking Vault")
 	pluginDirCheck := checkVaultSection.AddCheck("Checking Vault Plugin Directory...")
-
 	pluginDir, err := input.VaultClient.GetPluginDir()
 	if err != nil {
 		if errors.Is(err, vault.ErrPluginDirNotConfigured) {

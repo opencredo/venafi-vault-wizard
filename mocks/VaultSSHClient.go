@@ -41,6 +41,48 @@ func (_m *VaultSSHClient) Close() error {
 	return r0
 }
 
+// FileExists provides a mock function with given fields: filepath
+func (_m *VaultSSHClient) FileExists(filepath string) (bool, error) {
+	ret := _m.Called(filepath)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(filepath)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(filepath)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsIPCLockCapabilityOnFile provides a mock function with given fields: filename
+func (_m *VaultSSHClient) IsIPCLockCapabilityOnFile(filename string) (bool, error) {
+	ret := _m.Called(filename)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(filename)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(filename)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // WriteFile provides a mock function with given fields: sourceFile, hostDestination
 func (_m *VaultSSHClient) WriteFile(sourceFile io.Reader, hostDestination string) error {
 	ret := _m.Called(sourceFile, hostDestination)
