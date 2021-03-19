@@ -105,7 +105,17 @@ func initViperConfig(cmd *cobra.Command) error {
 	v.BindEnv("vaultToken", "VAULT_TOKEN")
 	v.BindEnv("venafiAPIKey", "VENAFI_API_KEY")
 
-	var err error
+	// Search from config files called vvw.yaml in current directory
+	v.SetConfigName("vvw")
+	v.AddConfigPath(".")
+	err := v.ReadInConfig()
+	if err != nil {
+		// Ignore ConfigFileNotFoundError but return error for anything else (e.g. parse errors)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
 	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 		// If the flag wasn't set and Viper can find a value, use that
 		if !flag.Changed && v.IsSet(flag.Name) {
