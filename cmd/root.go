@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/opencredo/venafi-vault-wizard/app/config"
 )
@@ -16,8 +19,7 @@ func NewRootCommand() *cobra.Command {
 		Short: "Venafi Vault Wizard",
 		Long:  "VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			// TODO: bind all the Viper stuff here so the config can get overwritten by viper values
-			return nil
+			return initViperConfig(cmd)
 		},
 	}
 
@@ -89,6 +91,30 @@ func setUpGlobalFlags(cmd *cobra.Command, config *config.GlobalConfig) {
 		"venafi-pki",
 		"Vault path at which to mount the Venafi plugin",
 	)
+}
+
+func initViperConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	// Allow Viper to check environment variables
+	v.SetEnvPrefix("VVW")
+	v.AutomaticEnv()
+
+	// Set up env variable aliases
+	v.BindEnv("vaultAddress", "VAULT_ADDR")
+	v.BindEnv("vaultToken", "VAULT_TOKEN")
+	v.BindEnv("venafiAPIKey", "VENAFI_API_KEY")
+
+	var err error
+	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+		// If the flag wasn't set and Viper can find a value, use that
+		if !flag.Changed && v.IsSet(flag.Name) {
+			value := v.Get(flag.Name)
+			err = cmd.Flags().Set(flag.Name, fmt.Sprintf("%v", value))
+		}
+	})
+
+	return err
 }
 
 func Execute() {
