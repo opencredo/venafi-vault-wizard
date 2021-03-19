@@ -30,7 +30,7 @@ func GetClients(cfg *config.GlobalConfig, report reporter.Report) (ssh.VaultSSHC
 	)
 	_, err = vaultClient.GetVaultConfig()
 	if err != nil {
-		check.Error(fmt.Sprintf("Error connecting to Vault API and reading config: %s", err))
+		check.Error(fmt.Sprintf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err))
 		return nil, nil, nil, err
 	}
 
