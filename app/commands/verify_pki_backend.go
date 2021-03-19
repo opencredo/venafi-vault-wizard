@@ -4,16 +4,11 @@ import (
 	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/config"
-	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter/pretty"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 )
 
-const (
-	pkiBackendPluginURL = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
-)
-
-func InstallPKIBackend(cfg *config.PKIBackendConfig) {
+func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 	report := pretty.NewReport()
 
 	sshClient, vaultClient, closeFunc, err := tasks.GetClients(cfg.GlobalConfig, report)
@@ -22,27 +17,12 @@ func InstallPKIBackend(cfg *config.PKIBackendConfig) {
 	}
 	defer closeFunc()
 
-	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
+	err = tasks.VerifyPluginInstalled(&tasks.VerifyPluginInstalledInput{
 		VaultClient:     vaultClient,
 		SSHClient:       sshClient,
-		Downloader:      downloader.NewPluginDownloader(),
 		Reporter:        report,
-		PluginURL:       pkiBackendPluginURL,
 		PluginName:      "venafi-pki-backend",
 		PluginMountPath: cfg.MountPath,
-	})
-	if err != nil {
-		return
-	}
-
-	err = tasks.ConfigureVenafiPKIBackend(&tasks.ConfigureVenafiPKIBackendInput{
-		VaultClient:     vaultClient,
-		Reporter:        report,
-		PluginMountPath: cfg.MountPath,
-		SecretName:      cfg.VenafiSecret,
-		RoleName:        cfg.RoleName,
-		VenafiAPIKey:    cfg.VenafiAPIKey,
-		VenafiZoneID:    cfg.VenafiZone,
 	})
 	if err != nil {
 		return

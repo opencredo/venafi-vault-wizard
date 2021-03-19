@@ -13,6 +13,52 @@ type VaultAPIWrapper struct {
 	mock.Mock
 }
 
+// GetPlugin provides a mock function with given fields: input
+func (_m *VaultAPIWrapper) GetPlugin(input *api.GetPluginInput) (*api.GetPluginResponse, error) {
+	ret := _m.Called(input)
+
+	var r0 *api.GetPluginResponse
+	if rf, ok := ret.Get(0).(func(*api.GetPluginInput) *api.GetPluginResponse); ok {
+		r0 = rf(input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.GetPluginResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*api.GetPluginInput) error); ok {
+		r1 = rf(input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListMounts provides a mock function with given fields:
+func (_m *VaultAPIWrapper) ListMounts() (map[string]*api.MountOutput, error) {
+	ret := _m.Called()
+
+	var r0 map[string]*api.MountOutput
+	if rf, ok := ret.Get(0).(func() map[string]*api.MountOutput); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*api.MountOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Mount provides a mock function with given fields: path, input
 func (_m *VaultAPIWrapper) Mount(path string, input *api.MountInput) error {
 	ret := _m.Called(path, input)

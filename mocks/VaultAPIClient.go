@@ -9,6 +9,50 @@ type VaultAPIClient struct {
 	mock.Mock
 }
 
+// GetMountPluginName provides a mock function with given fields: path
+func (_m *VaultAPIClient) GetMountPluginName(path string) (string, error) {
+	ret := _m.Called(path)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(path)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(path)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPlugin provides a mock function with given fields: name
+func (_m *VaultAPIClient) GetPlugin(name string) (map[string]interface{}, error) {
+	ret := _m.Called(name)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string) map[string]interface{}); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPluginDir provides a mock function with given fields:
 func (_m *VaultAPIClient) GetPluginDir() (string, error) {
 	ret := _m.Called()

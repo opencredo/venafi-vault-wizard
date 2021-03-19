@@ -16,9 +16,13 @@ import (
 type VaultSSHClient interface {
 	// WriteFile writes a file to the SSH server, overwriting what's already there
 	WriteFile(sourceFile io.Reader, hostDestination string) error
+	// FileExists checks whether a file exists on a server over SSH
+	FileExists(filepath string) (bool, error)
 	// AddIPCLockCapabilityToFile attempts to call setcap over SSH to add IPC_LOCK capability to an executable. Requires
 	// sudo privileges
 	AddIPCLockCapabilityToFile(filename string) error
+	// IsIPCLockCapabilityOnFile calls getcap over SSH to check whether an executable has IPC_LOCK capability
+	IsIPCLockCapabilityOnFile(filename string) (bool, error)
 	// Close closes the underlying SSH connection
 	Close() error
 }
@@ -42,11 +46,11 @@ func NewClient(address, username, password string) (VaultSSHClient, error) {
 }
 
 func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) error {
-	sftpClient, close, err := newSFTPClient(c.Client)
+	sftpClient, closeFunc, err := newSFTPClient(c.Client)
 	if err != nil {
 		return err
 	}
-	defer close()
+	defer closeFunc()
 
 	// Delete file if it exists already, otherwise create a new file
 	dstFile, err := sftpClient.OpenFile(hostDestination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
@@ -74,6 +78,24 @@ func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) erro
 	}
 
 	return nil
+}
+
+func (c *sshClient) FileExists(filepath string) (bool, error) {
+	sftpClient, closeFunc, err := newSFTPClient(c.Client)
+	if err != nil {
+		return false, err
+	}
+	defer closeFunc()
+
+	_, err = sftpClient.Stat(filepath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }
 
 func newSFTPClient(conn *ssh.Client) (*sftp.Client, func(), error) {
@@ -112,6 +134,23 @@ func (c *sshClient) AddIPCLockCapabilityToFile(filename string) error {
 	}
 
 	return nil
+}
+
+func (c *sshClient) IsIPCLockCapabilityOnFile(filename string) (bool, error) {
+	session, err := c.Client.NewSession()
+	if err != nil {
+		return false, err
+	}
+	defer session.Close()
+
+	output, err := session.Output(fmt.Sprintf("getcap %s", filename))
+	if err != nil {
+		return false, err
+	}
+
+	// Plugin currently is not "capability-aware" so the effective flag must be set for the capability, in addition to
+	// it being in the permitted set
+	return strings.Contains(string(output), "cap_ipc_lock+ep"), nil
 }
 
 func (c *sshClient) Close() error {
