@@ -1,73 +1,51 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
-	"github.com/opencredo/venafi-vault-wizard/app/downloader"
-	"github.com/opencredo/venafi-vault-wizard/app/reporter/pretty"
-	"github.com/opencredo/venafi-vault-wizard/app/tasks"
+	"github.com/opencredo/venafi-vault-wizard/app/commands"
+	"github.com/opencredo/venafi-vault-wizard/app/config"
 )
 
-var installPKIBackendCommand = &cobra.Command{
-	Use:   "venafi-pki-backend",
-	Short: "Installs venafi-pki-backend plugin",
-	Long:  "Installs the venafi-pki-backend plugin to allow Vault to request certificates from Venafi",
-	Run:   installPKIBackend,
+func newInstallPKIBackendCmd(gcfg *config.GlobalConfig) *cobra.Command {
+	cfg := &config.PKIBackendConfig{
+		GlobalConfig: gcfg,
+	}
+	cmd := &cobra.Command{
+		Use:   "venafi-pki-backend",
+		Short: "Installs venafi-pki-backend plugin",
+		Long:  "Installs the venafi-pki-backend plugin to allow Vault to request certificates from Venafi",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			err := cfg.Validate()
+			if err != nil {
+				cmd.Usage()
+				return err
+			}
+
+			commands.InstallPKIBackend(cfg)
+
+			return nil
+		},
+	}
+
+	setUpPKIBackendFlags(cmd, cfg)
+
+	return cmd
 }
 
-func init() {
-	installCommand.AddCommand(installPKIBackendCommand)
-}
+func setUpPKIBackendFlags(cmd *cobra.Command, cfg *config.PKIBackendConfig) {
+	flags := cmd.Flags()
 
-const (
-	pluginName      = "venafi-pki-backend"
-	pluginURL       = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
-	pluginMountPath = "venafi-pki"
-)
-
-func installPKIBackend(_ *cobra.Command, _ []string) {
-	report := pretty.NewReport()
-
-	sshClient, vaultClient, closeFunc, err := getClients(report)
-	if err != nil {
-		return
-	}
-	defer closeFunc()
-
-	err = tasks.InstallPlugin(&tasks.InstallPluginInput{
-		VaultClient:     vaultClient,
-		SSHClient:       sshClient,
-		Downloader:      downloader.NewPluginDownloader(),
-		Reporter:        report,
-		PluginURL:       pluginURL,
-		PluginName:      pluginName,
-		PluginMountPath: pluginMountPath,
-	})
-	if err != nil {
-		return
-	}
-
-	err = tasks.ConfigureVenafiPKIBackend(&tasks.ConfigureVenafiPKIBackendInput{
-		VaultClient:     vaultClient,
-		Reporter:        report,
-		PluginMountPath: pluginMountPath,
-		SecretName:      "cloud", // TODO: override on command line
-		RoleName:        "cloud",
-		VenafiAPIKey:    venafiAPIKey,
-		VenafiZoneID:    venafiZoneID,
-	})
-	if err != nil {
-		return
-	}
-
-	report.Finish(
-		fmt.Sprintf(
-			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
-			pluginMountPath,
-			"cloud",
-		),
-		"Success! Vault is configured to work with Venafi",
+	flags.StringVar(
+		&cfg.VenafiSecret,
+		"venafiSecretName",
+		"cloud",
+		"Name of Venafi secret to configure in Vault",
+	)
+	flags.StringVar(
+		&cfg.RoleName,
+		"roleName",
+		"cloud",
+		"Name of role to configure in backend, will be used when requesting certificates",
 	)
 }
