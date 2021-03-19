@@ -18,12 +18,10 @@ func newInstallPKIBackendCmd(gcfg *config.GlobalConfig) *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			err := cfg.Validate()
 			if err != nil {
-				cmd.Usage()
 				return err
 			}
 
 			commands.InstallPKIBackend(cfg)
-
 			return nil
 		},
 	}
