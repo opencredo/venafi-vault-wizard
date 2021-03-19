@@ -62,6 +62,6 @@ func (i *ConfigureVenafiPKIBackendInput) addVenafiRole(reportSection reporter.Se
 		return err
 	}
 
-	check.Success("Venafi role configured")
+	check.Success("Venafi role configured at " + rolePath)
 	return nil
 }
