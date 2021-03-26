@@ -13,7 +13,7 @@ By default, a host-only network is created, with Vault at 192.168.33.10.
 This can be changed in the `Vagrantfile` if needed.
 
 ```shell
-c cd test_envs/vagrant
+$ cd test_envs/vagrant
 $ vagrant up
 $ export VAULT_ADDR=http://192.168.33.10:8200
 $ vault status
