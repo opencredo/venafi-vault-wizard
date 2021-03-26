@@ -1,18 +1,18 @@
 # venafi-vault-wizard, (vvw)
 
--   Website: TBC
--   Source: https://github.com/opencredo/venafi-vault-wizard
--   Venafi Community Support: https://support.venafi.com/hc/en-us/community/topics
--   Venafi Cloud: https://www.venafi.com/venaficloud
--   HashiCorp Discuss: https://discuss.hashicorp.com/c/vault/30
+-	Website: TBC
+-	Source: https://github.com/opencredo/venafi-vault-wizard
+-	Venafi Community Support: https://support.venafi.com/hc/en-us/community/topics
+-	Venafi Cloud: https://www.venafi.com/venaficloud
+-	HashiCorp Discuss: https://discuss.hashicorp.com/c/vault/30
 
 This repository is home to the `venafi-vault-wizard` which can be used to verify the setup of HashiCorp Vault and Venafi Cloud.
 
 ## Requirements
 
 -	[Go](https://golang.org/doc/install) 1.16
--   [Vagrant](https://www.vagrantup.com/downloads)
--   [Venafi Cloud Account & Zone](https://ui.venafi.cloud/login)
+-	[Vagrant](https://www.vagrantup.com/downloads)
+-	[Venafi Cloud Account & Zone](https://ui.venafi.cloud/login)
 
 ## Quick Start
 
