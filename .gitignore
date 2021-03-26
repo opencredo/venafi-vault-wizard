@@ -17,3 +17,9 @@ bin
 
 # Vagrant stuff
 **/.vagrant
+
+# Goland IDE Settings
+.idea/
+
+# direnv config files
+**/.envrc
