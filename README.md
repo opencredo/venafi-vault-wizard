@@ -13,7 +13,7 @@ By default, a host-only network is created, with Vault at 192.168.33.10.
 This can be changed in the `Vagrantfile` if needed.
 
 ```shell
-$ cd test_envs/vagrant
+c cd test_envs/vagrant
 $ vagrant up
 $ export VAULT_ADDR=http://192.168.33.10:8200
 $ vault status
@@ -28,3 +28,17 @@ $ ./vvw install venafi-pki-backend \
 
 $ vault write venafi-pki/issue/cloud common_name="test.example.com"
 ```
+
+## Generating Test Mocks
+
+The VVW tests use a number of pre-generated mocks that can be found under the `<repo root>/mocks` directory and allow the 
+tests to be executed upon checkout.  To generate new mocks the following command can be used.
+
+```shell
+$ make generate-mocks
+```
+
+The command will download the [Mockery](http://github.com/vektra/mockery/v2@v2.6.0) binary to the `<repo root>/bin` directory and 
+then proceed to generate mock implementations of interfaces found within the project.
+
+
