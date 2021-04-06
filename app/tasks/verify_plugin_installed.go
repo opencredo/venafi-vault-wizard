@@ -18,19 +18,19 @@ type VerifyPluginInstalledInput struct {
 }
 
 func VerifyPluginInstalled(input *VerifyPluginInstalledInput) error {
-	checkFileSystemSection := input.Reporter.AddSection("Checking Vault server filesystem")
-	pluginDir, err := checks.GetPluginDir(checkFileSystemSection, input.VaultClient)
+	checkFilesystemSection := input.Reporter.AddSection("Checking Vault server filesystem")
+	pluginDir, err := checks.GetPluginDir(checkFilesystemSection, input.VaultClient)
 	if err != nil {
 		return err
 	}
 
 	pluginPath := fmt.Sprintf("%s/%s", pluginDir, input.PluginName)
-	err = checks.VerifyPluginOnServer(checkFileSystemSection, input.SSHClient, pluginPath)
+	err = checks.VerifyPluginOnServer(checkFilesystemSection, input.SSHClient, pluginPath)
 	if err != nil {
 		return err
 	}
 
-	err = checks.VerifyPluginMlock(checkFileSystemSection, input.VaultClient, input.SSHClient, pluginPath)
+	err = checks.VerifyPluginMlock(checkFilesystemSection, input.VaultClient, input.SSHClient, pluginPath)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-type ConfigureVenafiPKIBackendInput struct {
+type CheckVenafiPKIBackendInput struct {
 	VaultClient     api.VaultAPIClient
 	Reporter        reporter.Report
 	PluginMountPath string
@@ -18,21 +18,15 @@ type ConfigureVenafiPKIBackendInput struct {
 	VenafiZoneID    string
 }
 
-func ConfigureVenafiPKIBackend(input *ConfigureVenafiPKIBackendInput) error {
+func CheckVenafiPKIBackend(input *CheckVenafiPKIBackendInput) error {
 	configurePluginSection := input.Reporter.AddSection("Setting up Venafi PKI backend")
 
-	err := checks.ConfigureVenafiSecret(
-		configurePluginSection,
-		input.VaultClient,
-		fmt.Sprintf("%s/venafi/%s", input.PluginMountPath, input.SecretName),
-		input.VenafiAPIKey,
-		input.VenafiZoneID,
-	)
+	err := checks.VerifyVenafiSecret(configurePluginSection, input.VaultClient, fmt.Sprintf("%s/venafi/%s", input.PluginMountPath, input.SecretName), input.VenafiZoneID)
 	if err != nil {
 		return err
 	}
 
-	err = checks.ConfigureVenafiRole(
+	err = checks.VerifyVenafiRole(
 		configurePluginSection,
 		input.VaultClient,
 		fmt.Sprintf("%s/roles/%s", input.PluginMountPath, input.RoleName),

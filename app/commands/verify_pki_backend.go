@@ -28,6 +28,19 @@ func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 		return
 	}
 
+	err = tasks.CheckVenafiPKIBackend(&tasks.CheckVenafiPKIBackendInput{
+		VaultClient:     vaultClient,
+		Reporter:        report,
+		PluginMountPath: cfg.MountPath,
+		SecretName:      cfg.VenafiSecret,
+		RoleName:        cfg.RoleName,
+		VenafiAPIKey:    cfg.VenafiAPIKey,
+		VenafiZoneID:    cfg.VenafiZone,
+	})
+	if err != nil {
+		return
+	}
+
 	report.Finish(
 		fmt.Sprintf(
 			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
