@@ -34,7 +34,6 @@ func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 		PluginMountPath: cfg.MountPath,
 		SecretName:      cfg.VenafiSecret,
 		RoleName:        cfg.RoleName,
-		VenafiAPIKey:    cfg.VenafiAPIKey,
 		VenafiZoneID:    cfg.VenafiZone,
 	})
 	if err != nil {

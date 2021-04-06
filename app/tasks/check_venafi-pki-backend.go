@@ -14,7 +14,6 @@ type CheckVenafiPKIBackendInput struct {
 	PluginMountPath string
 	SecretName      string
 	RoleName        string
-	VenafiAPIKey    string
 	VenafiZoneID    string
 }
 

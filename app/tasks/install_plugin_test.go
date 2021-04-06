@@ -62,7 +62,7 @@ func TestInstallPlugin(t *testing.T) {
 func reportExpectations(report *mocks.Report, section *mocks.Section, check *mocks.Check) {
 	report.On("AddSection", mock.AnythingOfType("string")).Return(section)
 	section.On("AddCheck", mock.AnythingOfType("string")).Return(check)
-	section.On("Info", mock.AnythingOfType("string"))
-	check.On("UpdateStatus", mock.AnythingOfType("string"))
+	section.On("Info", mock.AnythingOfType("string")).Maybe()
+	check.On("UpdateStatus", mock.AnythingOfType("string")).Maybe()
 	check.On("Success", mock.AnythingOfType("string"))
 }
