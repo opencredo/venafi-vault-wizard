@@ -13,9 +13,8 @@ type ConfigureVenafiPKIBackendInput struct {
 	Reporter        reporter.Report
 	PluginMountPath string
 	SecretName      string
+	SecretValue     map[string]interface{}
 	RoleName        string
-	VenafiAPIKey    string
-	VenafiZoneID    string
 }
 
 func ConfigureVenafiPKIBackend(input *ConfigureVenafiPKIBackendInput) error {
@@ -25,8 +24,7 @@ func ConfigureVenafiPKIBackend(input *ConfigureVenafiPKIBackendInput) error {
 		configurePluginSection,
 		input.VaultClient,
 		fmt.Sprintf("%s/venafi/%s", input.PluginMountPath, input.SecretName),
-		input.VenafiAPIKey,
-		input.VenafiZoneID,
+		input.SecretValue,
 	)
 	if err != nil {
 		return err

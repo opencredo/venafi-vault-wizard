@@ -6,7 +6,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 )
 
-func VerifyPKIMonitor(cfg *config.GlobalConfig) {
+func VerifyPKIMonitor(cfg *config.VaultConfig) {
 	report := pretty.NewReport()
 
 	sshClient, vaultClient, closeFunc, err := tasks.GetClients(cfg, report)

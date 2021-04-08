@@ -8,10 +8,10 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 )
 
-func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
+func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIBackendConfig, venafiConfig config.VenafiConnectionConfig) {
 	report := pretty.NewReport()
 
-	sshClient, vaultClient, closeFunc, err := tasks.GetClients(cfg.GlobalConfig, report)
+	sshClient, vaultClient, closeFunc, err := tasks.GetClients(vaultConfig, report)
 	if err != nil {
 		return
 	}
@@ -22,7 +22,7 @@ func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 		SSHClient:       sshClient,
 		Reporter:        report,
 		PluginName:      "venafi-pki-backend",
-		PluginMountPath: cfg.MountPath,
+		PluginMountPath: vaultConfig.MountPath,
 	})
 	if err != nil {
 		return
@@ -31,10 +31,10 @@ func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 	err = tasks.CheckVenafiPKIBackend(&tasks.CheckVenafiPKIBackendInput{
 		VaultClient:     vaultClient,
 		Reporter:        report,
-		PluginMountPath: cfg.MountPath,
-		SecretName:      cfg.VenafiSecret,
-		RoleName:        cfg.RoleName,
-		VenafiZoneID:    cfg.VenafiZone,
+		PluginMountPath: vaultConfig.MountPath,
+		SecretName:      pluginConfig.VenafiSecret,
+		SecretValue:     venafiConfig.GetAsMap(),
+		RoleName:        pluginConfig.RoleName,
 	})
 	if err != nil {
 		return
@@ -43,8 +43,8 @@ func VerifyPKIBackend(cfg *config.PKIBackendConfig) {
 	report.Finish(
 		fmt.Sprintf(
 			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
-			cfg.MountPath,
-			cfg.RoleName,
+			vaultConfig.MountPath,
+			pluginConfig.RoleName,
 		),
 		"Success! Vault is configured to work with Venafi",
 	)

@@ -7,27 +7,54 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/config"
 )
 
-func newVerifyPKIBackendCmd(gcfg *config.GlobalConfig) *cobra.Command {
-	cfg := &config.PKIBackendConfig{
-		GlobalConfig: gcfg,
-	}
-
-	cmd := &cobra.Command{
+func newVerifyPKIBackendCmd(vaultConfig *config.VaultConfig) *cobra.Command {
+	// Root command for venafi-pki-backend plugin
+	pluginConfig := &config.PKIBackendConfig{}
+	pkiBackendCmd := &cobra.Command{
 		Use:   "venafi-pki-backend",
 		Short: "Verifies correct installation of venafi-pki-backend plugin",
 		Long:  "Verifies that the venafi-pki-backend plugin was correctly configured and that Vault can request certificates from Venafi",
+	}
+	setUpPKIBackendFlags(pkiBackendCmd, pluginConfig)
+
+	// Variant for Cloud
+	cloudConfig := &config.VenafiCloudConfig{}
+	cloudCmd := &cobra.Command{
+		Use:   "cloud",
+		Short: "Verifies correct installation of venafi-pki-backend plugin with Venafi Cloud",
+		Long:  "Verifies that the venafi-pki-backend plugin was correctly configured and that Vault can request certificates from Venafi Cloud",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			err := cfg.Validate()
+			err := config.ValidateConfigs(vaultConfig, pluginConfig, cloudConfig)
 			if err != nil {
 				return err
 			}
 
-			commands.VerifyPKIBackend(cfg)
+			commands.VerifyPKIBackend(vaultConfig, pluginConfig, cloudConfig)
 			return nil
 		},
 	}
+	setUpCloudFlags(cloudCmd, cloudConfig)
 
-	setUpPKIBackendFlags(cmd, cfg)
+	// Variant for TPP
+	tppConfig := &config.VenafiTPPConfig{}
+	tppCmd := &cobra.Command{
+		Use:   "tpp",
+		Short: "Verifies correct installation of venafi-pki-backend plugin with Venafi TPP",
+		Long:  "Verifies that the venafi-pki-backend plugin was correctly configured and that Vault can request certificates from Venafi TPP",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			err := config.ValidateConfigs(vaultConfig, pluginConfig, tppConfig)
+			if err != nil {
+				return err
+			}
 
-	return cmd
+			commands.VerifyPKIBackend(vaultConfig, pluginConfig, tppConfig)
+			return nil
+		},
+	}
+	setUpTPPFlags(tppCmd, tppConfig)
+
+	pkiBackendCmd.AddCommand(cloudCmd)
+	pkiBackendCmd.AddCommand(tppCmd)
+
+	return pkiBackendCmd
 }

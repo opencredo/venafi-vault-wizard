@@ -45,8 +45,10 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 		Reporter:        report,
 		PluginMountPath: pluginMountPath,
 		SecretName:      secretName,
-		RoleName:        roleName,
-		VenafiZoneID:    zone,
+		SecretValue: map[string]interface{}{
+			"zone": zone,
+		},
+		RoleName: roleName,
 	})
 	require.NoError(t, err)
 }

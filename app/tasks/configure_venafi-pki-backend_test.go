@@ -26,15 +26,12 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	var secretPath = fmt.Sprintf("%s/venafi/%s", pluginMountPath, secretName)
 	var roleName = "roleName"
 	var rolePath = fmt.Sprintf("%s/roles/%s", pluginMountPath, roleName)
-	var apiKey = "supersecure API key"
-	var zone = "zone ID"
+	var venafiConnectionConfig = map[string]interface{}{
+		"apikey": "supersecure API key",
+		"zone":   "zone ID",
+	}
 
-	vaultAPIClient.On("WriteValue", secretPath,
-		map[string]interface{}{
-			"apikey": apiKey,
-			"zone":   zone,
-		},
-	).Return(nil, nil)
+	vaultAPIClient.On("WriteValue", secretPath, venafiConnectionConfig).Return(nil, nil)
 	vaultAPIClient.On("WriteValue", rolePath,
 		map[string]interface{}{
 			"venafi_secret": secretName,
@@ -46,9 +43,8 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 		Reporter:        report,
 		PluginMountPath: pluginMountPath,
 		SecretName:      secretName,
+		SecretValue:     venafiConnectionConfig,
 		RoleName:        roleName,
-		VenafiAPIKey:    apiKey,
-		VenafiZoneID:    zone,
 	})
 	require.NoError(t, err)
 }
