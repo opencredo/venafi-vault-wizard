@@ -10,14 +10,12 @@ import (
 func ConfigureVenafiSecret(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
-	secretPath, venafiAPIKey, venafiZone string,
+	secretPath string,
+	secretValue map[string]interface{},
 ) error {
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
-	_, err := vaultClient.WriteValue(secretPath, map[string]interface{}{
-		"apikey": venafiAPIKey,
-		"zone":   venafiZone,
-	})
+	_, err := vaultClient.WriteValue(secretPath, secretValue)
 	if err != nil {
 		check.Error(fmt.Sprintf("Error configuring Venafi secret: %s", err))
 		return err

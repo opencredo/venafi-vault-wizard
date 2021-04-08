@@ -7,7 +7,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/config"
 )
 
-func newVerifyPKIMonitorCmd(cfg *config.GlobalConfig) *cobra.Command {
+func newVerifyPKIMonitorCmd(cfg *config.VaultConfig) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "venafi-pki-monitor",
 		Short: "Verifies correct installation of venafi-pki-monitor plugin",

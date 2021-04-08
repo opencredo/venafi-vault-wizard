@@ -3,7 +3,6 @@ package config
 import "fmt"
 
 type PKIBackendConfig struct {
-	*GlobalConfig
 	VenafiSecret string
 	RoleName     string
 }
@@ -15,5 +14,5 @@ func (c *PKIBackendConfig) Validate() error {
 	if c.RoleName == "" {
 		return fmt.Errorf("error with Venafi role name: %w", ErrBlankParam)
 	}
-	return c.GlobalConfig.Validate()
+	return nil
 }

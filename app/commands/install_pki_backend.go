@@ -13,10 +13,10 @@ const (
 	pkiBackendPluginURL = "https://github.com/Venafi/vault-pki-backend-venafi/releases/download/v0.8.3/venafi-pki-backend_v0.8.3_linux.zip"
 )
 
-func InstallPKIBackend(cfg *config.PKIBackendConfig) {
+func InstallPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIBackendConfig, venafiConfig config.VenafiConnectionConfig) {
 	report := pretty.NewReport()
 
-	sshClient, vaultClient, closeFunc, err := tasks.GetClients(cfg.GlobalConfig, report)
+	sshClient, vaultClient, closeFunc, err := tasks.GetClients(vaultConfig, report)
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func InstallPKIBackend(cfg *config.PKIBackendConfig) {
 		Reporter:        report,
 		PluginURL:       pkiBackendPluginURL,
 		PluginName:      "venafi-pki-backend",
-		PluginMountPath: cfg.MountPath,
+		PluginMountPath: vaultConfig.MountPath,
 	})
 	if err != nil {
 		return
@@ -38,11 +38,10 @@ func InstallPKIBackend(cfg *config.PKIBackendConfig) {
 	err = tasks.ConfigureVenafiPKIBackend(&tasks.ConfigureVenafiPKIBackendInput{
 		VaultClient:     vaultClient,
 		Reporter:        report,
-		PluginMountPath: cfg.MountPath,
-		SecretName:      cfg.VenafiSecret,
-		RoleName:        cfg.RoleName,
-		VenafiAPIKey:    cfg.VenafiAPIKey,
-		VenafiZoneID:    cfg.VenafiZone,
+		PluginMountPath: vaultConfig.MountPath,
+		SecretName:      pluginConfig.VenafiSecret,
+		SecretValue:     venafiConfig.GetAsMap(),
+		RoleName:        pluginConfig.RoleName,
 	})
 	if err != nil {
 		return
@@ -51,8 +50,8 @@ func InstallPKIBackend(cfg *config.PKIBackendConfig) {
 	report.Finish(
 		fmt.Sprintf(
 			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
-			cfg.MountPath,
-			cfg.RoleName,
+			vaultConfig.MountPath,
+			pluginConfig.RoleName,
 		),
 		"Success! Vault is configured to work with Venafi",
 	)

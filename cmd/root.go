@@ -12,14 +12,24 @@ import (
 )
 
 func NewRootCommand() *cobra.Command {
-	cfg := new(config.GlobalConfig)
+	cfg := new(config.VaultConfig)
 
 	rootCmd := &cobra.Command{
 		Use:   "vvw",
 		Short: "Venafi Vault Wizard",
 		Long:  "VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			return initViperConfig(cmd)
+			err := initViperConfig(cmd)
+			if err != nil {
+				return err
+			}
+
+			err = cfg.Validate()
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 
@@ -51,7 +61,7 @@ func NewRootCommand() *cobra.Command {
 	return rootCmd
 }
 
-func setUpGlobalFlags(cmd *cobra.Command, config *config.GlobalConfig) {
+func setUpGlobalFlags(cmd *cobra.Command, config *config.VaultConfig) {
 	flags := cmd.PersistentFlags()
 
 	flags.StringVar(
@@ -83,18 +93,6 @@ func setUpGlobalFlags(cmd *cobra.Command, config *config.GlobalConfig) {
 		"sshPort",
 		22,
 		"Port on which SSH is running on the Vault server",
-	)
-	flags.StringVar(
-		&config.VenafiAPIKey,
-		"venafiAPIKey",
-		"",
-		"API Key used to access Venafi Cloud",
-	)
-	flags.StringVar(
-		&config.VenafiZone,
-		"venafiZone",
-		"",
-		"Venafi Cloud Project Zone in which to create certificates",
 	)
 	flags.StringVar(
 		&config.MountPath,

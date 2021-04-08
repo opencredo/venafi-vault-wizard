@@ -11,7 +11,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
-func GetClients(cfg *config.GlobalConfig, report reporter.Report) (ssh.VaultSSHClient, api.VaultAPIClient, func(), error) {
+func GetClients(cfg *config.VaultConfig, report reporter.Report) (ssh.VaultSSHClient, api.VaultAPIClient, func(), error) {
 	checkConnectionSection := report.AddSection("Checking connection to Vault")
 	check := checkConnectionSection.AddCheck("Checking Vault connection parameters...")
 
