@@ -29,9 +29,9 @@ func (c *VenafiCloudConfig) GetAsMap() map[string]interface{} {
 }
 
 type VenafiTPPConfig struct {
-	URL string
+	URL        string
 	VenafiZone string
-	Username string
+	Username   string
 	// TODO: only allow access token, not password
 	Password string
 }

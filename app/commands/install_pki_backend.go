@@ -47,6 +47,17 @@ func InstallPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKI
 		return
 	}
 
+	err = tasks.FetchVenafiCertificate(&tasks.FetchVenafiCertificateInput{
+		VaultClient:     vaultClient,
+		Reporter:        report,
+		PluginMountPath: vaultConfig.MountPath,
+		RoleName:        pluginConfig.RoleName,
+		CommonName:      "testcertvvw.venafidemo.com",
+	})
+	if err != nil {
+		return
+	}
+
 	report.Finish(
 		fmt.Sprintf(
 			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
