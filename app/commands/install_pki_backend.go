@@ -52,7 +52,7 @@ func InstallPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKI
 		Reporter:        report,
 		PluginMountPath: vaultConfig.MountPath,
 		RoleName:        pluginConfig.RoleName,
-		CommonName:      "testcertvvw.venafidemo.com",
+		CommonName:      pluginConfig.TestCertificateCommonName,
 	})
 	if err != nil {
 		return

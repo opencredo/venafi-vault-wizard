@@ -16,6 +16,7 @@ func RequestVenafiCertificate(
 ) error {
 	check := reportSection.AddCheck("Requesting certificate from Vault...")
 
+	// Get certificate from Vault
 	data, err := vaultClient.WriteValue(rolePath, map[string]interface{}{
 		"common_name": commonName,
 	})
@@ -24,6 +25,7 @@ func RequestVenafiCertificate(
 		return err
 	}
 
+	// Decode the returned PEM block and check it's a certificate with a matching common name
 	pemBlock, _ := pem.Decode([]byte(data["certificate"].(string)))
 	if pemBlock.Type != "CERTIFICATE" {
 		check.Error("Expected a certificate to be returned in PEM format")
