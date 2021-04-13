@@ -3,8 +3,9 @@ package config
 import "fmt"
 
 type PKIBackendConfig struct {
-	VenafiSecret string
-	RoleName     string
+	VenafiSecret              string
+	RoleName                  string
+	TestCertificateCommonName string
 }
 
 func (c *PKIBackendConfig) Validate() error {

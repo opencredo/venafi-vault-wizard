@@ -74,6 +74,12 @@ func setUpPKIBackendFlags(cmd *cobra.Command, cfg *config.PKIBackendConfig) {
 		"vvw",
 		"Name of role to configure in backend, will be used when requesting certificates",
 	)
+	flags.StringVar(
+		&cfg.TestCertificateCommonName,
+		"testCertificateCommonName",
+		"vvw.example.com",
+		"Common name to use when requesting a test certificate via the plugin",
+	)
 }
 
 func setUpCloudFlags(cmd *cobra.Command, cfg *config.VenafiCloudConfig) {
