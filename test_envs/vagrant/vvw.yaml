@@ -1,3 +1,0 @@
-sshUser: "vagrant"
-sshPassword: "vagrant"
-vaultAddress: "http://192.168.33.10:8200"

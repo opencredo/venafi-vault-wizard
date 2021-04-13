@@ -35,17 +35,11 @@ Usage:
 Available Commands:
   help        Help about any command
   install     Installs a Venafi plugin to Vault
+  verify      Verifies correct installation of a Venafi Vault plugin
 
 Flags:
-  -h, --help                    help for vvw
-      --sshPassword string      Password for SSH user to log into Vault server with (default "password")
-      --sshPort uint            Port on which SSH is running on the Vault server (default 22)
-      --sshUser string          Username with which to log into Vault server over SSH (must have sudo privileges) (default "username")
-      --vaultAddress string     Vault HTTP API endpoint (default "https://127.0.0.1:8200")
-      --vaultMountPath string   Vault path at which to mount the Venafi plugin (default "venafi-pki")
-      --vaultToken string       Token used to authenticate with Vault (default "root")
-      --venafiAPIKey string     API Key used to access Venafi Cloud
-      --venafiZone string       Venafi Cloud Project Zone in which to create certificates
+  -f, --configFile string   Path to config file to use to configure Venafi Vault plugin (default "vvw_config.hcl")
+  -h, --help                help for vvw
 
 Use "vvw [command] --help" for more information about a command.
 ```
@@ -72,19 +66,16 @@ $ cd test_envs/vagrant
 $ vagrant up
 ```
 
-Set your environment variables for Vault and Venafi.  Vagrant will return the Vault token as the last line of its output.
-
-The [Venafi Cloud UI](https://ui.venafi.cloud/login) locate your API Key and Zone ID.
-Once setup a `vault status` can be used to inspect the deployed Vault server.
+Set your environment variables for Vault and Venafi.
+Vagrant will return the Vault token as the last line of its output, and the API Key and Zone ID can be found in the [Venafi Cloud UI](https://ui.venafi.cloud/login).
+The Zone will need to be configured in the `vvw.hcl` config file.
 
 By default, a host-only network is created, with Vault at 192.168.33.10.
-This can be changed in the `Vagrantfile` if needed.
+This can be changed in the `Vagrantfile` and config file if needed.
 
 ```shell
-$ export VAULT_ADDR=http://192.168.33.10:8200
 $ export VAULT_TOKEN=<VAULT TOKEN HERE>
-$ export VENAFI_CLOUD_API_KEY=<VENAFI CLOUD API KEY HERE>
-$ export VENAFI_CLOUD_ZONE_ID=<VENAFI CLOUD ZONE ID HERE>
+$ export VENAFI_API_KEY=<VENAFI CLOUD API KEY HERE>
 $ vault status
 ```
 
@@ -92,14 +83,7 @@ The following command will execute the VVW tool against the Vault server and ins
 The VVW tool will provide a progress report as the installation progresses.
 
 ```shell
-$ ../../bin/vvw install venafi-pki-backend \
-  --vaultAddress=$VAULT_ADDR \
-  --vaultToken=$VAULT_TOKEN \
-  --venafiAPIKey=$VENAFI_CLOUD_API_KEY \
-  --venafiZone=$VENAFI_CLOUD_ZONE_ID \
-  --sshUser=vagrant \
-  --sshPassword=vagrant \
-  --sshPort=22
+$ ../../bin/vvw install -f vvw.hcl
 ```
 
 Once the VVW tool has successfully completed a certificate can be requested through Vault.
