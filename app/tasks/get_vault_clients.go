@@ -36,8 +36,8 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) (ssh.VaultSSHCl
 
 	check.UpdateStatus("Successfully connected to Vault API, establishing SSH connection...")
 
-	vaultSSHAddress := fmt.Sprintf("%s:%d", vaultURL.Hostname(), cfg.SSHPort)
-	sshClient, err := ssh.NewClient(vaultSSHAddress, cfg.SSHUser, cfg.SSHPassword)
+	vaultSSHAddress := fmt.Sprintf("%s:%d", vaultURL.Hostname(), cfg.SSHConfig.Port)
+	sshClient, err := ssh.NewClient(vaultSSHAddress, cfg.SSHConfig.Username, cfg.SSHConfig.Password)
 	if err != nil {
 		check.Error(fmt.Sprintf("Error connecting to Vault server over SSH: %s", err))
 		return nil, nil, nil, err

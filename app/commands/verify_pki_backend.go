@@ -8,10 +8,10 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 )
 
-func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIBackendConfig, venafiConfig config.VenafiConnectionConfig) {
+func VerifyPKIBackend(configuration *config.Config) {
 	report := pretty.NewReport()
 
-	sshClient, vaultClient, closeFunc, err := tasks.GetClients(vaultConfig, report)
+	sshClient, vaultClient, closeFunc, err := tasks.GetClients(&configuration.Vault, report)
 	if err != nil {
 		return
 	}
@@ -22,7 +22,7 @@ func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIB
 		SSHClient:       sshClient,
 		Reporter:        report,
 		PluginName:      "venafi-pki-backend",
-		PluginMountPath: vaultConfig.MountPath,
+		PluginMountPath: configuration.PKIBackend.MountPath,
 	})
 	if err != nil {
 		return
@@ -31,10 +31,11 @@ func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIB
 	err = tasks.CheckVenafiPKIBackend(&tasks.CheckVenafiPKIBackendInput{
 		VaultClient:     vaultClient,
 		Reporter:        report,
-		PluginMountPath: vaultConfig.MountPath,
-		SecretName:      pluginConfig.VenafiSecret,
-		SecretValue:     venafiConfig.GetAsMap(),
-		RoleName:        pluginConfig.RoleName,
+		PluginMountPath: configuration.PKIBackend.MountPath,
+		// TODO: support multiple roles
+		SecretName:  configuration.PKIBackend.Roles[0].Secret.Name,
+		SecretValue: configuration.PKIBackend.Roles[0].Secret.GetAsMap(),
+		RoleName:    configuration.PKIBackend.Roles[0].Name,
 	})
 	if err != nil {
 		return
@@ -43,9 +44,10 @@ func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIB
 	err = tasks.FetchVenafiCertificate(&tasks.FetchVenafiCertificateInput{
 		VaultClient:     vaultClient,
 		Reporter:        report,
-		PluginMountPath: vaultConfig.MountPath,
-		RoleName:        pluginConfig.RoleName,
-		CommonName:      pluginConfig.TestCertificateCommonName,
+		PluginMountPath: configuration.PKIBackend.MountPath,
+		RoleName:        configuration.PKIBackend.Roles[0].Name,
+		// TODO: support zero or multiple test certs
+		CommonName: configuration.PKIBackend.Roles[0].TestCerts[0].CommonName,
 	})
 	if err != nil {
 		return
@@ -53,9 +55,10 @@ func VerifyPKIBackend(vaultConfig *config.VaultConfig, pluginConfig *config.PKIB
 
 	report.Finish(
 		fmt.Sprintf(
-			"Finished! You can try and request a certificate using:\n$ vault write %s/issue/%s common_name=\"test.example.com\"\n",
-			vaultConfig.MountPath,
-			pluginConfig.RoleName,
+			"Finished! You can request a certificate using:\n$ vault write %s/issue/%s common_name=\"%s\"\n",
+			configuration.PKIBackend.MountPath,
+			configuration.PKIBackend.Roles[0].Name,
+			configuration.PKIBackend.Roles[0].TestCerts[0].CommonName,
 		),
 		"Success! Vault is configured to work with Venafi",
 	)
