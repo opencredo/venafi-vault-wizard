@@ -31,32 +31,16 @@ func NewRootCommand() *cobra.Command {
 
 	setUpGlobalFlags(rootCmd, &configFile)
 
-	installCmd := &cobra.Command{
-		Use:   "install",
-		Short: "Installs a Venafi plugin to Vault",
-		Long:  "Installs a plugin to allow Vault to request certificates from Venafi, or to provision them on behalf of Venafi",
+	applyCmd := &cobra.Command{
+		Use:   "apply",
+		Short: "Applies desired state as specified in config file",
+		Long:  "Reads the config file and makes necessary changes to Vault server(s) specified to install and configure plugin(s) specified",
 		Run: func(_ *cobra.Command, _ []string) {
-			if configuration.PKIBackend != nil {
-				commands.InstallPKIBackend(configuration)
-			}
-			// TODO: call install PKI monitor when implemented
+			commands.Apply(configuration)
 		},
 	}
 
-	verifyCmd := &cobra.Command{
-		Use:   "verify",
-		Short: "Verifies correct installation of a Venafi Vault plugin",
-		Long:  "Verifies that the installation of either of the Venafi Vault plugins was successful and that it is configured correctly",
-		Run: func(_ *cobra.Command, _ []string) {
-			if configuration.PKIBackend != nil {
-				commands.VerifyPKIBackend(configuration)
-			}
-			// TODO: call install PKI monitor when implemented
-		},
-	}
-
-	rootCmd.AddCommand(installCmd)
-	rootCmd.AddCommand(verifyCmd)
+	rootCmd.AddCommand(applyCmd)
 
 	return rootCmd
 }

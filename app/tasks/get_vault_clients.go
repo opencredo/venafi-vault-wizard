@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/opencredo/venafi-vault-wizard/app/config"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
@@ -11,15 +10,9 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
-func GetClients(cfg *config.VaultConfig, report reporter.Report) (ssh.VaultSSHClient, api.VaultAPIClient, func(), error) {
+func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSHClient, api.VaultAPIClient, func(), error) {
 	checkConnectionSection := report.AddSection("Checking connection to Vault")
 	check := checkConnectionSection.AddCheck("Checking Vault connection parameters...")
-
-	vaultURL, err := url.Parse(cfg.VaultAddress)
-	if err != nil {
-		check.Error(fmt.Sprintf("Invalid Vault address: %s", err))
-		return nil, nil, nil, err
-	}
 
 	vaultClient := api.NewClient(
 		&api.Config{
@@ -28,7 +21,7 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) (ssh.VaultSSHCl
 		},
 		lib.NewVaultAPI(),
 	)
-	_, err = vaultClient.GetVaultConfig()
+	_, err := vaultClient.GetVaultConfig()
 	if err != nil {
 		check.Error(fmt.Sprintf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err))
 		return nil, nil, nil, err
@@ -36,17 +29,29 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) (ssh.VaultSSHCl
 
 	check.UpdateStatus("Successfully connected to Vault API, establishing SSH connection...")
 
-	vaultSSHAddress := fmt.Sprintf("%s:%d", vaultURL.Hostname(), cfg.SSHConfig.Port)
-	sshClient, err := ssh.NewClient(vaultSSHAddress, cfg.SSHConfig.Username, cfg.SSHConfig.Password)
-	if err != nil {
-		check.Error(fmt.Sprintf("Error connecting to Vault server over SSH: %s", err))
-		return nil, nil, nil, err
-	}
+	var sshClients []ssh.VaultSSHClient
+	var closeFuncs []func()
 	closeFunc := func() {
-		_ = sshClient.Close()
+		for _, f := range closeFuncs {
+			f()
+		}
+	}
+
+	for _, s := range cfg.SSHConfig {
+		address := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
+		sshClient, err := ssh.NewClient(address, s.Username, s.Password)
+		if err != nil {
+			check.Error(fmt.Sprintf("Error connecting to Vault server at %s over SSH: %s", s.Hostname, err))
+			closeFunc()
+			return nil, nil, nil, err
+		}
+		closeFuncs = append(closeFuncs, func() {
+			_ = sshClient.Close()
+		})
+		sshClients = append(sshClients, sshClient)
 	}
 
 	check.Success("Connected to Vault via its API and SSH")
 
-	return sshClient, vaultClient, closeFunc, nil
+	return sshClients, vaultClient, closeFunc, nil
 }

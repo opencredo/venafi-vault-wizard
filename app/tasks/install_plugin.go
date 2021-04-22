@@ -48,7 +48,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 		return err
 	}
 
-	err = checks.InstallPluginInCatalog(checkFilesystemSection, input.VaultClient, input.PluginName, sha)
+	err = checks.InstallPluginInCatalog(checkFilesystemSection, input.VaultClient, input.PluginName, input.PluginName, sha)
 	if err != nil {
 		return err
 	}

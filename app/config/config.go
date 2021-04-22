@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,14 +9,13 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
+
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 )
 
-var ErrBlankParam = errors.New("cannot be blank")
-var ErrConflictingBlocks = errors.New("one of the blocks must be defined")
-
 type Config struct {
-	Vault      VaultConfig             `hcl:"vault,block"`
-	PKIBackend *VenafiPKIBackendConfig `hcl:"venafi_pki_backend,block"`
+	Vault   VaultConfig      `hcl:"vault,block"`
+	Plugins []plugins.Plugin `hcl:"plugin,block"`
 }
 
 // NewConfig decodes an HCL configuration file into a Config struct, returning an error upon failure. It takes filename
@@ -61,6 +59,20 @@ func NewConfig(filename string, src []byte) (*Config, error) {
 		return nil, err
 	}
 
+	for i, plugin := range config.Plugins {
+		pluginImpl, err := plugins.LookupPlugin(&plugin, configEvaluationContext)
+		if err != nil {
+			return nil, err
+		}
+
+		err = pluginImpl.ValidateConfig()
+		if err != nil {
+			return nil, err
+		}
+
+		config.Plugins[i].Impl = pluginImpl
+	}
+
 	return config, nil
 }
 
@@ -80,11 +92,6 @@ func NewConfigFromFile(filename string) (*Config, error) {
 
 func (c *Config) Validate() error {
 	err := c.Vault.Validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.PKIBackend.Validate()
 	if err != nil {
 		return err
 	}

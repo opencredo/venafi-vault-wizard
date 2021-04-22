@@ -4,6 +4,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
+	pki_backend "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-backend"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -42,7 +46,15 @@ func TestNewConfig(t *testing.T) {
 				t.Errorf("NewConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(got, tt.want); diff != "" {
+
+			// don't bother checking config if we wanted an error
+			if tt.wantErr {
+				return
+			}
+
+			deletePluginsUncheckedFields(got)
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("NewConfig() mismatch (-want +got):\n%s", diff)
 			}
 		})
@@ -51,19 +63,18 @@ func TestNewConfig(t *testing.T) {
 
 const validPKIBackendCloudConfig = `
 vault {
-  address = "http://localhost:8200"
+  api_address = "http://localhost:8200"
   token = "root"
 
   ssh {
+    hostname = "localhost"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 }
 
-venafi_pki_backend {
-  mount_path = "venafi-pki"
-
+plugin "venafi-pki-backend" "venafi-pki" {
   role "cloud" {
     secret "cloud" {
       venafi_cloud {
@@ -83,27 +94,37 @@ var validPKIBackendCloudConfigResult = &Config{
 	Vault: VaultConfig{
 		VaultAddress: "http://localhost:8200",
 		VaultToken:   "root",
-		SSHConfig: SSH{
-			Username: "vagrant",
-			Password: "vagrant",
-			Port:     22,
+		SSHConfig: []SSH{
+			{
+				Hostname: "localhost",
+				Username: "vagrant",
+				Password: "vagrant",
+				Port:     22,
+			},
 		},
 	},
-	PKIBackend: &VenafiPKIBackendConfig{
-		MountPath: "venafi-pki",
-		Roles: []Role{
-			{
-				Name: "cloud",
-				Secret: VenafiSecret{
-					Name: "cloud",
-					Cloud: &VenafiCloudConnection{
-						APIKey: "apikey",
-						Zone:   "zone",
-					},
-				},
-				TestCerts: []CertificateRequest{
+	Plugins: []plugins.Plugin{
+		{
+			Type:      "venafi-pki-backend",
+			MountPath: "venafi-pki",
+			Config:    nil,
+			Impl: &pki_backend.VenafiPKIBackendConfig{
+				MountPath: "venafi-pki",
+				Roles: []pki_backend.Role{
 					{
-						CommonName: "vvw-example.test",
+						Name: "cloud",
+						Secret: venafi.VenafiSecret{
+							Name: "cloud",
+							Cloud: &venafi.VenafiCloudConnection{
+								APIKey: "apikey",
+								Zone:   "zone",
+							},
+						},
+						TestCerts: []pki_backend.CertificateRequest{
+							{
+								CommonName: "vvw-example.test",
+							},
+						},
 					},
 				},
 			},
@@ -113,19 +134,18 @@ var validPKIBackendCloudConfigResult = &Config{
 
 const validPKIBackendTPPConfig = `
 vault {
-  address = "http://localhost:8200"
+  api_address = "http://localhost:8200"
   token = "root"
 
   ssh {
+    hostname = "localhost"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 }
 
-venafi_pki_backend {
-  mount_path = "venafi-pki"
-
+plugin "venafi-pki-backend" "venafi-pki" {
   role "tppRole" {
     secret "tpptest" {
       venafi_tpp {
@@ -146,29 +166,39 @@ var validPKIBackendTPPConfigResult = &Config{
 	Vault: VaultConfig{
 		VaultAddress: "http://localhost:8200",
 		VaultToken:   "root",
-		SSHConfig: SSH{
-			Username: "vagrant",
-			Password: "vagrant",
-			Port:     22,
+		SSHConfig: []SSH{
+			{
+				Hostname: "localhost",
+				Username: "vagrant",
+				Password: "vagrant",
+				Port:     22,
+			},
 		},
 	},
-	PKIBackend: &VenafiPKIBackendConfig{
-		MountPath: "venafi-pki",
-		Roles: []Role{
-			{
-				Name: "tppRole",
-				Secret: VenafiSecret{
-					Name: "tpptest",
-					TPP: &VenafiTPPConnection{
-						URL:      "tpp.venafitest.com",
-						Username: "admin",
-						Password: "pword234",
-						Policy:   "Partner Dev\\\\TLS\\\\HashiCorp Vault",
-					},
-				},
-				TestCerts: []CertificateRequest{
+	Plugins: []plugins.Plugin{
+		{
+			Type:      "venafi-pki-backend",
+			MountPath: "venafi-pki",
+			Config:    nil,
+			Impl: &pki_backend.VenafiPKIBackendConfig{
+				MountPath: "venafi-pki",
+				Roles: []pki_backend.Role{
 					{
-						CommonName: "vvw-example.test",
+						Name: "tppRole",
+						Secret: venafi.VenafiSecret{
+							Name: "tpptest",
+							TPP: &venafi.VenafiTPPConnection{
+								URL:      "tpp.venafitest.com",
+								Username: "admin",
+								Password: "pword234",
+								Policy:   "Partner Dev\\\\TLS\\\\HashiCorp Vault",
+							},
+						},
+						TestCerts: []pki_backend.CertificateRequest{
+							{
+								CommonName: "vvw-example.test",
+							},
+						},
 					},
 				},
 			},
@@ -178,52 +208,52 @@ var validPKIBackendTPPConfigResult = &Config{
 
 const invalidPKIBackendConfigNoRole = `
 vault {
-  address = "http://localhost:8200"
+  api_address = "http://localhost:8200"
   token = "root"
 
   ssh {
+    hostname = "localhost"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 }
 
-venafi_pki_backend {
-  mount_path = "venafi-pki"
+plugin "venafi-pki-backend" "venafi-pki" {
 }`
 
 const invalidPKIBackendConfigNoSecret = `
 vault {
-  address = "http://localhost:8200"
+  api_address = "http://localhost:8200"
   token = "root"
 
   ssh {
+    hostname = "localhost"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 }
 
-venafi_pki_backend {
-  mount_path = "venafi-pki"
-
+plugin "venafi-pki-backend" "venafi-pki" {
   role "cloud" {
   }
 }`
 
 const invalidPKIBackendConfigBothConnectionTypes = `
 vault {
-  address = "http://localhost:8200"
+  api_address = "http://localhost:8200"
   token = "root"
 
   ssh {
+    hostname = "localhost"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 }
 
-venafi_pki_backend {
+plugin "venafi-pki-backend" "venafi-pki" {
   mount_path = "venafi-pki"
 
   role "cloud" {
@@ -241,3 +271,9 @@ venafi_pki_backend {
     }
   }
 }`
+
+func deletePluginsUncheckedFields(config *Config) {
+	for i := 0; i < len(config.Plugins); i++ {
+		config.Plugins[i].Config = nil
+	}
+}
