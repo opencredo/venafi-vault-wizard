@@ -1,4 +1,4 @@
-package checks
+package pki_backend
 
 import (
 	"fmt"

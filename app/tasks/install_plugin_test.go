@@ -42,7 +42,7 @@ func TestInstallPlugin(t *testing.T) {
 	var pluginDir = "/etc/plugins"
 	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginName)
 
-	pluginImpl.On("GetDownloadURL").Return(pluginURL, pluginVersion, nil)
+	pluginImpl.On("GetDownloadURL").Return(pluginURL, nil)
 	downloader.On("DownloadPluginAndUnzip", pluginURL).Return(
 		[]byte{0, 1, 2},
 		"shashashasha",
@@ -63,6 +63,7 @@ func TestInstallPlugin(t *testing.T) {
 		Reporter:    report,
 		Plugin: plugins.Plugin{
 			Type:      pluginType,
+			Version:   pluginVersion,
 			MountPath: pluginMountPath,
 			Impl:      pluginImpl,
 		},

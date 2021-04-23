@@ -5,13 +5,12 @@ import (
 
 	"github.com/opencredo/venafi-vault-wizard/app/github"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
-	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, string, error) {
+func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, error) {
 	// TODO: allow selecting architectures
-	return github.GetReleases(
+	return github.GetRelease(
 		"Venafi/vault-pki-backend-venafi",
 		c.Version,
 		"linux.zip",
@@ -19,10 +18,10 @@ func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, string, error) {
 }
 
 func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient api.VaultAPIClient) error {
-	configurePluginSection := report.AddSection("Setting up Venafi PKI backend")
+	configurePluginSection := report.AddSection("Setting up venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		err := checks.ConfigureVenafiSecret(
+		err := ConfigureVenafiSecret(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
@@ -32,7 +31,7 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 			return err
 		}
 
-		err = checks.ConfigureVenafiRole(
+		err = ConfigureVenafiRole(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/roles/%s", c.MountPath, role.Name),
@@ -48,7 +47,7 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 			fetchCertSection := report.AddSection(
 				fmt.Sprintf("Requesting test certificate from %s with CN:%s", roleIssuePath, cert.CommonName),
 			)
-			err = checks.RequestVenafiCertificate(
+			err = RequestVenafiCertificate(
 				fetchCertSection,
 				vaultClient,
 				roleIssuePath,
@@ -64,10 +63,10 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 }
 
 func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.VaultAPIClient) error {
-	configurePluginSection := report.AddSection("Checking Venafi PKI backend")
+	configurePluginSection := report.AddSection("Checking venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		err := checks.VerifyVenafiSecret(
+		err := VerifyVenafiSecret(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
@@ -77,7 +76,7 @@ func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.V
 			return err
 		}
 
-		err = checks.VerifyVenafiRole(
+		err = VerifyVenafiRole(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/roles/%s", c.MountPath, role.Name),

@@ -28,7 +28,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	downloadCheck := checkFilesystemSection.AddCheck("Downloading plugin...")
 
-	pluginURL, version, err := input.Plugin.Impl.GetDownloadURL()
+	pluginURL, err := input.Plugin.Impl.GetDownloadURL()
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	downloadCheck.Success("Successfully downloaded plugin")
 
-	pluginName := fmt.Sprintf("%s_%s-%s", input.Plugin.Type, version, input.Plugin.MountPath)
+	pluginName := fmt.Sprintf("%s_%s-%s", input.Plugin.Type, input.Plugin.Version, input.Plugin.MountPath)
 	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginName)
 
 	checkFilesystemSection.Info(fmt.Sprintf("Plugin filepath is %s\n", pluginPath))
