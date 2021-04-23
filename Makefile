@@ -15,7 +15,7 @@ build:
 .PHONY: generate-mocks
 generate-mocks: $(BIN)/mockery
 	@echo "Generating mocks...\n"
-	$(BIN)/mockery --all
+	$(BIN)/mockery --all --keeptree
 
 $(BIN)/mockery:
 	@echo "Installing mockery to generate mocks...\n"

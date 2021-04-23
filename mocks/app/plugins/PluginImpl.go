@@ -43,7 +43,7 @@ func (_m *PluginImpl) Configure(report reporter.Report, vaultClient api.VaultAPI
 }
 
 // GetDownloadURL provides a mock function with given fields:
-func (_m *PluginImpl) GetDownloadURL() (string, error) {
+func (_m *PluginImpl) GetDownloadURL() (string, string, error) {
 	ret := _m.Called()
 
 	var r0 string
@@ -53,14 +53,21 @@ func (_m *PluginImpl) GetDownloadURL() (string, error) {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
+	var r1 string
+	if rf, ok := ret.Get(1).(func() string); ok {
 		r1 = rf()
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(string)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func() error); ok {
+		r2 = rf()
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // ValidateConfig provides a mock function with given fields:
