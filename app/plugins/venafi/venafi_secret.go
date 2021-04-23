@@ -57,8 +57,8 @@ func (v *VenafiSecret) GetAsMap() map[string]interface{} {
 }
 
 type VenafiCloudConnection struct {
-	APIKey string `hcl:"apikey,optional"`
-	Zone   string `hcl:"zone,optional"`
+	APIKey string `hcl:"apikey"`
+	Zone   string `hcl:"zone"`
 }
 
 type VenafiTPPConnection struct {
