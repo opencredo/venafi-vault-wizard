@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/downloader"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
@@ -11,58 +12,78 @@ import (
 )
 
 type InstallPluginInput struct {
-	VaultClient     api.VaultAPIClient
-	SSHClient       ssh.VaultSSHClient
-	Downloader      downloader.PluginDownloader
-	Reporter        reporter.Report
-	PluginURL       string
-	PluginName      string
-	PluginMountPath string
+	VaultClient   api.VaultAPIClient
+	SSHClients    []ssh.VaultSSHClient
+	Downloader    downloader.PluginDownloader
+	Reporter      reporter.Report
+	Plugin        plugins.Plugin
+	PluginDir     string
+	MlockDisabled bool
 }
 
 func InstallPlugin(input *InstallPluginInput) error {
-	// Check vault before doing anything
-	checkFilesystemSection := input.Reporter.AddSection("Configuring Vault server filesystem")
-	pluginDir, err := checks.GetPluginDir(checkFilesystemSection, input.VaultClient)
+	checkFilesystemSection := input.Reporter.AddSection(
+		fmt.Sprintf("Installing plugin %s to Vault server filesystems", input.Plugin.Type),
+	)
+
+	downloadCheck := checkFilesystemSection.AddCheck("Downloading plugin...")
+
+	pluginURL, version, err := input.Plugin.Impl.GetDownloadURL()
 	if err != nil {
 		return err
 	}
+	pluginBytes, sha, err := input.Downloader.DownloadPluginAndUnzip(pluginURL)
+	if err != nil {
+		downloadCheck.Error(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
+		return err
+	}
 
-	checkFilesystemSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
+	downloadCheck.Success("Successfully downloaded plugin")
 
-	// Copy the plugin to the Vault server and add to Vault plugin catalog
-	pluginPath := fmt.Sprintf("%s/%s", pluginDir, input.PluginName)
-	sha, err := checks.InstallPluginOnServer(
-		checkFilesystemSection,
-		input.SSHClient,
-		input.Downloader,
-		pluginPath,
-		input.PluginURL,
+	pluginName := fmt.Sprintf("%s_%s-%s", input.Plugin.Type, version, input.Plugin.MountPath)
+	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginName)
+
+	checkFilesystemSection.Info(fmt.Sprintf("Plugin filepath is %s\n", pluginPath))
+
+	for i, sshClient := range input.SSHClients {
+		err := checks.InstallPluginOnServer(checkFilesystemSection, sshClient, pluginPath, pluginBytes)
+		if err != nil {
+			return err
+		}
+
+		if !input.MlockDisabled {
+			err := checks.InstallPluginMlock(checkFilesystemSection, sshClient, pluginPath)
+			if err != nil {
+				return err
+			}
+		}
+
+		checkFilesystemSection.Info(fmt.Sprintf("Plugin copied to Vault server %d\n", i+1))
+	}
+
+	enablePluginSection := input.Reporter.AddSection("Enabling plugin")
+
+	err = checks.InstallPluginInCatalog(
+		enablePluginSection,
+		input.VaultClient,
+		pluginName,
+		sha,
 	)
 	if err != nil {
 		return err
 	}
 
-	err = checks.InstallPluginMlock(checkFilesystemSection, input.VaultClient, input.SSHClient, pluginPath)
+	err = checks.InstallPluginMount(
+		enablePluginSection,
+		input.VaultClient,
+		pluginName,
+		input.Plugin.MountPath,
+	)
 	if err != nil {
 		return err
 	}
 
-	err = checks.InstallPluginInCatalog(checkFilesystemSection, input.VaultClient, input.PluginName, input.PluginName, sha)
-	if err != nil {
-		return err
-	}
-
-	checkFilesystemSection.Info(fmt.Sprintf("The Venafi plugin has been installed as %s\n", input.PluginName))
-
-	// Mount backend for plugin in Vault
-	pluginConfigureSection := input.Reporter.AddSection("Configuring plugin")
-	err = checks.InstallPluginMount(pluginConfigureSection, input.VaultClient, input.PluginName, input.PluginMountPath)
-	if err != nil {
-		return err
-	}
-
-	pluginConfigureSection.Info(fmt.Sprintf("The plugin has been mounted at as %s\n", input.PluginMountPath))
+	enablePluginSection.Info(fmt.Sprintf("The plugin is enabled in the catalog and mounted at Vault path %s", input.Plugin.MountPath))
 
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/opencredo/venafi-vault-wizard/app/vault"
-	"github.com/opencredo/venafi-vault-wizard/mocks"
+	mockVaultLib "github.com/opencredo/venafi-vault-wizard/mocks/app/vault/lib"
 )
 
 func Test_vault_GetPluginDir(t *testing.T) {
@@ -28,7 +28,7 @@ func Test_vault_GetPluginDir(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vaultAPIClient := new(mocks.VaultAPIWrapper)
+			vaultAPIClient := new(mockVaultLib.VaultAPIWrapper)
 			defer vaultAPIClient.AssertExpectations(t)
 
 			vaultClient := getTestVaultClient(vaultAPIClient)
@@ -45,7 +45,7 @@ func Test_vault_GetPluginDir(t *testing.T) {
 	}
 }
 
-func getTestVaultClient(apiClient *mocks.VaultAPIWrapper) VaultAPIClient {
+func getTestVaultClient(apiClient *mockVaultLib.VaultAPIWrapper) VaultAPIClient {
 	apiClient.On("SetAddress", "apiaddr").Return(nil)
 	apiClient.On("SetToken", "tok").Return(nil)
 
@@ -60,7 +60,7 @@ func getTestVaultClient(apiClient *mocks.VaultAPIWrapper) VaultAPIClient {
 	return vaultClient
 }
 
-func expectConfigToBeRead(apiClient *mocks.VaultAPIWrapper, pluginDir string, mlockDisabled bool) {
+func expectConfigToBeRead(apiClient *mockVaultLib.VaultAPIWrapper, pluginDir string, mlockDisabled bool) {
 	apiClient.On("Read", "sys/config/state/sanitized").Return(
 		map[string]interface{}{
 			"plugin_directory": pluginDir,
@@ -71,7 +71,7 @@ func expectConfigToBeRead(apiClient *mocks.VaultAPIWrapper, pluginDir string, ml
 }
 
 func Test_vault_RegisterPlugin(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIWrapper)
+	vaultAPIClient := new(mockVaultLib.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
 
 	vaultClient := getTestVaultClient(vaultAPIClient)
@@ -89,7 +89,7 @@ func Test_vault_RegisterPlugin(t *testing.T) {
 }
 
 func Test_vault_MountPlugin(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIWrapper)
+	vaultAPIClient := new(mockVaultLib.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
 
 	vaultClient := getTestVaultClient(vaultAPIClient)
@@ -110,7 +110,7 @@ func Test_vault_MountPlugin(t *testing.T) {
 }
 
 func Test_vault_IsMLockDisabled(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIWrapper)
+	vaultAPIClient := new(mockVaultLib.VaultAPIWrapper)
 	defer vaultAPIClient.AssertExpectations(t)
 
 	vaultClient := getTestVaultClient(vaultAPIClient)

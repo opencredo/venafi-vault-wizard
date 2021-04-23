@@ -10,31 +10,18 @@ import (
 
 func InstallPluginMlock(
 	reportSection reporter.Section,
-	vaultClient api.VaultAPIClient,
 	sshClient ssh.VaultSSHClient,
 	filepath string,
 ) error {
-	check := reportSection.AddCheck("Checking if mlock is disabled...")
-	mlockDisabled, err := vaultClient.IsMLockDisabled()
+	check := reportSection.AddCheck("Attempting to add IPC_LOCK capability to plugin executable...")
+
+	err := sshClient.AddIPCLockCapabilityToFile(filepath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error checking whether mlock is disabled: %s", err))
-		return err
-	}
-
-	if !mlockDisabled {
-		check.UpdateStatus("Mlock is enabled on the Vault server, attempting to add IPC_LOCK capability to plugin...")
-
-		err := sshClient.AddIPCLockCapabilityToFile(filepath)
-		if err != nil {
-			check.Warning(fmt.Sprintf("Error adding IPC_LOCK capability to plugin, might be needed for mlock: %s", err))
-			return nil
-		}
-
-		check.Success("IPC_LOCK capability added to plugin")
+		check.Warning(fmt.Sprintf("Error adding IPC_LOCK capability to plugin, might be needed for mlock: %s", err))
 		return nil
 	}
 
-	check.Warning("Mlock is disabled on the Vault server, should be enabled for production")
+	check.Success("IPC_LOCK capability added to plugin executable")
 	return nil
 }
 

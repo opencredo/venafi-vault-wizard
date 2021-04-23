@@ -6,15 +6,17 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/opencredo/venafi-vault-wizard/mocks"
+	mockReport "github.com/opencredo/venafi-vault-wizard/mocks/app/reporter"
+	mockAPI "github.com/opencredo/venafi-vault-wizard/mocks/app/vault/api"
+	mockSSH "github.com/opencredo/venafi-vault-wizard/mocks/app/vault/ssh"
 )
 
 func TestVerifyPluginInstalled(t *testing.T) {
-	vaultAPIClient := new(mocks.VaultAPIClient)
-	vaultSSHClient := new(mocks.VaultSSHClient)
-	report := new(mocks.Report)
-	section := new(mocks.Section)
-	check := new(mocks.Check)
+	vaultAPIClient := new(mockAPI.VaultAPIClient)
+	vaultSSHClient := new(mockSSH.VaultSSHClient)
+	report := new(mockReport.Report)
+	section := new(mockReport.Section)
+	check := new(mockReport.Check)
 	defer vaultAPIClient.AssertExpectations(t)
 	defer vaultSSHClient.AssertExpectations(t)
 	defer report.AssertExpectations(t)

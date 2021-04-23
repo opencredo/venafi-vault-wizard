@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
@@ -13,33 +12,24 @@ import (
 func InstallPluginOnServer(
 	reportSection reporter.Section,
 	sshClient ssh.VaultSSHClient,
-	download downloader.PluginDownloader,
 	filepath string,
-	pluginURL string,
-) (string, error) {
-	check := reportSection.AddCheck("Installing plugin to Vault server...")
-	plugin, sha, err := download.DownloadPluginAndUnzip(pluginURL)
-	if err != nil {
-		check.Error(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
-		return "", err
-	}
-
-	check.UpdateStatus("Successfully downloaded plugin, copying to Vault server over SSH...")
-
-	err = sshClient.WriteFile(bytes.NewReader(plugin), filepath)
+	pluginBytes []byte,
+) error {
+	check := reportSection.AddCheck("Copying plugin to Vault server...")
+	err := sshClient.WriteFile(bytes.NewReader(pluginBytes), filepath)
 	if err != nil {
 		if errors.Is(err, ssh.ErrFileBusy) {
 			check.Warning("File already exists and is busy, so cannot overwrite")
-			return sha, nil
+			return nil
 		}
 
 		check.Error(fmt.Sprintf("Error copying plugin to Vault: %s", err))
-		return "", err
+		return err
 	}
 
 	check.Success("Plugin copied to Vault server")
 
-	return sha, nil
+	return nil
 }
 
 func VerifyPluginOnServer(reportSection reporter.Section, sshClient ssh.VaultSSHClient, filepath string) error {

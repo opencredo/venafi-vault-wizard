@@ -46,7 +46,7 @@ func TestGetReleases(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			url, err := GetReleases(
+			url, version, err := GetReleases(
 				test.repoOwnerAndName,
 				test.desiredVersion,
 				test.assetSearchSubstr,
@@ -63,6 +63,9 @@ func TestGetReleases(t *testing.T) {
 
 			if url != test.expectedReleaseURL {
 				t.Errorf("GetReleases mismatch, want %s, got %s", test.expectedReleaseURL, url)
+			}
+			if version != test.desiredVersion {
+				t.Errorf("GetReleases mismatch, want %s, got %s", test.desiredVersion, version)
 			}
 		})
 	}

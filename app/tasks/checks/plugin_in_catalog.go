@@ -7,9 +7,9 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-func InstallPluginInCatalog(reportSection reporter.Section, vaultClient api.VaultAPIClient, pluginName, pluginFilename, sha string) error {
+func InstallPluginInCatalog(reportSection reporter.Section, vaultClient api.VaultAPIClient, pluginName, sha string) error {
 	check := reportSection.AddCheck("Enabling plugin in Vault plugin catalog...")
-	err := vaultClient.RegisterPlugin(pluginName, pluginFilename, sha)
+	err := vaultClient.RegisterPlugin(pluginName, pluginName, sha)
 	if err != nil {
 		check.Error(fmt.Sprintf("Error registering plugin in Vault catalog: %s", err))
 		return err

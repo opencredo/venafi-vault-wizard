@@ -9,7 +9,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, error) {
+func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, string, error) {
 	// TODO: allow selecting architectures
 	return github.GetReleases(
 		"Venafi/vault-pki-backend-venafi",
