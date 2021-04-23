@@ -19,8 +19,8 @@ type Plugin struct {
 	Type string `hcl:"type,label"`
 	// MountPath, the second label should specify the Vault mount path
 	MountPath string `hcl:"mount_path,label"`
-	// Version is an optional attribute that should default to the latest version if not specified
-	Version string `hcl:"version,optional"`
+	// Version is the version of the plugin to use, specified as the Git tag of the release
+	Version string `hcl:"version"`
 	// Config allows the rest of the plugin body to be decoded separately
 	Config hcl.Body `hcl:",remain"`
 
@@ -34,9 +34,8 @@ type Plugin struct {
 // PluginImpl is what each plugin struct should implement, along with having its config schema defined with its struct
 // fields and the relevant HCL struct tags.
 type PluginImpl interface {
-	// GetDownloadURL returns a URL to download the required version of the plugin, along with the version number itself
-	// (in case the user didn't supply a version)
-	GetDownloadURL() (url string, version string, err error)
+	// GetDownloadURL returns a URL to download the required version of the plugin
+	GetDownloadURL() (string, error)
 	// Configure makes the necessary changes to Vault to configure the plugin
 	Configure(report reporter.Report, vaultClient api.VaultAPIClient) error
 	// Check is similar to Configure, except it shouldn't make any changes, only validate what is already there

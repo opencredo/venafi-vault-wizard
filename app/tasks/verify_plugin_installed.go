@@ -3,6 +3,7 @@ package tasks
 import (
 	"fmt"
 
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
@@ -10,38 +11,46 @@ import (
 )
 
 type VerifyPluginInstalledInput struct {
-	VaultClient     api.VaultAPIClient
-	SSHClient       ssh.VaultSSHClient
-	Reporter        reporter.Report
-	PluginName      string
-	PluginMountPath string
+	VaultClient   api.VaultAPIClient
+	SSHClients    []ssh.VaultSSHClient
+	Reporter      reporter.Report
+	Plugin        plugins.Plugin
+	PluginDir     string
+	MlockDisabled bool
 }
 
 func VerifyPluginInstalled(input *VerifyPluginInstalledInput) error {
-	checkFilesystemSection := input.Reporter.AddSection("Checking Vault server filesystem")
-	pluginDir, err := checks.GetPluginDir(checkFilesystemSection, input.VaultClient)
+	checkFilesystemSection := input.Reporter.AddSection(
+		fmt.Sprintf("Checking installation of plugin %s on Vault server filesystem", input.Plugin.Type),
+	)
+
+	pluginName := fmt.Sprintf("%s_%s-%s", input.Plugin.Type, input.Plugin.Version, input.Plugin.MountPath)
+	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginName)
+
+	for i, sshClient := range input.SSHClients {
+		err := checks.VerifyPluginOnServer(checkFilesystemSection, sshClient, pluginPath)
+		if err != nil {
+			return err
+		}
+
+		if !input.MlockDisabled {
+			err := checks.VerifyPluginMlock(checkFilesystemSection, sshClient, pluginPath)
+			if err != nil {
+				return err
+			}
+		}
+
+		checkFilesystemSection.Info(fmt.Sprintf("Plugin copied to Vault server %d\n", i+1))
+	}
+
+	pluginConfSection := input.Reporter.AddSection("Checking plugin configuration in Vault")
+
+	err := checks.VerifyPluginInCatalog(pluginConfSection, input.VaultClient, pluginName)
 	if err != nil {
 		return err
 	}
 
-	pluginPath := fmt.Sprintf("%s/%s", pluginDir, input.PluginName)
-	err = checks.VerifyPluginOnServer(checkFilesystemSection, input.SSHClient, pluginPath)
-	if err != nil {
-		return err
-	}
-
-	err = checks.VerifyPluginMlock(checkFilesystemSection, input.VaultClient, input.SSHClient, pluginPath)
-	if err != nil {
-		return err
-	}
-
-	pluginConfSection := input.Reporter.AddSection("Check Plugin configuration in Vault")
-	err = checks.VerifyPluginInCatalog(pluginConfSection, input.VaultClient, input.PluginName, input.PluginName)
-	if err != nil {
-		return err
-	}
-
-	err = checks.VerifyPluginMount(pluginConfSection, input.VaultClient, input.PluginName, input.PluginMountPath)
+	err = checks.VerifyPluginMount(pluginConfSection, input.VaultClient, pluginName, input.Plugin.MountPath)
 	if err != nil {
 		return err
 	}

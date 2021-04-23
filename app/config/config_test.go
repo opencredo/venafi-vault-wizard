@@ -75,6 +75,7 @@ vault {
 }
 
 plugin "venafi-pki-backend" "venafi-pki" {
+  version = "v0.9.0"
   role "cloud" {
     secret "cloud" {
       venafi_cloud {
@@ -107,9 +108,11 @@ var validPKIBackendCloudConfigResult = &Config{
 		{
 			Type:      "venafi-pki-backend",
 			MountPath: "venafi-pki",
+			Version:   "v0.9.0",
 			Config:    nil,
 			Impl: &pki_backend.VenafiPKIBackendConfig{
 				MountPath: "venafi-pki",
+				Version:   "v0.9.0",
 				Roles: []pki_backend.Role{
 					{
 						Name: "cloud",
@@ -146,6 +149,7 @@ vault {
 }
 
 plugin "venafi-pki-backend" "venafi-pki" {
+  version = "v0.9.0"
   role "tppRole" {
     secret "tpptest" {
       venafi_tpp {
@@ -179,9 +183,11 @@ var validPKIBackendTPPConfigResult = &Config{
 		{
 			Type:      "venafi-pki-backend",
 			MountPath: "venafi-pki",
+			Version:   "v0.9.0",
 			Config:    nil,
 			Impl: &pki_backend.VenafiPKIBackendConfig{
 				MountPath: "venafi-pki",
+				Version:   "v0.9.0",
 				Roles: []pki_backend.Role{
 					{
 						Name: "tppRole",
@@ -236,6 +242,7 @@ vault {
 }
 
 plugin "venafi-pki-backend" "venafi-pki" {
+  version = "v0.9.0"
   role "cloud" {
   }
 }`
@@ -254,7 +261,7 @@ vault {
 }
 
 plugin "venafi-pki-backend" "venafi-pki" {
-  mount_path = "venafi-pki"
+  version = "v0.9.0"
 
   role "cloud" {
     secret "cloud" {

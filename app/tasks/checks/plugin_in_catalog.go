@@ -19,14 +19,14 @@ func InstallPluginInCatalog(reportSection reporter.Section, vaultClient api.Vaul
 	return nil
 }
 
-func VerifyPluginInCatalog(reportSection reporter.Section, vaultClient api.VaultAPIClient, pluginName, pluginFilename string) error {
+func VerifyPluginInCatalog(reportSection reporter.Section, vaultClient api.VaultAPIClient, pluginName string) error {
 	check := reportSection.AddCheck("Checking whether plugin is enabled in Vault plugin catalog...")
 	plugin, err := vaultClient.GetPlugin(pluginName)
 	if err != nil {
 		check.Error(fmt.Sprintf("Can't look up plugin in Vault plugin catalog: %s", err))
 		return err
 	}
-	if plugin["command"] != pluginFilename {
+	if plugin["command"] != pluginName {
 		check.Error("Plugin enabled, but the currently configured command is incorrect")
 		return fmt.Errorf("wrong plugin command configured")
 	}

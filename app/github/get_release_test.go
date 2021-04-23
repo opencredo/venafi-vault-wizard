@@ -7,7 +7,7 @@ const (
 	venafiPKIMonitorRepo = "Venafi/vault-pki-monitor-venafi"
 )
 
-func TestGetReleases(t *testing.T) {
+func TestGetRelease(t *testing.T) {
 	tests := map[string]struct {
 		repoOwnerAndName   string
 		desiredVersion     string
@@ -46,13 +46,13 @@ func TestGetReleases(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			url, version, err := GetReleases(
+			url, err := GetRelease(
 				test.repoOwnerAndName,
 				test.desiredVersion,
 				test.assetSearchSubstr,
 			)
 			if (err != nil) != test.wantErr {
-				t.Errorf("GetReleases() error = %v, wantErr %v", err, test.wantErr)
+				t.Errorf("GetRelease() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
 
@@ -62,10 +62,7 @@ func TestGetReleases(t *testing.T) {
 			}
 
 			if url != test.expectedReleaseURL {
-				t.Errorf("GetReleases mismatch, want %s, got %s", test.expectedReleaseURL, url)
-			}
-			if version != test.desiredVersion {
-				t.Errorf("GetReleases mismatch, want %s, got %s", test.desiredVersion, version)
+				t.Errorf("GetRelease mismatch, want %s, got %s", test.expectedReleaseURL, url)
 			}
 		})
 	}

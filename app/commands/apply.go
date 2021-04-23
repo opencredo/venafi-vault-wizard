@@ -49,7 +49,24 @@ func Apply(configuration *config.Config) {
 			return
 		}
 
+		err = tasks.VerifyPluginInstalled(&tasks.VerifyPluginInstalledInput{
+			VaultClient:   vaultClient,
+			SSHClients:    sshClients,
+			Reporter:      report,
+			Plugin:        plugin,
+			PluginDir:     pluginDir,
+			MlockDisabled: mlockDisabled,
+		})
+		if err != nil {
+			return
+		}
+
 		err = plugin.Impl.Configure(report, vaultClient)
+		if err != nil {
+			return
+		}
+
+		err = plugin.Impl.Check(report, vaultClient)
 		if err != nil {
 			return
 		}
