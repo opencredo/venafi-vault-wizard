@@ -4,7 +4,47 @@ import (
 	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
+	"github.com/opencredo/venafi-vault-wizard/app/reporter"
+	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
+
+func ConfigureVenafiSecret(
+	reportSection reporter.Section,
+	vaultClient api.VaultAPIClient,
+	secretPath string,
+	secretValue VenafiConnectionConfig,
+) error {
+	check := reportSection.AddCheck("Adding Venafi secret...")
+
+	_, err := vaultClient.WriteValue(secretPath, secretValue.GetAsMap())
+	if err != nil {
+		check.Error(fmt.Sprintf("Error configuring Venafi secret: %s", err))
+		return err
+	}
+
+	check.Success("Venafi secret configured at " + secretPath)
+	return nil
+}
+
+func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPIClient, secretPath string, secretValue VenafiConnectionConfig) error {
+	check := reportSection.AddCheck("Checking Venafi secret...")
+
+	data, err := vaultClient.ReadValue(secretPath)
+	if err != nil {
+		check.Error(fmt.Sprintf("Error retrieving Venafi secret: %s", err))
+		return err
+	}
+
+	expectedZone := secretValue.GetAsMap()["zone"]
+
+	if data["zone"] != expectedZone {
+		check.Error(fmt.Sprintf("The Venafi secret's zone field is not as expected: expected %s got %s", expectedZone, data["zone"]))
+		return fmt.Errorf("venafi secret incorrect")
+	}
+
+	check.Success("Venafi secret correctly configured at " + secretPath)
+	return nil
+}
 
 type VenafiSecret struct {
 	Name  string                 `hcl:"name,label"`
@@ -36,7 +76,7 @@ func (v *VenafiSecret) Validate() error {
 	return nil
 }
 
-func (v *VenafiSecret) GetAsMap() map[string]interface{} {
+func (v VenafiSecret) GetAsMap() map[string]interface{} {
 	if v.Cloud != nil {
 		return map[string]interface{}{
 			"apikey": v.Cloud.APIKey,
