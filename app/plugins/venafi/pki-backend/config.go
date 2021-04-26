@@ -8,10 +8,10 @@ import (
 )
 
 type VenafiPKIBackendConfig struct {
-	// MountPath is not decoded directly by using the struct tags, and is instead populated by plugins.LookupPlugin
-	// when it is initialised
+	// MountPath is not decoded directly by using the struct tags, and is instead populated by
+	// ParseVenafiPKIBackendConfig when it is initialised
 	MountPath string
-	// Version is not decoded directly by using the struct tags, and is instead populated by plugins.LookupPlugin
+	// Version is not decoded directly by using the struct tags, and is instead populated by ParseVenafiPKIBackendConfig
 	// when it is initialised
 	Version string
 

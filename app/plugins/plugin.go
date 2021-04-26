@@ -1,17 +1,11 @@
 package plugins
 
 import (
-	"errors"
-
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/gohcl"
 
-	pki_backend "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-backend"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
-
-var ErrPluginNotFound = errors.New("plugin not found")
 
 // Generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
 type Plugin struct {
@@ -42,37 +36,4 @@ type PluginImpl interface {
 	Check(report reporter.Report, vaultClient api.VaultAPIClient) error
 	// ValidateConfig performs validation of the supplied configuration data, specific to the plugin
 	ValidateConfig() error
-}
-
-// Map of "constructors" which maps all the supported plugin types to their associated PluginImpl implementations.
-// Uses a function to force each instance to be a copy, and to allow injection of fields from the wrapper Plugin struct
-type pluginImplConstructor func(*Plugin) PluginImpl
-
-var supportedPlugins = map[string]pluginImplConstructor{
-	"venafi-pki-backend": func(config *Plugin) PluginImpl {
-		return &pki_backend.VenafiPKIBackendConfig{
-			MountPath: config.MountPath,
-			Version:   config.Version,
-		}
-	},
-}
-
-// LookupPlugin goes from a generic config.Plugin and looks up its specific PluginImpl based on the Type
-// field. It takes a pointer to an hcl.EvalContext in order to provide the same config functions available to the rest
-// of the config, and in future maybe some global variables, and then decodes the plugin-specific part of the plugin
-// block.
-func LookupPlugin(config *Plugin, evalContext *hcl.EvalContext) (PluginImpl, error) {
-	constructor, ok := supportedPlugins[config.Type]
-	if !ok {
-		return nil, ErrPluginNotFound
-	}
-
-	plugin := constructor(config)
-
-	diagnostics := gohcl.DecodeBody(config.Config, evalContext, plugin)
-	if diagnostics.HasErrors() {
-		return nil, diagnostics
-	}
-
-	return plugin, nil
 }
