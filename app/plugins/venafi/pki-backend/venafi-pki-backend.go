@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/github"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -21,11 +22,11 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 	configurePluginSection := report.AddSection("Setting up venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		err := ConfigureVenafiSecret(
+		err := venafi.ConfigureVenafiSecret(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
-			role.Secret.GetAsMap(),
+			role.Secret,
 		)
 		if err != nil {
 			return err
@@ -66,11 +67,11 @@ func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.V
 	configurePluginSection := report.AddSection("Checking venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		err := VerifyVenafiSecret(
+		err := venafi.VerifyVenafiSecret(
 			configurePluginSection,
 			vaultClient,
 			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
-			role.Secret.GetAsMap()["zone"].(string),
+			role.Secret,
 		)
 		if err != nil {
 			return err
