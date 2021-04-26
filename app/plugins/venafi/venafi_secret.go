@@ -29,18 +29,12 @@ func ConfigureVenafiSecret(
 func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPIClient, secretPath string, secretValue VenafiConnectionConfig) error {
 	check := reportSection.AddCheck("Checking Venafi secret...")
 
-	data, err := vaultClient.ReadValue(secretPath)
+	_, err := vaultClient.ReadValue(secretPath)
 	if err != nil {
 		check.Error(fmt.Sprintf("Error retrieving Venafi secret: %s", err))
 		return err
 	}
-
-	expectedZone := secretValue.GetAsMap()["zone"]
-
-	if data["zone"] != expectedZone {
-		check.Error(fmt.Sprintf("The Venafi secret's zone field is not as expected: expected %s got %s", expectedZone, data["zone"]))
-		return fmt.Errorf("venafi secret incorrect")
-	}
+	// TODO: check this better, maybe try use auth details to do something with vcert?
 
 	check.Success("Venafi secret correctly configured at " + secretPath)
 	return nil
@@ -80,14 +74,12 @@ func (v VenafiSecret) GetAsMap() map[string]interface{} {
 	if v.Cloud != nil {
 		return map[string]interface{}{
 			"apikey": v.Cloud.APIKey,
-			"zone":   v.Cloud.Zone,
 		}
 	}
 
 	if v.TPP != nil {
 		return map[string]interface{}{
 			"url":          v.TPP.URL,
-			"zone":         v.TPP.Policy,
 			"tpp_user":     v.TPP.Username,
 			"tpp_password": v.TPP.Password,
 		}
@@ -98,7 +90,6 @@ func (v VenafiSecret) GetAsMap() map[string]interface{} {
 
 type VenafiCloudConnection struct {
 	APIKey string `hcl:"apikey"`
-	Zone   string `hcl:"zone"`
 }
 
 type VenafiTPPConnection struct {
@@ -106,15 +97,11 @@ type VenafiTPPConnection struct {
 	Username string `hcl:"username"`
 	// TODO: support access token
 	Password string `hcl:"password"`
-	Policy   string `hcl:"policy"`
 }
 
 func (c *VenafiCloudConnection) Validate() error {
 	if c.APIKey == "" {
 		return fmt.Errorf("error with Venafi API key: %w", errors.ErrBlankParam)
-	}
-	if c.Zone == "" {
-		return fmt.Errorf("error with Venafi Zone: %w", errors.ErrBlankParam)
 	}
 	return nil
 }
@@ -122,9 +109,6 @@ func (c *VenafiCloudConnection) Validate() error {
 func (c *VenafiTPPConnection) Validate() error {
 	if c.URL == "" {
 		return fmt.Errorf("error with TPP URL: %w", errors.ErrBlankParam)
-	}
-	if c.Policy == "" {
-		return fmt.Errorf("error with TPP Policy: %w", errors.ErrBlankParam)
 	}
 	if c.Username == "" {
 		return fmt.Errorf("error with TPP Username: %w", errors.ErrBlankParam)

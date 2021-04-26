@@ -83,10 +83,10 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   role "cloud" {
+    zone = "zone"
     secret "cloud" {
       venafi_cloud {
         apikey = "apikey"
-        zone = "zone"
       }
     }
 
@@ -122,11 +122,11 @@ var validPKIBackendCloudConfigResult = &Config{
 				Roles: []pki_backend.Role{
 					{
 						Name: "cloud",
+						Zone: "zone",
 						Secret: venafi.VenafiSecret{
 							Name: "cloud",
 							Cloud: &venafi.VenafiCloudConnection{
 								APIKey: "apikey",
-								Zone:   "zone",
 							},
 						},
 						TestCerts: []pki_backend.CertificateRequest{
@@ -157,12 +157,12 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   role "tppRole" {
+    zone = "Partner Dev\\\\TLS\\\\HashiCorp Vault"
     secret "tpptest" {
       venafi_tpp {
         url = "tpp.venafitest.com"
         username = "admin"
         password = "pword234"
-        policy = "Partner Dev\\\\TLS\\\\HashiCorp Vault"
       }
     }
 
@@ -197,13 +197,13 @@ var validPKIBackendTPPConfigResult = &Config{
 				Roles: []pki_backend.Role{
 					{
 						Name: "tppRole",
+						Zone: "Partner Dev\\\\TLS\\\\HashiCorp Vault",
 						Secret: venafi.VenafiSecret{
 							Name: "tpptest",
 							TPP: &venafi.VenafiTPPConnection{
 								URL:      "tpp.venafitest.com",
 								Username: "admin",
 								Password: "pword234",
-								Policy:   "Partner Dev\\\\TLS\\\\HashiCorp Vault",
 							},
 						},
 						TestCerts: []pki_backend.CertificateRequest{

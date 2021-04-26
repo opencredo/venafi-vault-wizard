@@ -10,12 +10,13 @@ import (
 func ConfigureVenafiRole(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
-	rolePath, secretName string,
+	rolePath, secretName, zone string,
 ) error {
 	check := reportSection.AddCheck("Adding Venafi role...")
 
 	_, err := vaultClient.WriteValue(rolePath, map[string]interface{}{
 		"venafi_secret": secretName,
+		"zone":          zone,
 	})
 	if err != nil {
 		check.Error(fmt.Sprintf("Error configuring Venafi role: %s", err))
@@ -29,7 +30,7 @@ func ConfigureVenafiRole(
 func VerifyVenafiRole(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
-	rolePath, secretName string,
+	rolePath, secretName, zone string,
 ) error {
 	check := reportSection.AddCheck("Checking Venafi role...")
 
@@ -41,6 +42,11 @@ func VerifyVenafiRole(
 
 	if data["venafi_secret"] != secretName {
 		check.Error(fmt.Sprintf("The Venafi role's venafi_secret field was not as expected: expected %s got %s", secretName, data["venafi_secret"]))
+		return fmt.Errorf("venafi role incorrect")
+	}
+
+	if data["zone"] != zone {
+		check.Error(fmt.Sprintf("The Venafi role's zone field was not as expected: expected %s got %s", zone, data["zone"]))
 		return fmt.Errorf("venafi role incorrect")
 	}
 
