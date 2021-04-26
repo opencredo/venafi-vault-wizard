@@ -11,6 +11,7 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/lookup"
 )
 
 type Config struct {
@@ -60,7 +61,7 @@ func NewConfig(filename string, src []byte) (*Config, error) {
 	}
 
 	for i, plugin := range config.Plugins {
-		pluginImpl, err := plugins.LookupPlugin(&plugin, configEvaluationContext)
+		pluginImpl, err := lookup.LookupPlugin(&plugin, configEvaluationContext)
 		if err != nil {
 			return nil, err
 		}

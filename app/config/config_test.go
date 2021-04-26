@@ -8,6 +8,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	pki_backend "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-backend"
+	pki_monitor "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-monitor"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -37,6 +38,11 @@ func TestNewConfig(t *testing.T) {
 		"invalid venafi-pki-backend with both cloud and TPP": {
 			config:  invalidPKIBackendConfigBothConnectionTypes,
 			wantErr: true,
+		},
+		"valid venafi-pki-monitor with Cloud": {
+			config:  validPKIMonitorConfig,
+			want:    validPKIMonitorConfigResult,
+			wantErr: false,
 		},
 	}
 	for name, tt := range tests {
@@ -204,6 +210,109 @@ var validPKIBackendTPPConfigResult = &Config{
 							{
 								CommonName: "vvw-example.test",
 							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
+const validPKIMonitorConfig = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy "subca" {
+	  zone = "zone"
+	}
+
+    import_policy "issued" {
+      zone = "zone2"
+    }
+
+	intermediate_certificate {
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
+
+    allow_any_name = true
+    ttl = "1h"
+    max_ttl = "2h"
+  }
+}`
+
+var validPKIMonitorConfigResult = &Config{
+	Vault: VaultConfig{
+		VaultAddress: "http://localhost:8200",
+		VaultToken:   "root",
+		SSHConfig: []SSH{
+			{
+				Hostname: "localhost",
+				Username: "vagrant",
+				Password: "vagrant",
+				Port:     22,
+			},
+		},
+	},
+	Plugins: []plugins.Plugin{
+		{
+			Type:      "venafi-pki-monitor",
+			MountPath: "venafi-pki",
+			Version:   "v0.9.0",
+			Config:    nil,
+			Impl: &pki_monitor.VenafiPKIMonitorConfig{
+				MountPath: "venafi-pki",
+				Version:   "v0.9.0",
+				Role: pki_monitor.Role{
+					Name:         "web_server",
+					AllowAnyName: true,
+					TTL:          "1h",
+					MaxTTL:       "2h",
+					EnforcementPolicy: pki_monitor.Policy{
+						Name: "subca",
+						Zone: "zone",
+					},
+					ImportPolicy: &pki_monitor.Policy{
+						Name: "issued",
+						Zone: "zone2",
+					},
+					IntermediateCert: pki_monitor.CertificateRequest{
+						CommonName:   "Vault SubCA",
+						OU:           "VVW",
+						Organisation: "VVW",
+						Locality:     "London",
+						Province:     "London",
+						Country:      "GB",
+						TTL:          "1h",
+					},
+					Secret: venafi.VenafiSecret{
+						Name: "cloud",
+						Cloud: &venafi.VenafiCloudConnection{
+							APIKey: "apikey",
 						},
 					},
 				},
