@@ -20,6 +20,7 @@ type VenafiPKIBackendConfig struct {
 
 type Role struct {
 	Name      string               `hcl:"role,label"`
+	Zone      string               `hcl:"zone"`
 	Secret    venafi.VenafiSecret  `hcl:"secret,block"`
 	TestCerts []CertificateRequest `hcl:"test_certificate,block"`
 }

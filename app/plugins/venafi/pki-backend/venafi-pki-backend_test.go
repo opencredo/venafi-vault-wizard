@@ -33,13 +33,13 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	var zone = "zone ID"
 	var venafiConnectionConfig = map[string]interface{}{
 		"apikey": apiKey,
-		"zone":   zone,
 	}
 
 	vaultAPIClient.On("WriteValue", secretPath, venafiConnectionConfig).Return(nil, nil)
 	vaultAPIClient.On("WriteValue", rolePath,
 		map[string]interface{}{
 			"venafi_secret": secretName,
+			"zone": zone,
 		},
 	).Return(nil, nil)
 
@@ -48,11 +48,11 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 		Roles: []Role{
 			{
 				Name: roleName,
+				Zone: zone,
 				Secret: venafi.VenafiSecret{
 					Name: secretName,
 					Cloud: &venafi.VenafiCloudConnection{
 						APIKey: apiKey,
-						Zone:   zone,
 					},
 				},
 			},
@@ -84,12 +84,12 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 	vaultAPIClient.On("ReadValue", secretPath).Return(
 		map[string]interface{}{
 			"apikey":    "****",
-			"zone":      zone,
 			"otherkeys": "extra info",
 		}, nil)
 	vaultAPIClient.On("ReadValue", rolePath).Return(
 		map[string]interface{}{
 			"venafi_secret": secretName,
+			"zone": zone,
 			"otherkeys":     "more info",
 		}, nil)
 
@@ -98,11 +98,11 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 		Roles: []Role{
 			{
 				Name: roleName,
+				Zone: zone,
 				Secret: venafi.VenafiSecret{
 					Name: secretName,
 					Cloud: &venafi.VenafiCloudConnection{
 						APIKey: "apikey",
-						Zone:   zone,
 					},
 				},
 			},
