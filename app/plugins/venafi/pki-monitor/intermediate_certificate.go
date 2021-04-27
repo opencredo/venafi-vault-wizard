@@ -7,6 +7,7 @@ import (
 	"github.com/Venafi/vcert/v4/pkg/certificate"
 	"github.com/Venafi/vcert/v4/pkg/endpoint"
 
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 
@@ -16,8 +17,10 @@ import (
 func ConfigureIntermediateCertificate(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
+	venafiSecret venafi.VenafiSecret,
 	mountPath string,
 	request *CertificateRequest,
+	zone string,
 ) error {
 	check := reportSection.AddCheck("Generating a CSR for an intermediate certificate from Venafi...")
 
@@ -27,12 +30,9 @@ func ConfigureIntermediateCertificate(
 		check.Error(fmt.Sprintf("Error configuring Venafi policy: %s", err))
 		return err
 	}
-	pluginCSR := data["csr"].([]byte)
+	pluginCSR := data["csr"].(string)
 
-	// Get Venafi client
-	client, err := vcert.NewClient(&vcert.Config{
-		ConnectorType: endpoint.ConnectorTypeFake,
-	})
+	client, err := getVCertClient(venafiSecret, zone)
 	if err != nil {
 		check.Error(fmt.Sprintf("Error connecting to Venafi: %s", err))
 		return err
@@ -42,7 +42,7 @@ func ConfigureIntermediateCertificate(
 	enrollReq := &certificate.Request{
 		CsrOrigin: certificate.UserProvidedCSR,
 	}
-	err = enrollReq.SetCSR(pluginCSR)
+	err = enrollReq.SetCSR([]byte(pluginCSR))
 	if err != nil {
 		check.Error(fmt.Sprintf("Error parsing intermediate CSR provided by Vault: %s", err))
 		return err
@@ -67,7 +67,7 @@ func ConfigureIntermediateCertificate(
 		return err
 	}
 
-	_, err = vaultClient.WriteValue(mountPath+"intermediate/set-signed", map[string]interface{}{
+	_, err = vaultClient.WriteValue(mountPath+"/intermediate/set-signed", map[string]interface{}{
 		"certificate": venafiPEMs.Certificate,
 	})
 	if err != nil {
@@ -85,4 +85,36 @@ func VerifyIntermediateCertificate(
 	policyPath, secretName string,
 ) error {
 	return nil
+}
+
+func getVCertClient(secret venafi.VenafiSecret, zone string) (endpoint.Connector, error) {
+	var venafiClient endpoint.Connector
+	var err error
+	if secret.Cloud != nil {
+		venafiClient, err = vcert.NewClient(&vcert.Config{
+			ConnectorType: endpoint.ConnectorTypeCloud,
+			Credentials: &endpoint.Authentication{
+				APIKey: secret.Cloud.APIKey,
+			},
+			Zone: zone,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		venafiClient, err = vcert.NewClient(&vcert.Config{
+			ConnectorType: endpoint.ConnectorTypeTPP,
+			BaseUrl:       secret.TPP.URL,
+			Credentials: &endpoint.Authentication{
+				User:     secret.TPP.Username,
+				Password: secret.TPP.Password,
+			},
+			Zone: zone,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return venafiClient, nil
 }

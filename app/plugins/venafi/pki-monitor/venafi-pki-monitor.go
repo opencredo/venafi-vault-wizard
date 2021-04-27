@@ -34,8 +34,11 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		configurePluginSection,
 		vaultClient,
 		c.MountPath,
-		c.Role.Secret.Name,
-		c.Role.EnforcementPolicy,
+		"default",
+		map[string]interface{}{
+			"venafi_secret": c.Role.Secret.Name,
+			"zone":          c.Role.EnforcementPolicy.Zone,
+		},
 	)
 	if err != nil {
 		return err
@@ -44,8 +47,10 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 	err = ConfigureIntermediateCertificate(
 		configurePluginSection,
 		vaultClient,
+		c.Role.Secret,
 		c.MountPath,
 		&c.Role.IntermediateCert,
+		c.Role.EnforcementPolicy.Zone,
 	)
 	if err != nil {
 		return err
@@ -56,21 +61,11 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 			configurePluginSection,
 			vaultClient,
 			c.MountPath,
-			c.Role.Secret.Name,
-			*c.Role.ImportPolicy,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	if c.Role.DefaultPolicy != nil {
-		err = ConfigureVenafiPolicy(
-			configurePluginSection,
-			vaultClient,
-			c.MountPath,
-			c.Role.Secret.Name,
-			*c.Role.DefaultPolicy,
+			"visibility",
+			map[string]interface{}{
+				"venafi_secret": c.Role.Secret.Name,
+				"zone":          c.Role.ImportPolicy.Zone,
+			},
 		)
 		if err != nil {
 			return err
@@ -80,8 +75,13 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 	err = ConfigureVenafiRole(
 		configurePluginSection,
 		vaultClient,
-		fmt.Sprintf("%s/role/%s", c.MountPath, c.Role.Name),
+		fmt.Sprintf("%s/roles/%s", c.MountPath, c.Role.Name),
 		map[string]interface{}{
+			"organization":   c.Role.IntermediateCert.Organisation,
+			"ou":             c.Role.IntermediateCert.OU,
+			"locality":       c.Role.IntermediateCert.Locality,
+			"province":       c.Role.IntermediateCert.Province,
+			"country":        c.Role.IntermediateCert.Country,
 			"ttl":            c.Role.TTL,
 			"max_ttl":        c.Role.MaxTTL,
 			"allow_any_name": c.Role.AllowAnyName,
@@ -92,9 +92,42 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		return err
 	}
 
+	err = ConfigureVenafiPolicy(
+		configurePluginSection,
+		vaultClient,
+		c.MountPath,
+		"default",
+		map[string]interface{}{
+			"venafi_secret":     c.Role.Secret.Name,
+			"zone":              c.Role.EnforcementPolicy.Zone,
+			"enforcement_roles": c.Role.Name,
+			"defaults_roles":    c.Role.Name,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	if c.Role.ImportPolicy != nil {
+		err = ConfigureVenafiPolicy(
+			configurePluginSection,
+			vaultClient,
+			c.MountPath,
+			"visibility",
+			map[string]interface{}{
+				"venafi_secret": c.Role.Secret.Name,
+				"zone":          c.Role.ImportPolicy.Zone,
+				"import_roles":  c.Role.Name,
+			},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func (c *VenafiPKIMonitorConfig) Check(report reporter.Report, vaultClient api.VaultAPIClient) error {
-	panic("implement me")
+	return nil
 }

@@ -241,11 +241,11 @@ plugin "venafi-pki-monitor" "venafi-pki" {
       }
     }
 
-	enforcement_policy "subca" {
+	enforcement_policy {
 	  zone = "zone"
 	}
 
-    import_policy "issued" {
+    import_policy {
       zone = "zone2"
     }
 
@@ -293,11 +293,9 @@ var validPKIMonitorConfigResult = &Config{
 					TTL:          "1h",
 					MaxTTL:       "2h",
 					EnforcementPolicy: pki_monitor.Policy{
-						Name: "subca",
 						Zone: "zone",
 					},
 					ImportPolicy: &pki_monitor.Policy{
-						Name: "issued",
 						Zone: "zone2",
 					},
 					IntermediateCert: pki_monitor.CertificateRequest{
