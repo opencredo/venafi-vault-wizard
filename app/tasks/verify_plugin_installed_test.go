@@ -33,15 +33,16 @@ func TestVerifyPluginInstalled(t *testing.T) {
 	var pluginType = "venafi-pki-backend"
 	var pluginVersion = "v0.9.0"
 	var pluginMountPath = "pki"
-	var pluginName = fmt.Sprintf("%s_%s-%s", pluginType, pluginVersion, pluginMountPath)
+	var pluginName = fmt.Sprintf("%s-%s", pluginType, pluginMountPath)
+	var pluginFileName = fmt.Sprintf("%s_%s", pluginName, pluginVersion)
 	var pluginDir = "/etc/plugins"
-	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginName)
+	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginFileName)
 
 	vaultSSHClient.On("FileExists", pluginPath).Return(true, nil)
 	vaultSSHClient.On("IsIPCLockCapabilityOnFile", pluginPath).Return(true, nil)
 	vaultAPIClient.On("GetPlugin", pluginName).Return(
 		map[string]interface{}{
-			"command": pluginName,
+			"command": pluginFileName,
 		},
 		nil,
 	)

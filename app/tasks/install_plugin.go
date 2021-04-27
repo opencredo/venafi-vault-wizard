@@ -40,8 +40,9 @@ func InstallPlugin(input *InstallPluginInput) error {
 
 	downloadCheck.Success("Successfully downloaded plugin")
 
-	pluginName := fmt.Sprintf("%s_%s-%s", input.Plugin.Type, input.Plugin.Version, input.Plugin.MountPath)
-	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginName)
+	pluginName := fmt.Sprintf("%s-%s", input.Plugin.Type, input.Plugin.MountPath)
+	pluginFileName := fmt.Sprintf("%s_%s", pluginName, input.Plugin.Version)
+	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginFileName)
 
 	checkFilesystemSection.Info(fmt.Sprintf("Plugin filepath is %s\n", pluginPath))
 
@@ -67,6 +68,7 @@ func InstallPlugin(input *InstallPluginInput) error {
 		enablePluginSection,
 		input.VaultClient,
 		pluginName,
+		pluginFileName,
 		sha,
 	)
 	if err != nil {
