@@ -24,18 +24,38 @@ vault {
   }
 }
 
-plugin "venafi-pki-backend" "pki-backend" {
-  role "cloud" {
+plugin "venafi-pki-monitor" "pki-monitor" {
+  version = "v0.9.0"
+
+  role "web_server" {
     secret "cloud" {
-      venafi_cloud {
-        apikey = env("VENAFI_API_KEY")
-        zone = "6225eee0-8101-11eb-7822-0b1983e1b167"
+      venafi_tpp {
+        url = env("TPP_URL")
+        username = env("TPP_USERNAME")
+        password = env("TPP_PASSWORD")
       }
     }
 
-    test_certificate {
-      common_name = "vvw-example.test"
+    enforcement_policy {
+      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault SubCA"
     }
+
+    import_policy {
+      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault Issued"
+    }
+
+    intermediate_certificate {
+      common_name = "Vault SubCA"
+      ou = "OpenCredo"
+      organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+    }
+
+    allow_any_name = true
+    ttl = "1h"
+    max_ttl = "2h"
   }
 }
-

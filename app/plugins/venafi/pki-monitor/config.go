@@ -24,7 +24,6 @@ type Role struct {
 
 	EnforcementPolicy Policy  `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
-	DefaultPolicy     *Policy `hcl:"defaults_policy,block"`
 
 	IntermediateCert CertificateRequest `hcl:"intermediate_certificate,block"`
 
@@ -37,7 +36,6 @@ type Role struct {
 }
 
 type Policy struct {
-	Name string `hcl:"policy,label"`
 	Zone string `hcl:"zone"`
 }
 

@@ -39,7 +39,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	vaultAPIClient.On("WriteValue", rolePath,
 		map[string]interface{}{
 			"venafi_secret": secretName,
-			"zone": zone,
+			"zone":          zone,
 		},
 	).Return(nil, nil)
 
@@ -89,7 +89,7 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 	vaultAPIClient.On("ReadValue", rolePath).Return(
 		map[string]interface{}{
 			"venafi_secret": secretName,
-			"zone": zone,
+			"zone":          zone,
 			"otherkeys":     "more info",
 		}, nil)
 
