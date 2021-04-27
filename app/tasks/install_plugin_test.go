@@ -38,9 +38,10 @@ func TestInstallPlugin(t *testing.T) {
 	var pluginType = "venafi-pki-backend"
 	var pluginVersion = "v0.9.0"
 	var pluginMountPath = "pki"
-	var pluginName = fmt.Sprintf("%s_%s-%s", pluginType, pluginVersion, pluginMountPath)
+	var pluginName = fmt.Sprintf("%s-%s", pluginType, pluginMountPath)
+	var pluginFileName = fmt.Sprintf("%s_%s", pluginName, pluginVersion)
 	var pluginDir = "/etc/plugins"
-	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginName)
+	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginFileName)
 
 	pluginImpl.On("GetDownloadURL").Return(pluginURL, nil)
 	downloader.On("DownloadPluginAndUnzip", pluginURL).Return(
@@ -53,7 +54,7 @@ func TestInstallPlugin(t *testing.T) {
 		pluginPath,
 	).Return(nil)
 	vaultSSHClient.On("AddIPCLockCapabilityToFile", pluginPath).Return(nil)
-	vaultAPIClient.On("RegisterPlugin", pluginName, pluginName, "shashashasha").Return(nil)
+	vaultAPIClient.On("RegisterPlugin", pluginName, pluginFileName, "shashashasha").Return(nil)
 	vaultAPIClient.On("MountPlugin", pluginName, pluginMountPath).Return(nil)
 
 	err := InstallPlugin(&InstallPluginInput{
