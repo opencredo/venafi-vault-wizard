@@ -34,7 +34,7 @@ func TestVerifyPluginInstalled(t *testing.T) {
 	var pluginVersion = "v0.9.0"
 	var pluginMountPath = "pki"
 	var pluginName = fmt.Sprintf("%s-%s", pluginType, pluginMountPath)
-	var pluginFileName = fmt.Sprintf("%s_%s", pluginName, pluginVersion)
+	var pluginFileName = fmt.Sprintf("%s_%s", pluginType, pluginVersion)
 	var pluginDir = "/etc/plugins"
 	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginFileName)
 

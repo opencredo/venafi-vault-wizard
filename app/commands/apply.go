@@ -21,7 +21,6 @@ func Apply(configuration *config.Config) {
 	pluginDownloader := downloader.NewPluginDownloader()
 
 	// TODO: try to ascertain whether we have SSH connections to every replica
-
 	checkConfigSection := report.AddSection("Checking Vault server config")
 	pluginDir, err := checks.GetPluginDir(checkConfigSection, vaultClient)
 	if err != nil {
@@ -36,12 +35,20 @@ func Apply(configuration *config.Config) {
 	checkConfigSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
 
 	for _, plugin := range configuration.Plugins {
-		err := tasks.InstallPlugin(&tasks.InstallPluginInput{
-			VaultClient:   vaultClient,
+		pluginBytes, sha, err := tasks.DownloadPlugin(&tasks.DownloadPluginInput{
+			Downloader: pluginDownloader,
+			Reporter:   report,
+			Plugin:     plugin,
+		})
+		if err != nil {
+			return
+		}
+
+		err = tasks.InstallPluginToServers(&tasks.InstallPluginToServersInput{
 			SSHClients:    sshClients,
-			Downloader:    pluginDownloader,
 			Reporter:      report,
 			Plugin:        plugin,
+			PluginFile:    pluginBytes,
 			PluginDir:     pluginDir,
 			MlockDisabled: mlockDisabled,
 		})
@@ -49,13 +56,20 @@ func Apply(configuration *config.Config) {
 			return
 		}
 
-		err = tasks.VerifyPluginInstalled(&tasks.VerifyPluginInstalledInput{
-			VaultClient:   vaultClient,
-			SSHClients:    sshClients,
-			Reporter:      report,
-			Plugin:        plugin,
-			PluginDir:     pluginDir,
-			MlockDisabled: mlockDisabled,
+		err = tasks.EnablePlugin(&tasks.EnablePluginInput{
+			VaultClient: vaultClient,
+			Reporter:    report,
+			Plugin:      plugin,
+			SHA:         sha,
+		})
+		if err != nil {
+			return
+		}
+
+		err = tasks.MountPlugin(&tasks.MountPluginInput{
+			VaultClient: vaultClient,
+			Reporter:    report,
+			Plugin:      plugin,
 		})
 		if err != nil {
 			return

@@ -11,6 +11,7 @@ type VaultAPIWrapper interface {
 	Write(path string, data map[string]interface{}) (map[string]interface{}, error)
 	RegisterPlugin(input *vaultAPI.RegisterPluginInput) error
 	GetPlugin(input *vaultAPI.GetPluginInput) (*vaultAPI.GetPluginResponse, error)
+	ReloadPlugin(input *vaultAPI.ReloadPluginInput) (string, error)
 	Mount(path string, input *vaultAPI.MountInput) error
 	ListMounts() (map[string]*vaultAPI.MountOutput, error)
 }
@@ -54,6 +55,11 @@ func (v *vaultAPIClient) RegisterPlugin(input *vaultAPI.RegisterPluginInput) err
 func (v *vaultAPIClient) GetPlugin(input *vaultAPI.GetPluginInput) (*vaultAPI.GetPluginResponse, error) {
 	plugin, err := v.Sys().GetPlugin(input)
 	return plugin, normaliseError(err)
+}
+
+func (v *vaultAPIClient) ReloadPlugin(input *vaultAPI.ReloadPluginInput) (string, error) {
+	reloadID, err := v.Sys().ReloadPlugin(input)
+	return reloadID, normaliseError(err)
 }
 
 func (v *vaultAPIClient) Mount(path string, input *vaultAPI.MountInput) error {

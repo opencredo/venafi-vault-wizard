@@ -3,51 +3,32 @@ package tasks
 import (
 	"fmt"
 
-	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
-	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
-type InstallPluginInput struct {
-	VaultClient   api.VaultAPIClient
+type InstallPluginToServersInput struct {
 	SSHClients    []ssh.VaultSSHClient
-	Downloader    downloader.PluginDownloader
 	Reporter      reporter.Report
 	Plugin        plugins.Plugin
+	PluginFile    []byte
 	PluginDir     string
 	MlockDisabled bool
 }
 
-func InstallPlugin(input *InstallPluginInput) error {
+// InstallPluginToServers connects to the Vault servers over SSH and ensures the correct version of the plugin is
+// present in the plugin_dir
+func InstallPluginToServers(input *InstallPluginToServersInput) error {
 	checkFilesystemSection := input.Reporter.AddSection(
 		fmt.Sprintf("Installing plugin %s to Vault server filesystems", input.Plugin.Type),
 	)
 
-	downloadCheck := checkFilesystemSection.AddCheck("Downloading plugin...")
-
-	pluginURL, err := input.Plugin.Impl.GetDownloadURL()
-	if err != nil {
-		return err
-	}
-	pluginBytes, sha, err := input.Downloader.DownloadPluginAndUnzip(pluginURL)
-	if err != nil {
-		downloadCheck.Error(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
-		return err
-	}
-
-	downloadCheck.Success("Successfully downloaded plugin")
-
-	pluginName := fmt.Sprintf("%s-%s", input.Plugin.Type, input.Plugin.MountPath)
-	pluginFileName := fmt.Sprintf("%s_%s", pluginName, input.Plugin.Version)
-	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginFileName)
-
-	checkFilesystemSection.Info(fmt.Sprintf("Plugin filepath is %s\n", pluginPath))
+	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, input.Plugin.GetFileName())
 
 	for i, sshClient := range input.SSHClients {
-		err := checks.InstallPluginOnServer(checkFilesystemSection, sshClient, pluginPath, pluginBytes)
+		err := checks.InstallPluginOnServer(checkFilesystemSection, sshClient, pluginPath, input.PluginFile)
 		if err != nil {
 			return err
 		}
@@ -59,33 +40,8 @@ func InstallPlugin(input *InstallPluginInput) error {
 			}
 		}
 
-		checkFilesystemSection.Info(fmt.Sprintf("Plugin copied to Vault server %d\n", i+1))
+		checkFilesystemSection.Info(fmt.Sprintf("Plugin copied to Vault server %d at %s\n", i+1, pluginPath))
 	}
-
-	enablePluginSection := input.Reporter.AddSection("Enabling plugin")
-
-	err = checks.InstallPluginInCatalog(
-		enablePluginSection,
-		input.VaultClient,
-		pluginName,
-		pluginFileName,
-		sha,
-	)
-	if err != nil {
-		return err
-	}
-
-	err = checks.InstallPluginMount(
-		enablePluginSection,
-		input.VaultClient,
-		pluginName,
-		input.Plugin.MountPath,
-	)
-	if err != nil {
-		return err
-	}
-
-	enablePluginSection.Info(fmt.Sprintf("The plugin is enabled in the catalog and mounted at Vault path %s", input.Plugin.MountPath))
 
 	return nil
 }

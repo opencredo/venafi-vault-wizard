@@ -9,24 +9,18 @@ import (
 
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
-	mockDL "github.com/opencredo/venafi-vault-wizard/mocks/app/downloader"
 	mockPlugin "github.com/opencredo/venafi-vault-wizard/mocks/app/plugins"
 	mockReport "github.com/opencredo/venafi-vault-wizard/mocks/app/reporter"
-	mockAPI "github.com/opencredo/venafi-vault-wizard/mocks/app/vault/api"
 	mockSSH "github.com/opencredo/venafi-vault-wizard/mocks/app/vault/ssh"
 )
 
 func TestInstallPlugin(t *testing.T) {
-	vaultAPIClient := new(mockAPI.VaultAPIClient)
 	vaultSSHClient := new(mockSSH.VaultSSHClient)
-	downloader := new(mockDL.PluginDownloader)
 	pluginImpl := new(mockPlugin.PluginImpl)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
-	defer vaultAPIClient.AssertExpectations(t)
 	defer vaultSSHClient.AssertExpectations(t)
-	defer downloader.AssertExpectations(t)
 	defer pluginImpl.AssertExpectations(t)
 	defer report.AssertExpectations(t)
 	defer section.AssertExpectations(t)
@@ -34,40 +28,25 @@ func TestInstallPlugin(t *testing.T) {
 
 	reportExpectations(report, section, check)
 
-	var pluginURL = "https://github.com/Venafi/plugin/releases/release.zip"
-	var pluginType = "venafi-pki-backend"
-	var pluginVersion = "v0.9.0"
-	var pluginMountPath = "pki"
-	var pluginName = fmt.Sprintf("%s-%s", pluginType, pluginMountPath)
-	var pluginFileName = fmt.Sprintf("%s_%s", pluginName, pluginVersion)
+	var pluginMock = plugins.Plugin{
+		Type:      "venafi-pki-backend",
+		Version:   "v0.9.0",
+		MountPath: "pki",
+		Impl:      pluginImpl,
+	}
 	var pluginDir = "/etc/plugins"
-	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginFileName)
+	var pluginPath = fmt.Sprintf("%s/%s", pluginDir, pluginMock.GetFileName())
 
-	pluginImpl.On("GetDownloadURL").Return(pluginURL, nil)
-	downloader.On("DownloadPluginAndUnzip", pluginURL).Return(
-		[]byte{0, 1, 2},
-		"shashashasha",
-		nil,
-	)
 	vaultSSHClient.On("WriteFile",
 		mock.Anything,
 		pluginPath,
 	).Return(nil)
 	vaultSSHClient.On("AddIPCLockCapabilityToFile", pluginPath).Return(nil)
-	vaultAPIClient.On("RegisterPlugin", pluginName, pluginFileName, "shashashasha").Return(nil)
-	vaultAPIClient.On("MountPlugin", pluginName, pluginMountPath).Return(nil)
 
-	err := InstallPlugin(&InstallPluginInput{
-		VaultClient: vaultAPIClient,
-		SSHClients:  []ssh.VaultSSHClient{vaultSSHClient},
-		Downloader:  downloader,
-		Reporter:    report,
-		Plugin: plugins.Plugin{
-			Type:      pluginType,
-			Version:   pluginVersion,
-			MountPath: pluginMountPath,
-			Impl:      pluginImpl,
-		},
+	err := InstallPluginToServers(&InstallPluginToServersInput{
+		SSHClients:    []ssh.VaultSSHClient{vaultSSHClient},
+		Reporter:      report,
+		Plugin:        pluginMock,
 		PluginDir:     pluginDir,
 		MlockDisabled: false,
 	})

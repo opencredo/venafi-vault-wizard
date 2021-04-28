@@ -1,6 +1,8 @@
 package plugins
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/hcl/v2"
 
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
@@ -36,4 +38,19 @@ type PluginImpl interface {
 	Check(report reporter.Report, vaultClient api.VaultAPIClient) error
 	// ValidateConfig performs validation of the supplied configuration data, specific to the plugin
 	ValidateConfig() error
+}
+
+// GetCatalogName returns the name of the plugin as it appears in the plugin catalog. This does not include the plugin
+// version, to allow the plugin to be updated without needed to remount the associated instances. However it does
+// include the mount path to allow the version of the plugin to vary independently between different mounted instances
+// of it.
+func (p *Plugin) GetCatalogName() string {
+	return fmt.Sprintf("%s-%s", p.Type, p.MountPath)
+}
+
+// GetFileName returns the filename of the plugin as it will be found in the plugin directory. This includes the plugin
+// version to allow different versions of the plugin to be present on the Vault server, and for the catalog entries to
+// reference different ones depending on their mounts' use case.
+func (p *Plugin) GetFileName() string {
+	return fmt.Sprintf("%s_%s", p.Type, p.Version)
 }
