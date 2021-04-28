@@ -31,7 +31,7 @@ func TestMountPlugin_already_mounted_correctly(t *testing.T) {
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 
 	vaultAPIClient.On("GetMountPluginName", pluginMock.MountPath).Return(pluginMock.GetCatalogName(), nil)
@@ -54,15 +54,16 @@ func TestMountPlugin_already_mounted_wrong_plugin(t *testing.T) {
 	defer pluginImpl.AssertExpectations(t)
 	defer report.AssertExpectations(t)
 	defer section.AssertExpectations(t)
+	defer check.AssertExpectations(t)
 
 	reportExpectations(report, section, check)
-	check.On("Error", mock.Anything)
+	check.On("Errorf", mock.AnythingOfType("string"), mock.Anything)
 
 	var pluginMock = plugins.Plugin{
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 
 	vaultAPIClient.On("GetMountPluginName", pluginMock.MountPath).Return("some wrong plugin", nil)
@@ -93,7 +94,7 @@ func TestMountPlugin_first_install(t *testing.T) {
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 
 	vaultAPIClient.On("GetMountPluginName", pluginMock.MountPath).

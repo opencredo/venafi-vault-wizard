@@ -19,7 +19,7 @@ func ConfigureVenafiRole(
 		"zone":          zone,
 	})
 	if err != nil {
-		check.Error(fmt.Sprintf("Error configuring Venafi role: %s", err))
+		check.Errorf("Error configuring Venafi role: %s", err)
 		return err
 	}
 
@@ -36,17 +36,17 @@ func VerifyVenafiRole(
 
 	data, err := vaultClient.ReadValue(rolePath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error retrieving Venafi role: %s", err))
+		check.Errorf("Error retrieving Venafi role: %s", err)
 		return err
 	}
 
 	if data["venafi_secret"] != secretName {
-		check.Error(fmt.Sprintf("The Venafi role's venafi_secret field was not as expected: expected %s got %s", secretName, data["venafi_secret"]))
+		check.Errorf("The Venafi role's venafi_secret field was not as expected: expected %s got %s", secretName, data["venafi_secret"])
 		return fmt.Errorf("venafi role incorrect")
 	}
 
 	if data["zone"] != zone {
-		check.Error(fmt.Sprintf("The Venafi role's zone field was not as expected: expected %s got %s", zone, data["zone"]))
+		check.Errorf("The Venafi role's zone field was not as expected: expected %s got %s", zone, data["zone"])
 		return fmt.Errorf("venafi role incorrect")
 	}
 

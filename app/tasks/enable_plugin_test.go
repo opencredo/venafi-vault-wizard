@@ -30,7 +30,7 @@ func TestEnablePlugin_first_install(t *testing.T) {
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 	var sha = "shashashasha"
 
@@ -68,7 +68,7 @@ func TestEnablePlugin_already_installed_correct_version(t *testing.T) {
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 	var sha = "shashashasha"
 
@@ -77,7 +77,7 @@ func TestEnablePlugin_already_installed_correct_version(t *testing.T) {
 		Return(
 			map[string]interface{}{
 				"command": pluginMock.GetFileName(),
-				"sha": sha,
+				"sha":     sha,
 			},
 			nil,
 		)
@@ -109,7 +109,7 @@ func TestEnablePlugin_already_installed_wrong_version(t *testing.T) {
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
-		Impl: pluginImpl,
+		Impl:      pluginImpl,
 	}
 	var sha = "shashashasha"
 
@@ -117,8 +117,8 @@ func TestEnablePlugin_already_installed_wrong_version(t *testing.T) {
 	vaultAPIClient.On("GetPlugin", pluginMock.GetCatalogName()).
 		Return(
 			map[string]interface{}{
-				"command": pluginMock.Type+"_v0.8.3",
-				"sha": "wrongsha",
+				"command": pluginMock.Type + "_v0.8.3",
+				"sha":     "wrongsha",
 			},
 			nil,
 		)

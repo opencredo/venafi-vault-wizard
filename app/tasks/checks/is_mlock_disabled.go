@@ -1,8 +1,6 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -11,7 +9,7 @@ func IsMlockDisabled(checkConfigSection reporter.Section, vaultClient api.VaultA
 	mlockDisabledCheck := checkConfigSection.AddCheck("Checking if mlock is disabled...")
 	mlockDisabled, err := vaultClient.IsMLockDisabled()
 	if err != nil {
-		mlockDisabledCheck.Error(fmt.Sprintf("Error checking whether mlock is disabled: %s", err))
+		mlockDisabledCheck.Errorf("Error checking whether mlock is disabled: %s", err)
 		return false, err
 	}
 	if !mlockDisabled {

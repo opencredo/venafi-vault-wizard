@@ -58,5 +58,6 @@ func reportExpectations(report *mockReport.Report, section *mockReport.Section, 
 	section.On("AddCheck", mock.AnythingOfType("string")).Return(check)
 	section.On("Info", mock.AnythingOfType("string")).Maybe()
 	check.On("UpdateStatus", mock.AnythingOfType("string")).Maybe()
-	check.On("Success", mock.AnythingOfType("string"))
+	check.On("Success", mock.AnythingOfType("string")).Maybe()
+	check.On("Successf", mock.AnythingOfType("string"), mock.Anything).Maybe()
 }

@@ -28,7 +28,7 @@ func EnablePlugin(i *EnablePluginInput) error {
 	pluginInfo, err := i.VaultClient.GetPlugin(i.Plugin.GetCatalogName())
 	if err != nil {
 		if !errors.Is(err, vault.ErrNotFound) {
-			pluginVersionCheck.Error(fmt.Sprintf("Error checking if plugin is present in catalog: %s", err))
+			pluginVersionCheck.Errorf("Error checking if plugin is present in catalog: %s", err)
 			return err
 		}
 
@@ -44,7 +44,7 @@ func EnablePlugin(i *EnablePluginInput) error {
 			return nil
 		}
 
-		pluginVersionCheck.Success(fmt.Sprintf("Plugin command in catalog is currently %s", pluginInfo["command"]))
+		pluginVersionCheck.Successf("Plugin command in catalog is currently %s", pluginInfo["command"])
 	}
 
 	err = checks.InstallPluginInCatalog(

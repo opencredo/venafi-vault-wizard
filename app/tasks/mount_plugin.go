@@ -25,7 +25,7 @@ func MountPlugin(i *MountPluginInput) error {
 	pluginName, err := i.VaultClient.GetMountPluginName(i.Plugin.MountPath)
 	if err != nil {
 		if !errors.Is(err, vault.ErrPluginNotMounted) {
-			pluginMountCheck.Error(fmt.Sprintf("Error checking plugin mount: %s", err))
+			pluginMountCheck.Errorf("Error checking plugin mount: %s", err)
 			return err
 		}
 
@@ -44,7 +44,7 @@ func MountPlugin(i *MountPluginInput) error {
 	}
 
 	if pluginName != i.Plugin.GetCatalogName() {
-		pluginMountCheck.Error(fmt.Sprintf("Mount path %s is using plugin %s", i.Plugin.MountPath, pluginName))
+		pluginMountCheck.Errorf("Mount path %s is using plugin %s", i.Plugin.MountPath, pluginName)
 		return vault.ErrMountPathInUse
 	}
 

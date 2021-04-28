@@ -18,7 +18,7 @@ func ConfigureVenafiPolicy(
 	policyPath := fmt.Sprintf("%s/venafi-policy/%s", mountPath, policyName)
 	_, err := vaultClient.WriteValue(policyPath, policyConfig)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error configuring Venafi policy: %s", err))
+		check.Errorf("Error configuring Venafi policy: %s", err)
 		return err
 	}
 
@@ -36,17 +36,17 @@ func VerifyVenafiPolicy(
 	policyPath := fmt.Sprintf("%s/venafi-policy/%s", mountPath, policyName)
 	data, err := vaultClient.ReadValue(policyPath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error retrieving Venafi policy: %s", err))
+		check.Errorf("Error retrieving Venafi policy: %s", err)
 		return err
 	}
 
 	if data["venafi_secret"] != secretName {
-		check.Error(fmt.Sprintf("The Venafi policy's venafi_secret field was not as expected: expected %s got %s", secretName, data["venafi_secret"]))
+		check.Errorf("The Venafi policy's venafi_secret field was not as expected: expected %s got %s", secretName, data["venafi_secret"])
 		return fmt.Errorf("venafi policy incorrect")
 	}
 
 	if data["zone"] != zone {
-		check.Error(fmt.Sprintf("The Venafi policy's zone field was not as expected: expected %s got %s", zone, data["zone"]))
+		check.Errorf("The Venafi policy's zone field was not as expected: expected %s got %s", zone, data["zone"])
 		return fmt.Errorf("venafi policy incorrect")
 	}
 

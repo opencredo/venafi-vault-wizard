@@ -2,7 +2,6 @@ package checks
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault"
@@ -16,7 +15,7 @@ func GetPluginDir(reportSection reporter.Section, vaultClient api.VaultAPIClient
 		if errors.Is(err, vault.ErrPluginDirNotConfigured) {
 			pluginDirCheck.Error("The plugin_directory hasn't been configured correctly in the Vault Server Config")
 		} else {
-			pluginDirCheck.Error(fmt.Sprintf("Error while trying to read plugin_directory: %s", err))
+			pluginDirCheck.Errorf("Error while trying to read plugin_directory: %s", err)
 		}
 		return "", err
 	}

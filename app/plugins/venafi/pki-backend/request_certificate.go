@@ -21,7 +21,7 @@ func RequestVenafiCertificate(
 		"common_name": commonName,
 	})
 	if err != nil {
-		check.Error(fmt.Sprintf("Error retrieving certificate from Vault: %s", err))
+		check.Errorf("Error retrieving certificate from Vault: %s", err)
 		return err
 	}
 
@@ -33,11 +33,11 @@ func RequestVenafiCertificate(
 	}
 	certificate, err := x509.ParseCertificate(pemBlock.Bytes)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error parsing returned certificate: %s", err))
+		check.Errorf("Error parsing returned certificate: %s", err)
 		return err
 	}
 	if certificate.Subject.CommonName != commonName {
-		check.Error(fmt.Sprintf("Certificate's common name was not as expected: expected %s got %s", commonName, certificate.Subject.CommonName))
+		check.Errorf("Certificate's common name was not as expected: expected %s got %s", commonName, certificate.Subject.CommonName)
 		return fmt.Errorf("common_name incorrect")
 	}
 

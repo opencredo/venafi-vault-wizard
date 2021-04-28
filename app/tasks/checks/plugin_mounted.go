@@ -17,7 +17,7 @@ func InstallPluginMount(
 	check := reportSection.AddCheck("Mounting plugin...")
 	err := vaultClient.MountPlugin(pluginName, pluginMountPath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error mounting plugin: %s", err))
+		check.Errorf("Error mounting plugin: %s", err)
 		return err
 	}
 
@@ -34,14 +34,14 @@ func VerifyPluginMount(
 	actualPluginName, err := vaultClient.GetMountPluginName(pluginMountPath)
 	if err != nil {
 		if errors.Is(err, vault.ErrPluginNotMounted) {
-			pluginMountCheck.Error(fmt.Sprintf("Plugin is not mounted at %s", pluginMountPath))
+			pluginMountCheck.Errorf("Plugin is not mounted at %s", pluginMountPath)
 		} else {
-			pluginMountCheck.Error(fmt.Sprintf("Can't check whether the plugin is mounted: %s", err))
+			pluginMountCheck.Errorf("Can't check whether the plugin is mounted: %s", err)
 		}
 		return err
 	}
 	if actualPluginName != pluginName {
-		pluginMountCheck.Error(fmt.Sprintf("Plugin is not mounted at %s", pluginMountPath))
+		pluginMountCheck.Errorf("Plugin is not mounted at %s", pluginMountPath)
 		return fmt.Errorf("wrong plugin mounted")
 	}
 
