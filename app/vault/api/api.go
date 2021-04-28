@@ -19,6 +19,9 @@ type VaultAPIClient interface {
 	RegisterPlugin(name, command, sha string) error
 	// GetPlugin returns information about a registered plugin (command, sha, args etc)
 	GetPlugin(name string) (map[string]interface{}, error)
+	// ReloadPlugin reloads a plugin (globally across a cluster if Vault is clustered) and waits for the number of
+	// completed reloads to equal the number of replicas
+	ReloadPlugin(name string) error
 	// MountPlugin mounts a secret engine at the specified path. Equivalent to vault secrets enable -plugin-name=name -path=path
 	MountPlugin(name, path string) error
 	// GetMountPluginName checks which backend is used for particular mount
@@ -96,6 +99,21 @@ func (v *vaultAPIClient) GetPlugin(name string) (map[string]interface{}, error) 
 		"args":    plugin.Args,
 		"sha":     plugin.SHA256,
 	}, nil
+}
+
+func (v *vaultAPIClient) ReloadPlugin(name string) error {
+	reloadID, err := v.VaultClient.ReloadPlugin(&vaultAPI.ReloadPluginInput{
+		Plugin: name,
+	})
+	if err != nil {
+		return fmt.Errorf("error reloading plugin %s: %w", name, err)
+	}
+
+	if reloadID == "" {
+		return nil
+	}
+
+	return fmt.Errorf("wasn't expecting a reload ID from the plugin reload, are there multiple clusters?")
 }
 
 func (v *vaultAPIClient) MountPlugin(name, path string) error {

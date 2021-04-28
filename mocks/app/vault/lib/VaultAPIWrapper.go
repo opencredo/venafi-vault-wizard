@@ -110,6 +110,27 @@ func (_m *VaultAPIWrapper) RegisterPlugin(input *api.RegisterPluginInput) error 
 	return r0
 }
 
+// ReloadPlugin provides a mock function with given fields: input
+func (_m *VaultAPIWrapper) ReloadPlugin(input *api.ReloadPluginInput) (string, error) {
+	ret := _m.Called(input)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*api.ReloadPluginInput) string); ok {
+		r0 = rf(input)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*api.ReloadPluginInput) error); ok {
+		r1 = rf(input)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetAddress provides a mock function with given fields: address
 func (_m *VaultAPIWrapper) SetAddress(address string) error {
 	ret := _m.Called(address)

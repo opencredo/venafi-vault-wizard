@@ -169,6 +169,20 @@ func (_m *VaultAPIClient) RegisterPlugin(name string, command string, sha string
 	return r0
 }
 
+// ReloadPlugin provides a mock function with given fields: name
+func (_m *VaultAPIClient) ReloadPlugin(name string) error {
+	ret := _m.Called(name)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // WriteValue provides a mock function with given fields: path, value
 func (_m *VaultAPIClient) WriteValue(path string, value map[string]interface{}) (map[string]interface{}, error) {
 	ret := _m.Called(path, value)

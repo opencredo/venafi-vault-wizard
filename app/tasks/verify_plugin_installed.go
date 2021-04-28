@@ -24,8 +24,8 @@ func VerifyPluginInstalled(input *VerifyPluginInstalledInput) error {
 		fmt.Sprintf("Checking installation of plugin %s on Vault server filesystem", input.Plugin.Type),
 	)
 
-	pluginName := fmt.Sprintf("%s-%s", input.Plugin.Type, input.Plugin.MountPath)
-	pluginFileName := fmt.Sprintf("%s_%s", pluginName, input.Plugin.Version)
+	pluginName := input.Plugin.GetCatalogName()
+	pluginFileName := input.Plugin.GetFileName()
 	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, pluginFileName)
 
 	for i, sshClient := range input.SSHClients {

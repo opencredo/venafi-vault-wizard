@@ -6,8 +6,8 @@ require (
 	github.com/Venafi/vcert/v4 v4.13.1
 	github.com/google/go-cmp v0.3.1
 	github.com/hashicorp/hcl/v2 v2.9.1
-	github.com/hashicorp/vault/api v1.0.4
-	github.com/hashicorp/vault/sdk v0.1.13
+	github.com/hashicorp/vault/api v1.1.0
+	github.com/hashicorp/vault/sdk v0.1.14-0.20200519221838-e0cfd64bc267
 	github.com/pkg/sftp v1.13.0
 	github.com/pterm/pterm v0.12.12
 	github.com/spf13/cobra v1.1.3
