@@ -1,8 +1,6 @@
 package tasks
 
 import (
-	"fmt"
-
 	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
@@ -23,13 +21,13 @@ func DownloadPlugin(i *DownloadPluginInput) ([]byte, string, error) {
 
 	pluginURL, err := i.Plugin.Impl.GetDownloadURL()
 	if err != nil {
-		downloadCheck.Error(fmt.Sprintf("Error getting plugin download URL: %s", err))
+		downloadCheck.Errorf("Error getting plugin download URL: %s", err)
 		return nil, "", err
 	}
 
 	pluginBytes, sha, err := i.Downloader.DownloadPluginAndUnzip(pluginURL)
 	if err != nil {
-		downloadCheck.Error(fmt.Sprintf("Could not download plugin from %s: %s", pluginURL, err))
+		downloadCheck.Errorf("Could not download plugin from %s: %s", pluginURL, err)
 		return nil, "", err
 	}
 

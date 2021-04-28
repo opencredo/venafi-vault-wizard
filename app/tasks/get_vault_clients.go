@@ -23,7 +23,7 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSH
 	)
 	_, err := vaultClient.GetVaultConfig()
 	if err != nil {
-		check.Error(fmt.Sprintf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err))
+		check.Errorf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err)
 		return nil, nil, nil, err
 	}
 
@@ -41,7 +41,7 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSH
 		address := fmt.Sprintf("%s:%d", s.Hostname, s.Port)
 		sshClient, err := ssh.NewClient(address, s.Username, s.Password)
 		if err != nil {
-			check.Error(fmt.Sprintf("Error connecting to Vault server at %s over SSH: %s", s.Hostname, err))
+			check.Errorf("Error connecting to Vault server at %s over SSH: %s", s.Hostname, err)
 			closeFunc()
 			return nil, nil, nil, err
 		}

@@ -1,7 +1,6 @@
 package pki_backend
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Venafi/vcert/v4/pkg/certificate"
@@ -27,14 +26,14 @@ func ConfigureIntermediateCertificate(
 	// Get intermediate CSR from plugin
 	data, err := vaultClient.WriteValue(mountPath+"/intermediate/generate/internal", request.ToMap())
 	if err != nil {
-		check.Error(fmt.Sprintf("Error configuring Venafi policy: %s", err))
+		check.Errorf("Error configuring Venafi policy: %s", err)
 		return err
 	}
 	pluginCSR := data["csr"].(string)
 
 	client, err := getVCertClient(venafiSecret, zone)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error connecting to Venafi: %s", err))
+		check.Errorf("Error connecting to Venafi: %s", err)
 		return err
 	}
 
@@ -44,7 +43,7 @@ func ConfigureIntermediateCertificate(
 	}
 	err = enrollReq.SetCSR([]byte(pluginCSR))
 	if err != nil {
-		check.Error(fmt.Sprintf("Error parsing intermediate CSR provided by Vault: %s", err))
+		check.Errorf("Error parsing intermediate CSR provided by Vault: %s", err)
 		return err
 	}
 
@@ -53,7 +52,7 @@ func ConfigureIntermediateCertificate(
 	// Submit request to venafi for the intermediate cert
 	requestID, err := client.RequestCertificate(enrollReq)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error requesting intermediate certificate from Venafi: %s", err))
+		check.Errorf("Error requesting intermediate certificate from Venafi: %s", err)
 		return err
 	}
 
@@ -63,7 +62,7 @@ func ConfigureIntermediateCertificate(
 		Timeout:  180 * time.Second,
 	})
 	if err != nil {
-		check.Error(fmt.Sprintf("Error retrieving intermediate certificate from Venafi: %s", err))
+		check.Errorf("Error retrieving intermediate certificate from Venafi: %s", err)
 		return err
 	}
 
@@ -71,7 +70,7 @@ func ConfigureIntermediateCertificate(
 		"certificate": venafiPEMs.Certificate,
 	})
 	if err != nil {
-		check.Error(fmt.Sprintf("Error setting intermediate certificate in Vault: %s", err))
+		check.Errorf("Error setting intermediate certificate in Vault: %s", err)
 		return err
 	}
 

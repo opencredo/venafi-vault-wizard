@@ -23,7 +23,7 @@ func InstallPluginOnServer(
 			return nil
 		}
 
-		check.Error(fmt.Sprintf("Error copying plugin to Vault: %s", err))
+		check.Errorf("Error copying plugin to Vault: %s", err)
 		return err
 	}
 
@@ -36,11 +36,11 @@ func VerifyPluginOnServer(reportSection reporter.Section, sshClient ssh.VaultSSH
 	pluginExistsCheck := reportSection.AddCheck("Checking plugin binary exists...")
 	exists, err := sshClient.FileExists(filepath)
 	if err != nil {
-		pluginExistsCheck.Error(fmt.Sprintf("Error checking plugin binary exists: %s", err))
+		pluginExistsCheck.Errorf("Error checking plugin binary exists: %s", err)
 		return err
 	}
 	if !exists {
-		pluginExistsCheck.Error(fmt.Sprintf("Plugin binary does not exist at %s on Vault server", filepath))
+		pluginExistsCheck.Errorf("Plugin binary does not exist at %s on Vault server", filepath)
 		return fmt.Errorf("plugin not found on server")
 	}
 	pluginExistsCheck.Success("Found plugin binary on Vault server")

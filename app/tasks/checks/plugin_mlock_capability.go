@@ -33,7 +33,7 @@ func VerifyPluginMlock(
 
 	capOnFile, err := sshClient.IsIPCLockCapabilityOnFile(filepath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error checking plugin binary for the IPC_LOCK capabiltiy: %s", err))
+		check.Errorf("Error checking plugin binary for the IPC_LOCK capabiltiy: %s", err)
 		return err
 	}
 

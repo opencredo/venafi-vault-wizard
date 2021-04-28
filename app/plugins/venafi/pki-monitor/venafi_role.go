@@ -1,8 +1,6 @@
 package pki_backend
 
 import (
-	"fmt"
-
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -17,7 +15,7 @@ func ConfigureVenafiRole(
 
 	_, err := vaultClient.WriteValue(rolePath, roleParams)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error configuring Venafi role: %s", err))
+		check.Errorf("Error configuring Venafi role: %s", err)
 		return err
 	}
 

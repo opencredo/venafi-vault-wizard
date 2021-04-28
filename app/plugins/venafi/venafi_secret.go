@@ -18,7 +18,7 @@ func ConfigureVenafiSecret(
 
 	_, err := vaultClient.WriteValue(secretPath, secretValue.GetAsMap())
 	if err != nil {
-		check.Error(fmt.Sprintf("Error configuring Venafi secret: %s", err))
+		check.Errorf("Error configuring Venafi secret: %s", err)
 		return err
 	}
 
@@ -31,7 +31,7 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 
 	_, err := vaultClient.ReadValue(secretPath)
 	if err != nil {
-		check.Error(fmt.Sprintf("Error retrieving Venafi secret: %s", err))
+		check.Errorf("Error retrieving Venafi secret: %s", err)
 		return err
 	}
 	// TODO: check this better, maybe try use auth details to do something with vcert?

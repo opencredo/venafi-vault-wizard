@@ -1,8 +1,6 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -12,7 +10,7 @@ func ReloadPlugin(reportSection reporter.Section, vaultClient api.VaultAPIClient
 
 	err := vaultClient.ReloadPlugin(pluginName)
 	if err != nil {
-		pluginReloadCheck.Error(fmt.Sprintf("Error reloading plugin: %s", err))
+		pluginReloadCheck.Errorf("Error reloading plugin: %s", err)
 		return err
 	}
 
