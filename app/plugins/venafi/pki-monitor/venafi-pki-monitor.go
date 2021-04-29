@@ -129,5 +129,21 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 }
 
 func (c *VenafiPKIMonitorConfig) Check(report reporter.Report, vaultClient api.VaultAPIClient) error {
+	roleIssuePath := fmt.Sprintf("%s/issue/%s", c.MountPath, c.Role.Name)
+
+	fetchCertSection := report.AddSection(
+		fmt.Sprintf("Requesting test certificates from %s", roleIssuePath),
+	)
+	for _, cert := range c.Role.TestCerts {
+		err := venafi.RequestVenafiCertificate(
+			fetchCertSection,
+			vaultClient,
+			roleIssuePath,
+			cert,
+		)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
