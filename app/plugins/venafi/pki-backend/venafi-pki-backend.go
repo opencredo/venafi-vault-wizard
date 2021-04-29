@@ -42,53 +42,28 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
 
+func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.VaultAPIClient) error {
+	for _, role := range c.Roles {
 		roleIssuePath := fmt.Sprintf("%s/issue/%s", c.MountPath, role.Name)
 
+		fetchCertSection := report.AddSection(
+			fmt.Sprintf("Requesting test certificates from %s", roleIssuePath),
+		)
 		for _, cert := range role.TestCerts {
-			fetchCertSection := report.AddSection(
-				fmt.Sprintf("Requesting test certificate from %s with CN:%s", roleIssuePath, cert.CommonName),
-			)
-			err = RequestVenafiCertificate(
+			err := venafi.RequestVenafiCertificate(
 				fetchCertSection,
 				vaultClient,
 				roleIssuePath,
-				cert.CommonName,
+				cert,
 			)
 			if err != nil {
 				return err
 			}
 		}
 	}
-
-	return nil
-}
-
-func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.VaultAPIClient) error {
-	configurePluginSection := report.AddSection("Checking venafi-pki-backend")
-
-	for _, role := range c.Roles {
-		err := venafi.VerifyVenafiSecret(
-			configurePluginSection,
-			vaultClient,
-			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
-			role.Secret,
-		)
-		if err != nil {
-			return err
-		}
-
-		err = VerifyVenafiRole(
-			configurePluginSection,
-			vaultClient,
-			fmt.Sprintf("%s/roles/%s", c.MountPath, role.Name),
-			role.Secret.Name,
-			role.Zone,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

@@ -1,4 +1,4 @@
-package pki_backend
+package venafi
 
 import (
 	"crypto/x509"
@@ -12,14 +12,12 @@ import (
 func RequestVenafiCertificate(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
-	rolePath, commonName string,
+	rolePath string, certRequest CertificateRequest,
 ) error {
-	check := reportSection.AddCheck("Requesting certificate from Vault...")
+	check := reportSection.AddCheck(fmt.Sprintf("Requesting test certificate from %s with CN:%s", rolePath, certRequest.CommonName))
 
 	// Get certificate from Vault
-	data, err := vaultClient.WriteValue(rolePath, map[string]interface{}{
-		"common_name": commonName,
-	})
+	data, err := vaultClient.WriteValue(rolePath, certRequest.ToMap())
 	if err != nil {
 		check.Errorf("Error retrieving certificate from Vault: %s", err)
 		return err
@@ -36,8 +34,8 @@ func RequestVenafiCertificate(
 		check.Errorf("Error parsing returned certificate: %s", err)
 		return err
 	}
-	if certificate.Subject.CommonName != commonName {
-		check.Errorf("Certificate's common name was not as expected: expected %s got %s", commonName, certificate.Subject.CommonName)
+	if certificate.Subject.CommonName != certRequest.CommonName {
+		check.Errorf("Certificate's common name was not as expected: expected %s got %s", certRequest.CommonName, certificate.Subject.CommonName)
 		return fmt.Errorf("common_name incorrect")
 	}
 

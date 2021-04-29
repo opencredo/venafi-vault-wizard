@@ -18,7 +18,7 @@ func ConfigureIntermediateCertificate(
 	vaultClient api.VaultAPIClient,
 	venafiSecret venafi.VenafiSecret,
 	mountPath string,
-	request *CertificateRequest,
+	request *venafi.CertificateRequest,
 	zone string,
 ) error {
 	check := reportSection.AddCheck("Generating a CSR for an intermediate certificate from Venafi...")

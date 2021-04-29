@@ -19,14 +19,10 @@ type VenafiPKIBackendConfig struct {
 }
 
 type Role struct {
-	Name      string               `hcl:"role,label"`
-	Zone      string               `hcl:"zone"`
-	Secret    venafi.VenafiSecret  `hcl:"secret,block"`
-	TestCerts []CertificateRequest `hcl:"test_certificate,block"`
-}
-
-type CertificateRequest struct {
-	CommonName string `hcl:"common_name"`
+	Name      string                      `hcl:"role,label"`
+	Zone      string                      `hcl:"zone,optional"`
+	Secret    venafi.VenafiSecret         `hcl:"secret,block"`
+	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
 }
 
 func (c *VenafiPKIBackendConfig) ValidateConfig() error {
@@ -43,5 +39,15 @@ func (c *VenafiPKIBackendConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	return r.Secret.Validate()
+	err := r.Secret.Validate()
+	if err != nil {
+		return err
+	}
+
+	// Zone is optional for pki-monitor but required for pki-backend so check it here
+	if zone, ok := r.Secret.GetAsMap()["zone"]; !ok || zone == "" {
+		return fmt.Errorf("error zone must be specified in venafi-pki-backend secret")
+	}
+
+	return nil
 }

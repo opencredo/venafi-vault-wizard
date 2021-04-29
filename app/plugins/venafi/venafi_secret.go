@@ -72,17 +72,25 @@ func (v *VenafiSecret) Validate() error {
 
 func (v VenafiSecret) GetAsMap() map[string]interface{} {
 	if v.Cloud != nil {
-		return map[string]interface{}{
+		m := map[string]interface{}{
 			"apikey": v.Cloud.APIKey,
 		}
+		if v.Cloud.Zone != "" {
+			m["zone"] = v.Cloud.Zone
+		}
+		return m
 	}
 
 	if v.TPP != nil {
-		return map[string]interface{}{
+		m := map[string]interface{}{
 			"url":          v.TPP.URL,
 			"tpp_user":     v.TPP.Username,
 			"tpp_password": v.TPP.Password,
 		}
+		if v.TPP.Zone != "" {
+			m["zone"] = v.TPP.Zone
+		}
+		return m
 	}
 
 	return nil
@@ -90,6 +98,7 @@ func (v VenafiSecret) GetAsMap() map[string]interface{} {
 
 type VenafiCloudConnection struct {
 	APIKey string `hcl:"apikey"`
+	Zone   string `hcl:"zone,optional"`
 }
 
 type VenafiTPPConnection struct {
@@ -97,6 +106,7 @@ type VenafiTPPConnection struct {
 	Username string `hcl:"username"`
 	// TODO: support access token
 	Password string `hcl:"password"`
+	Zone     string `hcl:"zone,optional"`
 }
 
 func (c *VenafiCloudConnection) Validate() error {

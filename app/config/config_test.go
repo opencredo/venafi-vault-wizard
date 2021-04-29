@@ -87,12 +87,19 @@ plugin "venafi-pki-backend" "venafi-pki" {
     secret "cloud" {
       venafi_cloud {
         apikey = "apikey"
+		zone = "zone1"
       }
     }
 
     test_certificate {
-      common_name = "vvw-example.test"
-    }
+	  common_name = "vvw-example.test"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
   }
 }
 `
@@ -127,11 +134,18 @@ var validPKIBackendCloudConfigResult = &Config{
 							Name: "cloud",
 							Cloud: &venafi.VenafiCloudConnection{
 								APIKey: "apikey",
+								Zone:   "zone1",
 							},
 						},
-						TestCerts: []pki_backend.CertificateRequest{
+						TestCerts: []venafi.CertificateRequest{
 							{
-								CommonName: "vvw-example.test",
+								CommonName:   "vvw-example.test",
+								OU:           "VVW",
+								Organisation: "VVW",
+								Locality:     "London",
+								Province:     "London",
+								Country:      "GB",
+								TTL:          "1h",
 							},
 						},
 					},
@@ -163,12 +177,19 @@ plugin "venafi-pki-backend" "venafi-pki" {
         url = "tpp.venafitest.com"
         username = "admin"
         password = "pword234"
+		zone = "zone1"
       }
     }
 
     test_certificate {
-      common_name = "vvw-example.test"
-    }
+	  common_name = "vvw-example.test"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
   }
 }`
 
@@ -204,11 +225,18 @@ var validPKIBackendTPPConfigResult = &Config{
 								URL:      "tpp.venafitest.com",
 								Username: "admin",
 								Password: "pword234",
+								Zone:     "zone1",
 							},
 						},
-						TestCerts: []pki_backend.CertificateRequest{
+						TestCerts: []venafi.CertificateRequest{
 							{
-								CommonName: "vvw-example.test",
+								CommonName:   "vvw-example.test",
+								OU:           "VVW",
+								Organisation: "VVW",
+								Locality:     "London",
+								Province:     "London",
+								Country:      "GB",
+								TTL:          "1h",
 							},
 						},
 					},
@@ -262,6 +290,16 @@ plugin "venafi-pki-monitor" "venafi-pki" {
     allow_any_name = true
     ttl = "1h"
     max_ttl = "2h"
+
+	test_certificate {
+	  common_name = "vvw-example.test"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
   }
 }`
 
@@ -298,7 +336,7 @@ var validPKIMonitorConfigResult = &Config{
 					ImportPolicy: &pki_monitor.Policy{
 						Zone: "zone2",
 					},
-					IntermediateCert: pki_monitor.CertificateRequest{
+					IntermediateCert: venafi.CertificateRequest{
 						CommonName:   "Vault SubCA",
 						OU:           "VVW",
 						Organisation: "VVW",
@@ -311,6 +349,17 @@ var validPKIMonitorConfigResult = &Config{
 						Name: "cloud",
 						Cloud: &venafi.VenafiCloudConnection{
 							APIKey: "apikey",
+						},
+					},
+					TestCerts: []venafi.CertificateRequest{
+						{
+							CommonName:   "vvw-example.test",
+							OU:           "VVW",
+							Organisation: "VVW",
+							Locality:     "London",
+							Province:     "London",
+							Country:      "GB",
+							TTL:          "1h",
 						},
 					},
 				},
