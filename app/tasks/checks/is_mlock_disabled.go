@@ -12,7 +12,7 @@ func IsMlockDisabled(checkConfigSection reporter.Section, vaultClient api.VaultA
 		mlockDisabledCheck.Errorf("Error checking whether mlock is disabled: %s", err)
 		return false, err
 	}
-	if !mlockDisabled {
+	if mlockDisabled {
 		mlockDisabledCheck.Warning("mlock is disabled in the Vault server config, should be enabled for production")
 	} else {
 		mlockDisabledCheck.Success("mlock is enabled in the Vault server config")
