@@ -36,8 +36,10 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		c.MountPath,
 		"default",
 		map[string]interface{}{
-			"venafi_secret": c.Role.Secret.Name,
-			"zone":          c.Role.EnforcementPolicy.Zone,
+			"venafi_secret":     c.Role.Secret.Name,
+			"zone":              c.Role.EnforcementPolicy.Zone,
+			"enforcement_roles": c.Role.Name,
+			"defaults_roles":    c.Role.Name,
 		},
 	)
 	if err != nil {
@@ -65,6 +67,7 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 			map[string]interface{}{
 				"venafi_secret": c.Role.Secret.Name,
 				"zone":          c.Role.ImportPolicy.Zone,
+				"import_roles":  c.Role.Name,
 			},
 		)
 		if err != nil {
@@ -90,39 +93,6 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 	)
 	if err != nil {
 		return err
-	}
-
-	err = ConfigureVenafiPolicy(
-		configurePluginSection,
-		vaultClient,
-		c.MountPath,
-		"default",
-		map[string]interface{}{
-			"venafi_secret":     c.Role.Secret.Name,
-			"zone":              c.Role.EnforcementPolicy.Zone,
-			"enforcement_roles": c.Role.Name,
-			"defaults_roles":    c.Role.Name,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	if c.Role.ImportPolicy != nil {
-		err = ConfigureVenafiPolicy(
-			configurePluginSection,
-			vaultClient,
-			c.MountPath,
-			"visibility",
-			map[string]interface{}{
-				"venafi_secret": c.Role.Secret.Name,
-				"zone":          c.Role.ImportPolicy.Zone,
-				"import_roles":  c.Role.Name,
-			},
-		)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
