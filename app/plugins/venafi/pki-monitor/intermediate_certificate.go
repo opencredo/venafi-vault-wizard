@@ -1,6 +1,7 @@
 package pki_backend
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/Venafi/vcert/v4/pkg/certificate"
@@ -96,6 +97,10 @@ func getVCertClient(secret venafi.VenafiSecret, zone string) (endpoint.Connector
 				APIKey: secret.Cloud.APIKey,
 			},
 			Zone: zone,
+			// Specify the DefaultClient otherwise vcert creates its own HTTP Client and for some reason this replaces
+			// the TLSClientConfig with a non-nil value it gets from somewhere and breaks things with the following:
+			// vcert error: server error: server unavailable: Get "https://api.venafi.cloud/v1/useraccounts": net/http: HTTP/1.x transport connection broken: malformed HTTP response
+			Client: http.DefaultClient,
 		})
 		if err != nil {
 			return nil, err
