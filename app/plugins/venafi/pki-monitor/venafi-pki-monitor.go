@@ -13,7 +13,7 @@ func (c *VenafiPKIMonitorConfig) GetDownloadURL() (string, error) {
 	return github.GetRelease(
 		"Venafi/vault-pki-monitor-venafi",
 		c.Version,
-		"linux_strict.zip",
+		"linux_optional.zip",
 	)
 }
 
@@ -31,20 +31,38 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		return err
 	}
 
-	err = ConfigureVenafiPolicy(
-		configurePluginSection,
-		vaultClient,
-		c.MountPath,
-		"default",
-		map[string]interface{}{
-			"venafi_secret":     c.Role.Secret.Name,
-			"zone":              c.Role.EnforcementPolicy.Zone,
-			"enforcement_roles": c.Role.Name,
-			"defaults_roles":    c.Role.Name,
-		},
-	)
-	if err != nil {
-		return err
+	if c.Role.EnforcementPolicy != nil {
+		err = ConfigureVenafiPolicy(
+			configurePluginSection,
+			vaultClient,
+			c.MountPath,
+			"default",
+			map[string]interface{}{
+				"venafi_secret":     c.Role.Secret.Name,
+				"zone":              c.Role.EnforcementPolicy.Zone,
+				"enforcement_roles": c.Role.Name,
+				"defaults_roles":    c.Role.Name,
+			},
+		)
+		if err != nil {
+			return err
+		}
+	}
+	if c.Role.ImportPolicy != nil {
+		err = ConfigureVenafiPolicy(
+			configurePluginSection,
+			vaultClient,
+			c.MountPath,
+			"visibility",
+			map[string]interface{}{
+				"venafi_secret": c.Role.Secret.Name,
+				"zone":          c.Role.ImportPolicy.Zone,
+				"import_roles":  c.Role.Name,
+			},
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if c.Role.IntermediateCert != nil {
@@ -65,23 +83,6 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 			vaultClient,
 			c.MountPath,
 			c.Role.RootCert,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	if c.Role.ImportPolicy != nil {
-		err = ConfigureVenafiPolicy(
-			configurePluginSection,
-			vaultClient,
-			c.MountPath,
-			"visibility",
-			map[string]interface{}{
-				"venafi_secret": c.Role.Secret.Name,
-				"zone":          c.Role.ImportPolicy.Zone,
-				"import_roles":  c.Role.Name,
-			},
 		)
 		if err != nil {
 			return err

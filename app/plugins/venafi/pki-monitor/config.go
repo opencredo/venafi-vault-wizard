@@ -23,7 +23,7 @@ type Role struct {
 
 	Secret venafi.VenafiSecret `hcl:"secret,block"`
 
-	EnforcementPolicy Policy  `hcl:"enforcement_policy,block"`
+	EnforcementPolicy *Policy `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
 
 	IntermediateCert *venafi.CertificateRequest `hcl:"intermediate_certificate,block"`
@@ -64,6 +64,10 @@ func (r *Role) Validate() error {
 
 	if (intermediateCertProvided && rootCertProvided) || (!intermediateCertProvided && !rootCertProvided) {
 		return fmt.Errorf("error, must provide exactly one of either the intermediate_certificate or root_certificate blocks: %w", errors.ErrConflictingBlocks)
+	}
+
+	if r.EnforcementPolicy == nil && r.ImportPolicy == nil {
+		return fmt.Errorf("error, at least one of either enforcement_policy or import_policy must be provided: %w", errors.ErrBlankParam)
 	}
 
 	return nil
