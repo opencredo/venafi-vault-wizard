@@ -46,16 +46,28 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		return err
 	}
 
-	err = ConfigureIntermediateCertificate(
-		configurePluginSection,
-		vaultClient,
-		c.Role.Secret,
-		c.MountPath,
-		&c.Role.IntermediateCert,
-		c.Role.EnforcementPolicy.Zone,
-	)
-	if err != nil {
-		return err
+	if c.Role.IntermediateCert != nil {
+		err := ConfigureIntermediateCertificate(
+			configurePluginSection,
+			vaultClient,
+			c.Role.Secret,
+			c.MountPath,
+			c.Role.IntermediateCert,
+			c.Role.EnforcementPolicy.Zone,
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := ConfigureSelfsignedCertificate(
+			configurePluginSection,
+			vaultClient,
+			c.MountPath,
+			c.Role.RootCert,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if c.Role.ImportPolicy != nil {
@@ -80,11 +92,6 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		vaultClient,
 		fmt.Sprintf("%s/roles/%s", c.MountPath, c.Role.Name),
 		map[string]interface{}{
-			"organization":   c.Role.IntermediateCert.Organisation,
-			"ou":             c.Role.IntermediateCert.OU,
-			"locality":       c.Role.IntermediateCert.Locality,
-			"province":       c.Role.IntermediateCert.Province,
-			"country":        c.Role.IntermediateCert.Country,
 			"ttl":            c.Role.TTL,
 			"max_ttl":        c.Role.MaxTTL,
 			"allow_any_name": c.Role.AllowAnyName,

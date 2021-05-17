@@ -336,7 +336,7 @@ var validPKIMonitorConfigResult = &Config{
 					ImportPolicy: &pki_monitor.Policy{
 						Zone: "zone2",
 					},
-					IntermediateCert: venafi.CertificateRequest{
+					IntermediateCert: &venafi.CertificateRequest{
 						CommonName:   "Vault SubCA",
 						OU:           "VVW",
 						Organisation: "VVW",
