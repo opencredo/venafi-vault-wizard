@@ -330,7 +330,7 @@ var validPKIMonitorConfigResult = &Config{
 					AllowAnyName: true,
 					TTL:          "1h",
 					MaxTTL:       "2h",
-					EnforcementPolicy: pki_monitor.Policy{
+					EnforcementPolicy: &pki_monitor.Policy{
 						Zone: "zone",
 					},
 					ImportPolicy: &pki_monitor.Policy{
