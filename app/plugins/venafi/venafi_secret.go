@@ -3,9 +3,18 @@ package venafi
 import (
 	"fmt"
 
+	"github.com/Venafi/vcert/v4/pkg/endpoint"
+	"github.com/Venafi/vcert/v4/pkg/venafi/tpp"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
+)
+
+type PluginType int
+
+const (
+	SecretsEngine = iota
+	MonitorEngine
 )
 
 func ConfigureVenafiSecret(
@@ -13,10 +22,16 @@ func ConfigureVenafiSecret(
 	vaultClient api.VaultAPIClient,
 	secretPath string,
 	secretValue VenafiConnectionConfig,
+	pluginType PluginType,
 ) error {
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
-	_, err := vaultClient.WriteValue(secretPath, secretValue.GetAsMap())
+	secretParameters, err := secretValue.GetAsMap(pluginType)
+	if err != nil {
+		check.Errorf("Error getting Venafi secret values: %s", err)
+		return err
+	}
+	_, err = vaultClient.WriteValue(secretPath, secretParameters)
 	if err != nil {
 		check.Errorf("Error configuring Venafi secret: %s", err)
 		return err
@@ -47,10 +62,10 @@ type VenafiSecret struct {
 }
 
 type VenafiConnectionConfig interface {
-	GetAsMap() map[string]interface{}
+	GetAsMap(pluginType PluginType) (map[string]interface{}, error)
 }
 
-func (v *VenafiSecret) Validate() error {
+func (v *VenafiSecret) Validate(pluginType PluginType) error {
 	cloudConnectionProvided := v.Cloud != nil
 	tppConnectionProvided := v.TPP != nil
 
@@ -60,17 +75,23 @@ func (v *VenafiSecret) Validate() error {
 	}
 
 	if cloudConnectionProvided {
+		if pluginType == SecretsEngine && v.Cloud.Zone == "" {
+			return fmt.Errorf("error, zone must be specified in secret")
+		}
 		return v.Cloud.Validate()
 	}
 
 	if tppConnectionProvided {
+		if pluginType == SecretsEngine && v.TPP.Zone == "" {
+			return fmt.Errorf("error, zone must be specified in secret")
+		}
 		return v.TPP.Validate()
 	}
 
 	return nil
 }
 
-func (v VenafiSecret) GetAsMap() map[string]interface{} {
+func (v VenafiSecret) GetAsMap(pluginType PluginType) (map[string]interface{}, error) {
 	if v.Cloud != nil {
 		m := map[string]interface{}{
 			"apikey": v.Cloud.APIKey,
@@ -78,22 +99,22 @@ func (v VenafiSecret) GetAsMap() map[string]interface{} {
 		if v.Cloud.Zone != "" {
 			m["zone"] = v.Cloud.Zone
 		}
-		return m
+		return m, nil
 	}
 
 	if v.TPP != nil {
-		m := map[string]interface{}{
-			"url":          v.TPP.URL,
-			"tpp_user":     v.TPP.Username,
-			"tpp_password": v.TPP.Password,
+		m, err := v.TPP.getAccessToken(pluginType)
+		if err != nil {
+			return nil, err
 		}
+
 		if v.TPP.Zone != "" {
 			m["zone"] = v.TPP.Zone
 		}
-		return m
+		return m, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
 type VenafiCloudConnection struct {
@@ -104,7 +125,6 @@ type VenafiCloudConnection struct {
 type VenafiTPPConnection struct {
 	URL      string `hcl:"url"`
 	Username string `hcl:"username"`
-	// TODO: support access token
 	Password string `hcl:"password"`
 	Zone     string `hcl:"zone,optional"`
 }
@@ -127,4 +147,39 @@ func (c *VenafiTPPConnection) Validate() error {
 		return fmt.Errorf("error with TPP Password: %w", errors.ErrBlankParam)
 	}
 	return nil
+}
+
+func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType) (map[string]interface{}, error) {
+	tppClient, err := tpp.NewConnector(c.URL, c.Zone, false, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var scope string
+	var clientID string
+	if pluginType == MonitorEngine {
+		scope = "certificate:manage,discover"
+		clientID = "hashicorp-vault-monitor-by-venafi"
+	} else if pluginType == SecretsEngine {
+		scope = "certificate:manage,revoke"
+		clientID = "hashicorp-vault-by-venafi"
+	} else {
+		return nil, fmt.Errorf("unrecognised plugin type")
+	}
+
+	tokens, err := tppClient.GetRefreshToken(&endpoint.Authentication{
+		User:     c.Username,
+		Password: c.Password,
+		Scope:    scope,
+		ClientId: clientID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"url":           c.URL,
+		"access_token":  tokens.Access_token,
+		"refresh_token": tokens.Refresh_token,
+	}, nil
 }

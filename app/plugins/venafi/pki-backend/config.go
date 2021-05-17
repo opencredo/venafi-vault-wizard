@@ -39,14 +39,9 @@ func (c *VenafiPKIBackendConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	err := r.Secret.Validate()
+	err := r.Secret.Validate(venafi.SecretsEngine)
 	if err != nil {
 		return err
-	}
-
-	// Zone is optional for pki-monitor but required for pki-backend so check it here
-	if zone, ok := r.Secret.GetAsMap()["zone"]; !ok || zone == "" {
-		return fmt.Errorf("error zone must be specified in venafi-pki-backend secret")
 	}
 
 	return nil
