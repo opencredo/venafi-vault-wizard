@@ -27,6 +27,7 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 			vaultClient,
 			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
 			role.Secret,
+			venafi.SecretsEngine,
 		)
 		if err != nil {
 			return err

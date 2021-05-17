@@ -25,6 +25,7 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		vaultClient,
 		fmt.Sprintf("%s/venafi/%s", c.MountPath, c.Role.Secret.Name),
 		c.Role.Secret,
+		venafi.MonitorEngine,
 	)
 	if err != nil {
 		return err
