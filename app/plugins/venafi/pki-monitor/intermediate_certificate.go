@@ -27,7 +27,7 @@ func ConfigureIntermediateCertificate(
 	// Get intermediate CSR from plugin
 	data, err := vaultClient.WriteValue(mountPath+"/intermediate/generate/internal", request.ToMap())
 	if err != nil {
-		check.Errorf("Error configuring Venafi policy: %s", err)
+		check.Errorf("Error generating subordinate CSR for an intermediate CA: %s", err)
 		return err
 	}
 	pluginCSR := data["csr"].(string)

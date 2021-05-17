@@ -3,6 +3,7 @@ package pki_backend
 import (
 	"fmt"
 
+	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 )
 
@@ -25,7 +26,8 @@ type Role struct {
 	EnforcementPolicy Policy  `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
 
-	IntermediateCert venafi.CertificateRequest `hcl:"intermediate_certificate,block"`
+	IntermediateCert *venafi.CertificateRequest `hcl:"intermediate_certificate,block"`
+	RootCert         *venafi.CertificateRequest `hcl:"root_certificate,block"`
 
 	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
 
@@ -55,6 +57,13 @@ func (r *Role) Validate() error {
 
 	if r.MaxTTL < r.TTL {
 		return fmt.Errorf("max_ttl must be greater than or equal to ttl")
+	}
+
+	intermediateCertProvided := r.IntermediateCert != nil
+	rootCertProvided := r.RootCert != nil
+
+	if (intermediateCertProvided && rootCertProvided) || (!intermediateCertProvided && !rootCertProvided) {
+		return fmt.Errorf("error, must provide exactly one of either the intermediate_certificate or root_certificate blocks: %w", errors.ErrConflictingBlocks)
 	}
 
 	return nil
