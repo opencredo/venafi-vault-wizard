@@ -1,4 +1,4 @@
-# VVW Test Environments
+# VVW Example Environments
 
 This directory contains a number of test environments that can be used to spin up Vault clusters in various configurations.
 Each one should contain another `README` explaining more.
