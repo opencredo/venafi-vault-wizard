@@ -1,0 +1,10 @@
+apiVersion: v2
+name: vault-with-venafi-plugins
+description: Replaces the image in vault-helm with a custom one
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: vault
+    version: "0.11.0"
+    repository: "https://helm.releases.hashicorp.com"

@@ -1,0 +1,44 @@
+vault:
+  server:
+    # Use our custom image with plugins baked in (must be built and available to the k8s cluster)
+    image:
+      repository: "vault-with-venafi-plugins"
+      tag: "latest"
+
+    # Disable the default pod affinity rules (not a production cluster so doesn't matter which nodes things are on)
+    affinity: null
+
+    # Use an emptyDir volume for the Vault data instead of the default PVC
+    # Stops the data persisting between install/uninstalls of the cluster, otherwise it starts up pre-initialised and sealed
+    volumes:
+      - name: data
+        emptyDir: {}
+    volumeMounts:
+      - name: data
+        mountPath: /vault/data
+    dataStorage:
+      enabled: false
+
+    # Use HA mode instead of single-node default
+    ha:
+      enabled: true
+      raft:
+        enabled: true
+        setNodeId: true
+        # In particular add the plugin_directory!
+        config: |
+          ui = true
+          listener "tcp" {
+            tls_disable = 1
+            address = "[::]:8200"
+            cluster_address = "[::]:8201"
+          }
+          storage "raft" {
+            path = "/vault/data"
+          }
+          service_registration "kubernetes" {}
+          plugin_directory = "/vault/plugins"
+
+  # Probably not running any other pods with this test cluster so don't need to inject things
+  injector:
+    enabled: false

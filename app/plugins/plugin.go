@@ -9,7 +9,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-// Generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
+// Plugin is a generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
 type Plugin struct {
 	// Type, the first label should specify which plugin the block refers to
 	Type string `hcl:"type,label"`
@@ -17,6 +17,8 @@ type Plugin struct {
 	MountPath string `hcl:"mount_path,label"`
 	// Version is the version of the plugin to use, specified as the Git tag of the release
 	Version string `hcl:"version"`
+	// Filename is an optional field overriding the filename of the plugin binary in the plugin directory
+	Filename string `hcl:"filename,optional"`
 	// Config allows the rest of the plugin body to be decoded separately
 	Config hcl.Body `hcl:",remain"`
 
@@ -50,7 +52,12 @@ func (p *Plugin) GetCatalogName() string {
 
 // GetFileName returns the filename of the plugin as it will be found in the plugin directory. This includes the plugin
 // version to allow different versions of the plugin to be present on the Vault server, and for the catalog entries to
-// reference different ones depending on their mounts' use case.
+// reference different ones depending on their mounts' use case. Alternatively, if Plugin.Filename is specified, then
+// the default behaviour will be overridden and it will be returned instead.
 func (p *Plugin) GetFileName() string {
+	if p.Filename != "" {
+		return p.Filename
+	}
+
 	return fmt.Sprintf("%s_%s", p.Type, p.Version)
 }
