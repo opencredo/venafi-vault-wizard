@@ -25,6 +25,17 @@ func InstallPluginToServers(input *InstallPluginToServersInput) error {
 		fmt.Sprintf("Installing plugin %s to Vault server filesystems", input.Plugin.Type),
 	)
 
+	// If no SSH clients, assume plugin has been installed by other means
+	if len(input.SSHClients) == 0 {
+		checkFilesystemSection.Info(
+			fmt.Sprintf(
+				"Nothing to do, no SSH parameters provided. Assuming plugin already present at %s/%s and mlock capabilites added if required",
+				input.PluginDir, input.Plugin.GetFileName(),
+			),
+		)
+		return nil
+	}
+
 	pluginPath := fmt.Sprintf("%s/%s", input.PluginDir, input.Plugin.GetFileName())
 
 	for i, sshClient := range input.SSHClients {

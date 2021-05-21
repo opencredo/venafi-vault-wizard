@@ -26,9 +26,6 @@ func (c *VaultConfig) Validate() error {
 	if c.VaultToken == "" {
 		return fmt.Errorf("error with Vault token: %w", errors.ErrBlankParam)
 	}
-	if len(c.SSHConfig) == 0 {
-		return fmt.Errorf("error at least one SSH config must be provided: %w", errors.ErrBlankParam)
-	}
 	for _, ssh := range c.SSHConfig {
 		if ssh.Hostname == "" {
 			return fmt.Errorf("error with Vault SSH Hostname: %w", errors.ErrBlankParam)
