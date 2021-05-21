@@ -120,6 +120,8 @@ There is an `env()` function available for pulling any of the values from enviro
 
 The `vault` block must then also contain an `ssh` block for each node in the cluster (only one if not running in HA mode).
 If there are other nodes than those specified by the `ssh` blocks then the plugin won't be installed on all of them and strange behaviour may occur.
+The `ssh` blocks can be omitted if the plugin binaries are already installed to every node by external means.
+For example if the Vault servers are running in containers, and the container images already have the plugins in them.
 
 The structure of the `plugin` block depends on the specific plugin being used.
 The first block label should specify which plugin to install (currently only `venafi-pki-backend` and `venafi-pki-monitor` are supported).
