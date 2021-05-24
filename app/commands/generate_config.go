@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -83,13 +84,11 @@ func generateVaultConfig() (*config.VaultConfig, error) {
 		}
 
 		if useSSH == "Yes" {
-			// TODO: ask for ssh details
-			vaultConfig.SSHConfig = append(vaultConfig.SSHConfig, config.SSH{
-				Hostname: "ssh.hostname",
-				Username: "vagrant",
-				Password: "vagrant",
-				Port:     22,
-			})
+			sshConfigs, err := generateSSHConfigs()
+			if err != nil {
+				return nil, err
+			}
+			vaultConfig.SSHConfig = sshConfigs
 
 			return vaultConfig, nil
 		}
@@ -110,4 +109,104 @@ func generateVaultConfig() (*config.VaultConfig, error) {
 	}
 
 	return vaultConfig, nil
+}
+
+func generateSSHConfigs() ([]config.SSH, error) {
+	haPrompt := promptui.Select{
+		Label:        "Is Vault running in High-Availability (HA) mode",
+		HideSelected: true,
+		Items:        []string{"Yes", "No, just one node"},
+	}
+	_, ha, err := haPrompt.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	var sshConfigs []config.SSH
+
+	if ha == "Yes" {
+		for i := 1; true; i++ {
+			sshConfig, err := generateSSHConfig()
+			if err != nil {
+				return nil, err
+			}
+			sshConfigs = append(sshConfigs, *sshConfig)
+
+			moreSSHsPrompt := promptui.Select{
+				Label:        fmt.Sprintf("You have configured %d Vault replicas, are there more", i),
+				HideSelected: true,
+				Items:        []string{"Yes", "No, that's it"},
+			}
+			_, moreSSHs, err := moreSSHsPrompt.Run()
+			if err != nil {
+				return nil, err
+			}
+
+			if moreSSHs != "Yes" {
+				break
+			}
+		}
+	} else {
+		sshConfig, err := generateSSHConfig()
+		if err != nil {
+			return nil, err
+		}
+		sshConfigs = append(sshConfigs, *sshConfig)
+	}
+
+	return sshConfigs, nil
+}
+
+func generateSSHConfig() (*config.SSH, error) {
+	hostnamePrompt := promptui.Prompt{
+		Label:       "What is the hostname of the Vault server?",
+		HideEntered: true,
+	}
+	hostname, err := hostnamePrompt.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	usernamePrompt := promptui.Prompt{
+		Label:       "What is the SSH username to log into the Vault server?",
+		HideEntered: true,
+	}
+	username, err := usernamePrompt.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	passwordPrompt := promptui.Prompt{
+		Label:       "What is the SSH password to log into the Vault server?",
+		HideEntered: true,
+	}
+	password, err := passwordPrompt.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	portPrompt := promptui.Prompt{
+		Label:       "What is the SSH port for logging into the Vault server?",
+		Default:     "22",
+		HideEntered: true,
+		Validate: func(input string) error {
+			_, err := strconv.Atoi(input)
+			if err != nil {
+				return fmt.Errorf("SSH port must be an integer")
+			}
+			return nil
+		},
+	}
+	portString, err := portPrompt.Run()
+	if err != nil {
+		return nil, err
+	}
+	port, _ := strconv.Atoi(portString)
+
+	return &config.SSH{
+		Hostname: hostname,
+		Username: username,
+		Password: password,
+		Port:     uint(port),
+	}, nil
 }
