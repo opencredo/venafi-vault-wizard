@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
+	"github.com/zclconf/go-cty/cty"
 )
 
 type VaultConfig struct {
@@ -41,4 +43,27 @@ func (c *VaultConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// WriteHCL uses the hclwrite package to encode itself into HCL. It supports $ENVVARS for the string values, in that
+// format. This allows users in a wizard to specify the string params in a shell-like syntax, which will then be
+// serialised into the HCL syntax of env("ENVVARS")
+func (c *VaultConfig) WriteHCL(hclBody *hclwrite.Body) {
+	vaultConfigBlock := hclBody.AppendNewBlock("vault", nil)
+	vaultConfigBody := vaultConfigBlock.Body()
+
+	WriteStringAttributeToHCL("api_address", c.VaultAddress, vaultConfigBody)
+	WriteStringAttributeToHCL("token", c.VaultToken, vaultConfigBody)
+
+	for _, sshHost := range c.SSHConfig {
+		vaultConfigBody.AppendNewline()
+
+		sshHostBlock := vaultConfigBody.AppendNewBlock("ssh", nil)
+		sshHostBody := sshHostBlock.Body()
+
+		WriteStringAttributeToHCL("hostname", sshHost.Hostname, sshHostBody)
+		WriteStringAttributeToHCL("username", sshHost.Username, sshHostBody)
+		WriteStringAttributeToHCL("password", sshHost.Password, sshHostBody)
+		sshHostBody.SetAttributeValue("port", cty.NumberUIntVal(uint64(sshHost.Port)))
+	}
 }

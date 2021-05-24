@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.9.1
 	github.com/hashicorp/vault/api v1.1.0
 	github.com/hashicorp/vault/sdk v0.1.14-0.20200519221838-e0cfd64bc267
+	github.com/manifoldco/promptui v0.8.0
 	github.com/pkg/sftp v1.13.0
 	github.com/pterm/pterm v0.12.12
 	github.com/spf13/cobra v1.1.3
