@@ -3,8 +3,14 @@
 package mocks
 
 import (
+	hcl "github.com/hashicorp/hcl/v2"
 	api "github.com/opencredo/venafi-vault-wizard/app/vault/api"
+
+	hclwrite "github.com/hashicorp/hcl/v2/hclwrite"
+
 	mock "github.com/stretchr/testify/mock"
+
+	plugins "github.com/opencredo/venafi-vault-wizard/app/plugins"
 
 	reporter "github.com/opencredo/venafi-vault-wizard/app/reporter"
 )
@@ -42,6 +48,20 @@ func (_m *PluginImpl) Configure(report reporter.Report, vaultClient api.VaultAPI
 	return r0
 }
 
+// GenerateConfigAndWriteHCL provides a mock function with given fields: hclBody
+func (_m *PluginImpl) GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error {
+	ret := _m.Called(hclBody)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*hclwrite.Body) error); ok {
+		r0 = rf(hclBody)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetDownloadURL provides a mock function with given fields:
 func (_m *PluginImpl) GetDownloadURL() (string, error) {
 	ret := _m.Called()
@@ -61,6 +81,20 @@ func (_m *PluginImpl) GetDownloadURL() (string, error) {
 	}
 
 	return r0, r1
+}
+
+// ParseConfig provides a mock function with given fields: config, evalContext
+func (_m *PluginImpl) ParseConfig(config *plugins.Plugin, evalContext *hcl.EvalContext) error {
+	ret := _m.Called(config, evalContext)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*plugins.Plugin, *hcl.EvalContext) error); ok {
+		r0 = rf(config, evalContext)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ValidateConfig provides a mock function with given fields:

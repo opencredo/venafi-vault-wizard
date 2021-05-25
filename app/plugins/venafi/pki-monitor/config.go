@@ -7,6 +7,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/questions"
+	"github.com/zclconf/go-cty/cty"
 )
 
 type VenafiPKIMonitorConfig struct {
@@ -76,7 +77,33 @@ func (r *Role) Validate() error {
 }
 
 func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
+	roleBlock := hclBody.AppendNewBlock("role", []string{r.Name})
+	roleBody := roleBlock.Body()
+	r.Secret.WriteHCL(roleBody)
 
+	if r.EnforcementPolicy != nil {
+		roleBody.AppendNewline()
+		policyBlock := roleBody.AppendNewBlock("enforcement_policy", nil)
+		policyBlock.Body().SetAttributeValue("zone", cty.StringVal(r.EnforcementPolicy.Zone))
+	}
+
+	if r.ImportPolicy != nil {
+		roleBody.AppendNewline()
+		policyBlock := roleBody.AppendNewBlock("import_policy", nil)
+		policyBlock.Body().SetAttributeValue("zone", cty.StringVal(r.ImportPolicy.Zone))
+	}
+
+	if r.IntermediateCert != nil {
+		roleBody.AppendNewline()
+		certBlock := roleBody.AppendNewBlock("intermediate_certificate", nil)
+		r.IntermediateCert.WriteHCL(certBlock.Body())
+	}
+
+	if r.RootCert != nil {
+		roleBody.AppendNewline()
+		certBlock := roleBody.AppendNewBlock("root_certificate", nil)
+		r.RootCert.WriteHCL(certBlock.Body())
+	}
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error {
@@ -85,25 +112,26 @@ func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Bod
 		if err != nil {
 			return err
 		}
+
+		hclBody.AppendNewline()
 		role.WriteHCL(hclBody)
 
-		question := questions.ClosedQuestion{
+		question := &questions.ClosedQuestion{
 			Question: fmt.Sprintf("You have configured %d roles, are there more", i),
 			Items:    []string{"Yes", "No that's it"},
 		}
-		answer, err := question.Ask()
-		if answer[0] != "Yes" {
+		answer, err := questions.AskSingleQuestion(question)
+		if answer != "Yes" {
 			break
 		}
-
-		hclBody.AppendNewline()
 	}
 	// TODO: test certs (loop)
 	return nil
 }
 
 func askForRole() (*Role, error) {
-	answers, err := questions.AskQuestions([]questions.Question{
+	answers := questions.NewAnswerQueue()
+	err := questions.AskQuestions([]questions.Question{
 		&questions.OpenEndedQuestion{
 			Question: "What should the role be called?",
 		},
@@ -161,40 +189,81 @@ func askForRole() (*Role, error) {
 				},
 			},
 		},
-		// TODO: CSR questions
+		&questions.OpenEndedQuestion{
+			Question: "What should the common name (CN) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "What should the organisational unit (OU) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "What should the organisation (O) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "What should the locality (L) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "Qhat should the province (P) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "What should the country (C) of the issuing certificate be?",
+		},
+		&questions.OpenEndedQuestion{
+			Question: "What should the time-to-live (TTL) of the issuing certificate be?",
+		},
+
 		// TODO: extra questions around default TTL, max TTL etc
 		// TODO: test certs
-	})
+	}, answers)
 	if err != nil {
 		return nil, err
 	}
 
 	role := &Role{
-		Name: string(answers[0]),
+		Name: string(*answers.Pop()),
 		Secret: venafi.VenafiSecret{
 			Name: "tpp",
 			TPP: &venafi.VenafiTPPConnection{
-				URL:      string(answers[1]),
-				Username: string(answers[2]),
-				Password: string(answers[3]),
+				URL:      string(*answers.Pop()),
+				Username: string(*answers.Pop()),
+				Password: string(*answers.Pop()),
 			},
 		},
 	}
 
-	if answers[4] == "Yes" {
+	if *answers.Pop() == "Yes" {
 		role.EnforcementPolicy = &Policy{
-			Zone: string(answers[5]),
+			Zone: string(*answers.Pop()),
 		}
 
-		if answers[6] != "Yes" {
+		if *answers.Pop() != "Yes" {
 			role.ImportPolicy = &Policy{
-				Zone: string(answers[7]),
+				Zone: string(*answers.Pop()),
 			}
 		}
 	} else {
 		role.ImportPolicy = &Policy{
-			Zone: string(answers[5]),
+			Zone: string(*answers.Pop()),
 		}
 	}
+
+	if *answers.Pop() == "Self-signed root certificate" {
+		role.RootCert = answersToCSR(answers)
+	} else {
+		_ = *answers.Pop() // TODO: issuing cert policy zone
+		role.IntermediateCert = answersToCSR(answers)
+	}
+
 	return role, nil
+}
+
+func answersToCSR(queue *questions.AnswerQueue) *venafi.CertificateRequest {
+	return &venafi.CertificateRequest{
+		CommonName:   string(*queue.Pop()),
+		OU:           string(*queue.Pop()),
+		Organisation: string(*queue.Pop()),
+		Locality:     string(*queue.Pop()),
+		Province:     string(*queue.Pop()),
+		Country:      string(*queue.Pop()),
+		TTL:          string(*queue.Pop()),
+	}
 }

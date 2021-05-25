@@ -61,25 +61,26 @@ func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Bod
 		if err != nil {
 			return err
 		}
+
+		hclBody.AppendNewline()
 		role.WriteHCL(hclBody)
 
-		question := questions.ClosedQuestion{
+		question := &questions.ClosedQuestion{
 			Question: fmt.Sprintf("You have configured %d roles, are there more", i),
 			Items:    []string{"Yes", "No that's it"},
 		}
-		answer, err := question.Ask()
-		if answer[0] != "Yes" {
+		answer, err := questions.AskSingleQuestion(question)
+		if answer != "Yes" {
 			break
 		}
-
-		hclBody.AppendNewline()
 	}
 	// TODO: test certs (loop)
 	return nil
 }
 
 func askForRole() (*Role, error) {
-	answers, err := questions.AskQuestions([]questions.Question{
+	answers := questions.NewAnswerQueue()
+	err := questions.AskQuestions([]questions.Question{
 		&questions.OpenEndedQuestion{
 			Question: "What should the role be called?",
 		},
@@ -113,28 +114,28 @@ func askForRole() (*Role, error) {
 		&questions.OpenEndedQuestion{
 			Question: "What project zone should be used for issuing certificates?",
 		},
-	})
+	}, answers)
 	if err != nil {
 		return nil, err
 	}
 
 	role := &Role{
-		Name: string(answers[0]),
+		Name: string(*answers.Pop()),
 	}
-	switch answers[1] {
+	switch *answers.Pop() {
 	case "TPP":
 		role.Secret.Name = "tpp"
 		role.Secret.TPP = &venafi.VenafiTPPConnection{
-			URL:      string(answers[2]),
-			Username: string(answers[3]),
-			Password: string(answers[4]),
-			Zone:     string(answers[5]),
+			URL:      string(*answers.Pop()),
+			Username: string(*answers.Pop()),
+			Password: string(*answers.Pop()),
+			Zone:     string(*answers.Pop()),
 		}
 	case "Venafi-as-a-Service":
 		role.Secret.Name = "vaas"
 		role.Secret.Cloud = &venafi.VenafiCloudConnection{
-			APIKey: string(answers[2]),
-			Zone:   string(answers[3]),
+			APIKey: string(*answers.Pop()),
+			Zone:   string(*answers.Pop()),
 		}
 	default:
 		panic("unimplemented Venafi secret type, expected TPP or Venafi-as-a-Service")
