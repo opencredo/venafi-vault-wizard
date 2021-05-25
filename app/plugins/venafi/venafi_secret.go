@@ -5,7 +5,9 @@ import (
 
 	"github.com/Venafi/vcert/v4/pkg/endpoint"
 	"github.com/Venafi/vcert/v4/pkg/venafi/tpp"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
+	"github.com/opencredo/venafi-vault-wizard/app/config/generate"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -117,6 +119,20 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType) (map[string]interface{}, e
 	return nil, nil
 }
 
+func (v *VenafiSecret) WriteHCL(hclBody *hclwrite.Body) {
+	secretBlock := hclBody.AppendNewBlock("secret", []string{v.Name})
+	secretBody := secretBlock.Body()
+
+	if v.TPP != nil {
+		v.TPP.WriteHCL(secretBody)
+		return
+	}
+	if v.Cloud != nil {
+		v.Cloud.WriteHCL(secretBody)
+		return
+	}
+}
+
 type VenafiCloudConnection struct {
 	APIKey string `hcl:"apikey"`
 	Zone   string `hcl:"zone,optional"`
@@ -136,6 +152,13 @@ func (c *VenafiCloudConnection) Validate() error {
 	return nil
 }
 
+func (c *VenafiCloudConnection) WriteHCL(hclBody *hclwrite.Body) {
+	generate.WriteStringAttributeToHCL("apikey", c.APIKey, hclBody)
+	if c.Zone != "" {
+		generate.WriteStringAttributeToHCL("zone", c.Zone, hclBody)
+	}
+}
+
 func (c *VenafiTPPConnection) Validate() error {
 	if c.URL == "" {
 		return fmt.Errorf("error with TPP URL: %w", errors.ErrBlankParam)
@@ -147,6 +170,15 @@ func (c *VenafiTPPConnection) Validate() error {
 		return fmt.Errorf("error with TPP Password: %w", errors.ErrBlankParam)
 	}
 	return nil
+}
+
+func (c *VenafiTPPConnection) WriteHCL(hclBody *hclwrite.Body) {
+	generate.WriteStringAttributeToHCL("url", c.URL, hclBody)
+	generate.WriteStringAttributeToHCL("username", c.Username, hclBody)
+	generate.WriteStringAttributeToHCL("password", c.Password, hclBody)
+	if c.Zone != "" {
+		generate.WriteStringAttributeToHCL("zone", c.Zone, hclBody)
+	}
 }
 
 func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType) (map[string]interface{}, error) {
