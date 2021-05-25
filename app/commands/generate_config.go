@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,13 @@ import (
 )
 
 func GenerateConfig(configFilePath string) {
+	file, err := os.OpenFile(configFilePath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Printf("Error opening file %s for writing: %s\n", configFilePath, err)
+		return
+	}
+	defer file.Close()
+
 	vaultConfig, err := generateVaultConfig()
 	if err != nil {
 		fmt.Printf("Error while generating Vault config: %v\n", err)
@@ -34,7 +42,13 @@ func GenerateConfig(configFilePath string) {
 		rootBody.AppendBlock(pluginBlock)
 	}
 
-	fmt.Println("Config file would be saved to", configFilePath, "with contents\n", string(configuration.Bytes()))
+	_, err = configuration.WriteTo(file)
+	if err != nil {
+		fmt.Printf("Error writing config to %s: %s\n", configFilePath, err)
+		return
+	}
+
+	fmt.Printf("Config successfully written to %s\n", configFilePath)
 }
 
 func generateVaultConfig() (*config.VaultConfig, error) {
