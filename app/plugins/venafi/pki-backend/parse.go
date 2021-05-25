@@ -7,16 +7,14 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 )
 
-func ParseVenafiPKIBackendConfig(config *plugins.Plugin, evalContext *hcl.EvalContext) (plugins.PluginImpl, error) {
-	pluginConfig := &VenafiPKIBackendConfig{
-		MountPath: config.MountPath,
-		Version:   config.Version,
-	}
+func (c *VenafiPKIBackendConfig) ParseConfig(config *plugins.Plugin, evalContext *hcl.EvalContext) error {
+	c.MountPath = config.MountPath
+	c.Version = config.Version
 
-	diagnostics := gohcl.DecodeBody(config.Config, evalContext, pluginConfig)
+	diagnostics := gohcl.DecodeBody(config.Config, evalContext, c)
 	if diagnostics.HasErrors() {
-		return nil, diagnostics
+		return diagnostics
 	}
 
-	return pluginConfig, nil
+	return nil
 }

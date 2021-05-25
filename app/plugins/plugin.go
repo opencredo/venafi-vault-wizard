@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
 
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
@@ -32,6 +34,11 @@ type Plugin struct {
 // PluginImpl is what each plugin struct should implement, along with having its config schema defined with its struct
 // fields and the relevant HCL struct tags.
 type PluginImpl interface {
+	// ParseConfig parses the Plugin.Config field (an hcl.Body) and populates its implementation-specific config struct.
+	// It takes a pointer to an hcl.EvalContext in order to provide the same config functions available to the rest of
+	// the config, and in future maybe some global variables, and then decodes the plugin-specific part of the plugin
+	// block.
+	ParseConfig(config *Plugin, evalContext *hcl.EvalContext) error
 	// GetDownloadURL returns a URL to download the required version of the plugin
 	GetDownloadURL() (string, error)
 	// Configure makes the necessary changes to Vault to configure the plugin
@@ -40,6 +47,9 @@ type PluginImpl interface {
 	Check(report reporter.Report, vaultClient api.VaultAPIClient) error
 	// ValidateConfig performs validation of the supplied configuration data, specific to the plugin
 	ValidateConfig() error
+	// GenerateConfigAndWriteHCL asks questions of the user to work out what the config should be and then writes it
+	// using the hclwrite package
+	GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error
 }
 
 // GetCatalogName returns the name of the plugin as it appears in the plugin catalog. This does not include the plugin
@@ -60,4 +70,13 @@ func (p *Plugin) GetFileName() string {
 	}
 
 	return fmt.Sprintf("%s_%s", p.Type, p.Version)
+}
+
+// WriteHCL uses the hclwrite package to encode itself into HCL
+func (p *Plugin) WriteHCL(hclBody *hclwrite.Body) {
+	hclBody.AppendNewline()
+	pluginConfigBlock := hclBody.AppendNewBlock("plugin", []string{p.Type, p.MountPath})
+	pluginConfigBody := pluginConfigBlock.Body()
+
+	pluginConfigBody.SetAttributeValue("version", cty.StringVal(p.Version))
 }

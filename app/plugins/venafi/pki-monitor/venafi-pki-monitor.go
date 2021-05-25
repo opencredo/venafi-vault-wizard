@@ -72,7 +72,7 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 			c.Role.Secret,
 			c.MountPath,
 			c.Role.IntermediateCert,
-			c.Role.EnforcementPolicy.Zone,
+			c.Role.EnforcementPolicy.Zone, // TODO: ask for a separate policy to use for intermediate cert issuance
 		)
 		if err != nil {
 			return err

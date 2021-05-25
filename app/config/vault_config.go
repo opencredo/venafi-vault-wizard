@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
+	"github.com/opencredo/venafi-vault-wizard/app/config/generate"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -52,8 +53,8 @@ func (c *VaultConfig) WriteHCL(hclBody *hclwrite.Body) {
 	vaultConfigBlock := hclBody.AppendNewBlock("vault", nil)
 	vaultConfigBody := vaultConfigBlock.Body()
 
-	WriteStringAttributeToHCL("api_address", c.VaultAddress, vaultConfigBody)
-	WriteStringAttributeToHCL("token", c.VaultToken, vaultConfigBody)
+	generate.WriteStringAttributeToHCL("api_address", c.VaultAddress, vaultConfigBody)
+	generate.WriteStringAttributeToHCL("token", c.VaultToken, vaultConfigBody)
 
 	for _, sshHost := range c.SSHConfig {
 		vaultConfigBody.AppendNewline()
@@ -61,9 +62,9 @@ func (c *VaultConfig) WriteHCL(hclBody *hclwrite.Body) {
 		sshHostBlock := vaultConfigBody.AppendNewBlock("ssh", nil)
 		sshHostBody := sshHostBlock.Body()
 
-		WriteStringAttributeToHCL("hostname", sshHost.Hostname, sshHostBody)
-		WriteStringAttributeToHCL("username", sshHost.Username, sshHostBody)
-		WriteStringAttributeToHCL("password", sshHost.Password, sshHostBody)
+		generate.WriteStringAttributeToHCL("hostname", sshHost.Hostname, sshHostBody)
+		generate.WriteStringAttributeToHCL("username", sshHost.Username, sshHostBody)
+		generate.WriteStringAttributeToHCL("password", sshHost.Password, sshHostBody)
 		sshHostBody.SetAttributeValue("port", cty.NumberUIntVal(uint64(sshHost.Port)))
 	}
 }

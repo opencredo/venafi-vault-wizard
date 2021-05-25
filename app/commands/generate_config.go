@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/manifoldco/promptui"
 	"github.com/opencredo/venafi-vault-wizard/app/config"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/lookup"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func GenerateConfig(configFilePath string) {
@@ -18,10 +20,19 @@ func GenerateConfig(configFilePath string) {
 		return
 	}
 
+	pluginBlocks, err := generatePluginsConfig()
+	if err != nil {
+		fmt.Printf("Error while generating plugins config: %v\n", err)
+	}
+
 	configuration := hclwrite.NewEmptyFile()
 	rootBody := configuration.Body()
 
 	vaultConfig.WriteHCL(rootBody)
+	for _, pluginBlock := range pluginBlocks {
+		rootBody.AppendNewline()
+		rootBody.AppendBlock(pluginBlock)
+	}
 
 	fmt.Println("Config file would be saved to", configFilePath, "with contents\n", string(configuration.Bytes()))
 }
@@ -109,6 +120,69 @@ func generateVaultConfig() (*config.VaultConfig, error) {
 	}
 
 	return vaultConfig, nil
+}
+
+func generatePluginsConfig() ([]*hclwrite.Block, error) {
+	var pluginBlocks []*hclwrite.Block
+	for i := 1; true; i++ {
+		pluginTypePrompt := promptui.Select{
+			Label:        "Which plugin would you like to configure",
+			Items:        lookup.SupportedPluginNames(),
+			HideSelected: true,
+		}
+		_, pluginType, err := pluginTypePrompt.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		versionPrompt := promptui.Prompt{
+			Label:       "Which version of the plugin would you like to use?",
+			HideEntered: true,
+		}
+		version, err := versionPrompt.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		mountPathPrompt := promptui.Prompt{
+			Label:       "Which Vault path should the plugin be mounted at?",
+			HideEntered: true,
+		}
+		mountPath, err := mountPathPrompt.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		pluginImpl, err := lookup.GetPlugin(pluginType)
+		if err != nil {
+			return nil, err
+		}
+
+		pluginBlock := hclwrite.NewBlock("plugin", []string{pluginType, mountPath})
+		pluginBody := pluginBlock.Body()
+		pluginBody.SetAttributeValue("version", cty.StringVal(version))
+		err = pluginImpl.GenerateConfigAndWriteHCL(pluginBody)
+		if err != nil {
+			return nil, err
+		}
+
+		pluginBlocks = append(pluginBlocks, pluginBlock)
+
+		morePluginsPrompt := promptui.Select{
+			Label:        fmt.Sprintf("You have configured %d plugins, are there more", i),
+			HideSelected: true,
+			Items:        []string{"Yes", "No that's it"},
+		}
+		_, morePlugins, err := morePluginsPrompt.Run()
+		if err != nil {
+			return nil, err
+		}
+
+		if morePlugins != "Yes" {
+			break
+		}
+	}
+	return pluginBlocks, nil
 }
 
 func generateSSHConfigs() ([]config.SSH, error) {
