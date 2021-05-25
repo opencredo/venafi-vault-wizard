@@ -3,21 +3,28 @@ package questions
 import "github.com/manifoldco/promptui"
 
 // AskQuestions takes a list of questions and asks each one in sequence, returning the list of answers
-func AskQuestions(questions []Question) ([]Answer, error) {
-	var answers []Answer
+func AskQuestions(questions []Question, answers *AnswerQueue) error {
 	for _, question := range questions {
-		answer, err := question.Ask()
+		err := question.Ask(answers)
 		if err != nil {
-			return nil, err
+			return nil
 		}
-		answers = append(answers, answer...)
 	}
-	return answers, nil
+	return nil
+}
+
+func AskSingleQuestion(question Question) (Answer, error) {
+	answerQueue := NewAnswerQueue()
+	err := question.Ask(answerQueue)
+	if err != nil {
+		return "", err
+	}
+	return *answerQueue.Pop(), nil
 }
 
 // Question represents a generic user prompt
 type Question interface {
-	Ask() ([]Answer, error)
+	Ask(queue *AnswerQueue) error
 }
 
 // OpenEndedQuestion is a prompt where the user can provide any answer
@@ -28,7 +35,7 @@ type OpenEndedQuestion struct {
 	Validate  promptui.ValidateFunc
 }
 
-func (q *OpenEndedQuestion) Ask() ([]Answer, error) {
+func (q *OpenEndedQuestion) Ask(queue *AnswerQueue) error {
 	prompt := promptui.Prompt{
 		Label:       q.Question,
 		Default:     q.Default,
@@ -38,10 +45,11 @@ func (q *OpenEndedQuestion) Ask() ([]Answer, error) {
 	}
 	result, err := prompt.Run()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return []Answer{Answer(result)}, nil
+	queue.Push(Answer(result))
+	return nil
 }
 
 // ClosedQuestion is a prompt where the user can choose from a fixed set of answers
@@ -50,7 +58,7 @@ type ClosedQuestion struct {
 	Items    []string
 }
 
-func (q *ClosedQuestion) Ask() ([]Answer, error) {
+func (q *ClosedQuestion) Ask(queue *AnswerQueue) error {
 	prompt := promptui.Select{
 		Label:        q.Question,
 		Items:        q.Items,
@@ -58,9 +66,11 @@ func (q *ClosedQuestion) Ask() ([]Answer, error) {
 	}
 	_, result, err := prompt.Run()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return []Answer{Answer(result)}, nil
+
+	queue.Push(Answer(result))
+	return nil
 }
 
 // QuestionBranch is a sort of "meta-question" whose Ask method will delegate to ConditionQuestion and execute BranchA
@@ -72,24 +82,22 @@ type QuestionBranch struct {
 	BranchB           []Question
 }
 
-func (q *QuestionBranch) Ask() ([]Answer, error) {
-	result, err := q.ConditionQuestion.Ask()
+func (q *QuestionBranch) Ask(queue *AnswerQueue) error {
+	err := q.ConditionQuestion.Ask(queue)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var branchResults []Answer
-	if result[len(result)-1] == q.ConditionAnswer {
-		branchResults, err = AskQuestions(q.BranchA)
+	if *queue.PeekLast() == q.ConditionAnswer {
+		err := AskQuestions(q.BranchA, queue)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
-		branchResults, err = AskQuestions(q.BranchB)
+		err := AskQuestions(q.BranchB, queue)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
-	branchResults = append(result, branchResults...)
-	return branchResults, nil
+	return nil
 }
