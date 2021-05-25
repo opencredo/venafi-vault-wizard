@@ -7,7 +7,7 @@ func AskQuestions(questions []Question, answers *AnswerQueue) error {
 	for _, question := range questions {
 		err := question.Ask(answers)
 		if err != nil {
-			return nil
+			return err
 		}
 	}
 	return nil
