@@ -153,9 +153,11 @@ func (c *VenafiCloudConnection) Validate() error {
 }
 
 func (c *VenafiCloudConnection) WriteHCL(hclBody *hclwrite.Body) {
-	generate.WriteStringAttributeToHCL("apikey", c.APIKey, hclBody)
+	cloudBlock := hclBody.AppendNewBlock("venafi_cloud", nil)
+	cloudBody := cloudBlock.Body()
+	generate.WriteStringAttributeToHCL("apikey", c.APIKey, cloudBody)
 	if c.Zone != "" {
-		generate.WriteStringAttributeToHCL("zone", c.Zone, hclBody)
+		generate.WriteStringAttributeToHCL("zone", c.Zone, cloudBody)
 	}
 }
 
@@ -173,11 +175,13 @@ func (c *VenafiTPPConnection) Validate() error {
 }
 
 func (c *VenafiTPPConnection) WriteHCL(hclBody *hclwrite.Body) {
-	generate.WriteStringAttributeToHCL("url", c.URL, hclBody)
-	generate.WriteStringAttributeToHCL("username", c.Username, hclBody)
-	generate.WriteStringAttributeToHCL("password", c.Password, hclBody)
+	tppBlock := hclBody.AppendNewBlock("venafi_tpp", nil)
+	tppBody := tppBlock.Body()
+	generate.WriteStringAttributeToHCL("url", c.URL, tppBody)
+	generate.WriteStringAttributeToHCL("username", c.Username, tppBody)
+	generate.WriteStringAttributeToHCL("password", c.Password, tppBody)
 	if c.Zone != "" {
-		generate.WriteStringAttributeToHCL("zone", c.Zone, hclBody)
+		generate.WriteStringAttributeToHCL("zone", c.Zone, tppBody)
 	}
 }
 
