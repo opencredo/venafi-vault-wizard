@@ -1,4 +1,4 @@
-package pki_backend
+package pki_monitor
 
 import (
 	"github.com/hashicorp/hcl/v2"
