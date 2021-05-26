@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/opencredo/venafi-vault-wizard/app/questions"
 	"github.com/zclconf/go-cty/cty"
 
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
@@ -49,7 +50,7 @@ type PluginImpl interface {
 	ValidateConfig() error
 	// GenerateConfigAndWriteHCL asks questions of the user to work out what the config should be and then writes it
 	// using the hclwrite package
-	GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error
+	GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error
 }
 
 // GetCatalogName returns the name of the plugin as it appears in the plugin catalog. This does not include the plugin

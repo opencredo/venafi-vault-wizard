@@ -55,9 +55,9 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 	r.Secret.WriteHCL(roleBody)
 }
 
-func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error {
+func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
 	for i := 1; true; i++ {
-		role, err := askForRole()
+		role, err := askForRole(questioner)
 		if err != nil {
 			return err
 		}
@@ -65,12 +65,15 @@ func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Bod
 		hclBody.AppendNewline()
 		role.WriteHCL(hclBody)
 
-		question := &questions.ClosedQuestion{
+		moreRolesQuestion := questioner.NewClosedQuestion(&questions.ClosedQuestion{
 			Question: fmt.Sprintf("You have configured %d roles, are there more", i),
 			Items:    []string{"Yes", "No that's it"},
+		})
+		err = moreRolesQuestion.Ask()
+		if err != nil {
+			return err
 		}
-		answer, err := questions.AskSingleQuestion(question)
-		if answer != "Yes" {
+		if moreRolesQuestion.Answer() != "Yes" {
 			break
 		}
 	}
@@ -78,64 +81,72 @@ func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(hclBody *hclwrite.Bod
 	return nil
 }
 
-func askForRole() (*Role, error) {
-	answers := questions.NewAnswerQueue()
-	err := questions.AskQuestions([]questions.Question{
-		&questions.OpenEndedQuestion{
+func askForRole(questioner questions.Questioner) (*Role, error) {
+	q := map[string]questions.Question{
+		"role_name": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What should the role be called?",
-		},
+		}),
+		"venafi_type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+			Question: "What type of Venafi instance will be used?",
+			Items:    []string{"TPP", "Venafi-as-a-Service"},
+		}),
+		"tpp_url": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What is the URL of the TPP instance?",
+			Default:  "$TPP_URL",
+		}),
+		"tpp_user": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What is the username used to access the TPP instance?",
+			Default:  "$TPP_USERNAME",
+		}),
+		"tpp_password": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What is the password of the TPP user?",
+			Default:  "$TPP_PASSWORD",
+		}),
+		"apikey": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What is the Venafi-as-a-Service API Key?",
+			Default:  "$VENAFI_APIKEY",
+		}),
+		"zone": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What project zone should be used for issuing certificates?",
+		}),
+	}
+	err := questions.AskQuestions([]questions.Question{
+		q["role_name"],
 		&questions.QuestionBranch{
-			ConditionQuestion: &questions.ClosedQuestion{
-				Question: "What type of Venafi instance will be used?",
-				Items:    []string{"TPP", "Venafi-as-a-Service"},
-			},
-			ConditionAnswer: "TPP",
+			ConditionQuestion: q["venafi_type"],
+			ConditionAnswer:   "TPP",
 			BranchA: []questions.Question{
-				&questions.OpenEndedQuestion{
-					Question: "What is the URL of the TPP instance?",
-					Default:  "$TPP_URL",
-				},
-				&questions.OpenEndedQuestion{
-					Question: "What is the username used to access the TPP instance?",
-					Default:  "$TPP_USERNAME",
-				},
-				&questions.OpenEndedQuestion{
-					Question: "What is the password of the TPP user?",
-					Default:  "$TPP_PASSWORD",
-				},
+				q["tpp_url"],
+				q["tpp_user"],
+				q["tpp_password"],
 			},
 			BranchB: []questions.Question{
-				&questions.OpenEndedQuestion{
-					Question: "What is the Venafi-as-a-Service API Key?",
-					Default:  "$VENAFI_APIKEY",
-				},
+				q["apikey"],
 			},
 		},
-		&questions.OpenEndedQuestion{
-			Question: "What project zone should be used for issuing certificates?",
-		},
-	}, answers)
+		q["zone"],
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	role := &Role{
-		Name: string(*answers.Pop()),
+		Name: string(q["role_name"].Answer()),
 	}
-	switch *answers.Pop() {
+	switch q["venafi_type"].Answer() {
 	case "TPP":
 		role.Secret.Name = "tpp"
 		role.Secret.TPP = &venafi.VenafiTPPConnection{
-			URL:      string(*answers.Pop()),
-			Username: string(*answers.Pop()),
-			Password: string(*answers.Pop()),
-			Zone:     string(*answers.Pop()),
+			URL:      string(q["tpp_url"].Answer()),
+			Username: string(q["tpp_user"].Answer()),
+			Password: string(q["tpp_password"].Answer()),
+			Zone:     string(q["zone"].Answer()),
 		}
 	case "Venafi-as-a-Service":
 		role.Secret.Name = "vaas"
 		role.Secret.Cloud = &venafi.VenafiCloudConnection{
-			APIKey: string(*answers.Pop()),
-			Zone:   string(*answers.Pop()),
+			APIKey: string(q["apikey"].Answer()),
+			Zone:   string(q["zone"].Answer()),
 		}
 	default:
 		panic("unimplemented Venafi secret type, expected TPP or Venafi-as-a-Service")

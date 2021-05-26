@@ -12,6 +12,8 @@ import (
 
 	plugins "github.com/opencredo/venafi-vault-wizard/app/plugins"
 
+	questions "github.com/opencredo/venafi-vault-wizard/app/questions"
+
 	reporter "github.com/opencredo/venafi-vault-wizard/app/reporter"
 )
 
@@ -48,13 +50,13 @@ func (_m *PluginImpl) Configure(report reporter.Report, vaultClient api.VaultAPI
 	return r0
 }
 
-// GenerateConfigAndWriteHCL provides a mock function with given fields: hclBody
-func (_m *PluginImpl) GenerateConfigAndWriteHCL(hclBody *hclwrite.Body) error {
-	ret := _m.Called(hclBody)
+// GenerateConfigAndWriteHCL provides a mock function with given fields: questioner, hclBody
+func (_m *PluginImpl) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
+	ret := _m.Called(questioner, hclBody)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*hclwrite.Body) error); ok {
-		r0 = rf(hclBody)
+	if rf, ok := ret.Get(0).(func(questions.Questioner, *hclwrite.Body) error); ok {
+		r0 = rf(questioner, hclBody)
 	} else {
 		r0 = ret.Error(0)
 	}

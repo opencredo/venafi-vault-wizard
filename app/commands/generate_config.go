@@ -14,7 +14,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func GenerateConfig(configFilePath string) {
+func GenerateConfig(configFilePath string, questioner questions.Questioner) {
 	file, err := os.OpenFile(configFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Printf("Error opening file %s for writing: %s\n", configFilePath, err)
@@ -22,13 +22,13 @@ func GenerateConfig(configFilePath string) {
 	}
 	defer file.Close()
 
-	vaultConfig, err := generateVaultConfig()
+	vaultConfig, err := generateVaultConfig(questioner)
 	if err != nil {
 		fmt.Printf("Error while generating Vault config: %v\n", err)
 		return
 	}
 
-	pluginBlocks, err := generatePluginsConfig()
+	pluginBlocks, err := generatePluginsConfig(questioner)
 	if err != nil {
 		fmt.Printf("Error while generating plugins config: %v\n", err)
 		return
@@ -52,10 +52,9 @@ func GenerateConfig(configFilePath string) {
 	fmt.Printf("Config successfully written to %s\n", configFilePath)
 }
 
-func generateVaultConfig() (*config.VaultConfig, error) {
-	answers := questions.NewAnswerQueue()
-	err := questions.AskQuestions([]questions.Question{
-		&questions.OpenEndedQuestion{
+func generateVaultConfig(questioner questions.Questioner) (*config.VaultConfig, error) {
+	q := map[string]questions.Question{
+		"api_addr": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question:  "What is Vault's API address?",
 			Default:   "http://localhost:8200",
 			AllowEdit: true,
@@ -67,92 +66,90 @@ func generateVaultConfig() (*config.VaultConfig, error) {
 				_, err := url.ParseRequestURI(input)
 				return err
 			},
-		},
-		&questions.OpenEndedQuestion{
+		}),
+		"token": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What token should be used to authenticate with Vault?",
 			Default:  "$VAULT_TOKEN",
-		},
+		}),
+		"vm/container": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+			Question: "Is Vault running in a VM or a container",
+			Items:    []string{"VM", "Container"},
+		}),
+		"ssh": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+			Question: "Do you have SSH access to the Vault server(s)",
+			Items:    []string{"Yes", "No"},
+		}),
+		"binaries_incl": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+			Question: "Are the plugin binaries already included in the server's image",
+			Items:    []string{"Yes", "No"},
+		}),
+	}
+	err := questions.AskQuestions([]questions.Question{
+		q["api_addr"],
+		q["token"],
 		&questions.QuestionBranch{
-			ConditionQuestion: &questions.ClosedQuestion{
-				Question: "Is Vault running in a VM or a container",
-				Items:    []string{"VM", "Container"},
-			},
-			ConditionAnswer: "VM",
+			ConditionQuestion: q["vm/container"],
+			ConditionAnswer:   "VM",
 			BranchA: []questions.Question{
-				&questions.ClosedQuestion{
-					Question: "Do you have SSH access to the Vault server(s)",
-					Items:    []string{"Yes", "No"},
+				&questions.QuestionBranch{
+					ConditionQuestion: q["ssh"],
+					ConditionAnswer:   "No",
+					BranchA: []questions.Question{
+						q["binaries_incl"],
+					},
 				},
 			},
 			BranchB: []questions.Question{
-				&questions.ClosedQuestion{
-					Question: "Are the plugin binaries already included in the server's image",
-					Items:    []string{"Yes", "No"},
-				},
+				q["binaries_incl"],
 			},
 		},
-	}, answers)
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	var vaultConfig = &config.VaultConfig{
-		VaultAddress: string(*answers.Pop()),
-		VaultToken:   string(*answers.Pop()),
+		VaultAddress: string(q["api_addr"].Answer()),
+		VaultToken:   string(q["token"].Answer()),
 	}
 
-	var containerOrVM = string(*answers.Pop())
-	var pluginIncludedInImage questions.Answer
-	if containerOrVM == "VM" {
-		var useSSH = string(*answers.Pop())
-		if useSSH == "Yes" {
-			sshConfigs, err := generateSSHConfigs()
-			if err != nil {
-				return nil, err
-			}
-			vaultConfig.SSHConfig = sshConfigs
-
-			return vaultConfig, nil
-		}
-
-		pluginIncludedInImage, err = questions.AskSingleQuestion(&questions.ClosedQuestion{
-			Question: "Are the plugin binaries already included in the server's image",
-			Items:    []string{"Yes", "No"},
-		})
+	if q["vm/container"].Answer() == "VM" && q["ssh"].Answer() == "Yes" {
+		sshConfigs, err := generateSSHConfigs(questioner)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		pluginIncludedInImage = *answers.Pop()
-	}
-
-	if pluginIncludedInImage == "No" {
+		vaultConfig.SSHConfig = sshConfigs
+	} else if q["binaries_incl"].Answer() == "No" {
 		return nil, fmt.Errorf("you must either have SSH access, or include the plugin binaries externally")
 	}
 
 	return vaultConfig, nil
 }
 
-func generatePluginsConfig() ([]*hclwrite.Block, error) {
+func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, error) {
 	var pluginBlocks []*hclwrite.Block
 	for i := 1; true; i++ {
-		answers := questions.NewAnswerQueue()
-		err := questions.AskQuestions([]questions.Question{
-			&questions.ClosedQuestion{
+		q := map[string]questions.Question{
+			"type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
 				Question: "Which plugin would you like to configure",
 				Items:    lookup.SupportedPluginNames(),
-			},
-			&questions.OpenEndedQuestion{
+			}),
+			"version": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 				Question: "Which version of the plugin would you like to use?",
-			},
-			&questions.OpenEndedQuestion{
+			}),
+			"mount_path": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 				Question: "Which Vault path should the plugin be mounted at?",
-			},
-		}, answers)
+			}),
+		}
+		err := questions.AskQuestions([]questions.Question{
+			q["type"],
+			q["version"],
+			q["mount_path"],
+		})
 		if err != nil {
 			return nil, err
 		}
-		pluginType, version, mountPath := string(*answers.Pop()), string(*answers.Pop()), string(*answers.Pop())
+		pluginType, version, mountPath := string(q["type"].Answer()), string(q["version"].Answer()), string(q["mount_path"].Answer())
 
 		pluginImpl, err := lookup.GetPlugin(pluginType)
 		if err != nil {
@@ -162,61 +159,64 @@ func generatePluginsConfig() ([]*hclwrite.Block, error) {
 		pluginBlock := hclwrite.NewBlock("plugin", []string{pluginType, mountPath})
 		pluginBody := pluginBlock.Body()
 		pluginBody.SetAttributeValue("version", cty.StringVal(version))
-		err = pluginImpl.GenerateConfigAndWriteHCL(pluginBody)
+		err = pluginImpl.GenerateConfigAndWriteHCL(questioner, pluginBody)
 		if err != nil {
 			return nil, err
 		}
 
 		pluginBlocks = append(pluginBlocks, pluginBlock)
 
-		morePlugins, err := questions.AskSingleQuestion(&questions.ClosedQuestion{
+		morePluginsQuestion := questioner.NewClosedQuestion(&questions.ClosedQuestion{
 			Question: fmt.Sprintf("You have configured %d plugins, are there more", i),
 			Items:    []string{"Yes", "No that's it"},
 		})
+		err = morePluginsQuestion.Ask()
 		if err != nil {
 			return nil, err
 		}
 
-		if morePlugins != "Yes" {
+		if morePluginsQuestion.Answer() != "Yes" {
 			break
 		}
 	}
 	return pluginBlocks, nil
 }
 
-func generateSSHConfigs() ([]config.SSH, error) {
-	ha, err := questions.AskSingleQuestion(&questions.ClosedQuestion{
+func generateSSHConfigs(questioner questions.Questioner) ([]config.SSH, error) {
+	haQuestion := questioner.NewClosedQuestion(&questions.ClosedQuestion{
 		Question: "Is Vault running in High-Availability (HA) mode",
 		Items:    []string{"Yes", "No, just one node"},
 	})
+	err := haQuestion.Ask()
 	if err != nil {
 		return nil, err
 	}
 
 	var sshConfigs []config.SSH
 
-	if ha == "Yes" {
+	if haQuestion.Answer() == "Yes" {
 		for i := 1; true; i++ {
-			sshConfig, err := generateSSHConfig()
+			sshConfig, err := generateSSHConfig(questioner)
 			if err != nil {
 				return nil, err
 			}
 			sshConfigs = append(sshConfigs, *sshConfig)
 
-			moreSSHs, err := questions.AskSingleQuestion(&questions.ClosedQuestion{
+			moreSSHsQuestion := questioner.NewClosedQuestion(&questions.ClosedQuestion{
 				Question: fmt.Sprintf("You have configured %d Vault replicas, are there more", i),
 				Items:    []string{"Yes", "No, that's it"},
 			})
+			err = moreSSHsQuestion.Ask()
 			if err != nil {
 				return nil, err
 			}
 
-			if moreSSHs != "Yes" {
+			if moreSSHsQuestion.Answer() != "Yes" {
 				break
 			}
 		}
 	} else {
-		sshConfig, err := generateSSHConfig()
+		sshConfig, err := generateSSHConfig(questioner)
 		if err != nil {
 			return nil, err
 		}
@@ -226,19 +226,18 @@ func generateSSHConfigs() ([]config.SSH, error) {
 	return sshConfigs, nil
 }
 
-func generateSSHConfig() (*config.SSH, error) {
-	answers := questions.NewAnswerQueue()
-	err := questions.AskQuestions([]questions.Question{
-		&questions.OpenEndedQuestion{
+func generateSSHConfig(questioner questions.Questioner) (*config.SSH, error) {
+	q := map[string]questions.Question{
+		"hostname": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the hostname of the Vault server?",
-		},
-		&questions.OpenEndedQuestion{
+		}),
+		"username": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the SSH username to log into the Vault server?",
-		},
-		&questions.OpenEndedQuestion{
+		}),
+		"password": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the SSH password to log into the Vault server?",
-		},
-		&questions.OpenEndedQuestion{
+		}),
+		"port": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the SSH port for logging into the Vault server?",
 			Default:  "22",
 			Validate: func(input string) error {
@@ -248,18 +247,24 @@ func generateSSHConfig() (*config.SSH, error) {
 				}
 				return nil
 			},
-		},
-	}, answers)
+		}),
+	}
+	err := questions.AskQuestions([]questions.Question{
+		q["hostname"],
+		q["username"],
+		q["password"],
+		q["port"],
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	sshConfig := &config.SSH{
-		Hostname: string(*answers.Pop()),
-		Username: string(*answers.Pop()),
-		Password: string(*answers.Pop()),
+		Hostname: string(q["hostname"].Answer()),
+		Username: string(q["username"].Answer()),
+		Password: string(q["password"].Answer()),
 	}
-	sshPort, _ := strconv.ParseUint(string(*answers.Pop()), 10, 16)
+	sshPort, _ := strconv.ParseUint(string(q["port"].Answer()), 10, 16)
 	sshConfig.Port = uint(sshPort)
 
 	return sshConfig, nil
