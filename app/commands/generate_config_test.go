@@ -1,12 +1,15 @@
-package commands
+package commands_test
 
 import (
+	"embed"
+	"encoding/csv"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/opencredo/venafi-vault-wizard/app/commands"
 	"github.com/opencredo/venafi-vault-wizard/app/config"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
@@ -19,110 +22,11 @@ import (
 
 func TestGenerateConfig(t *testing.T) {
 	testCases := map[string]struct {
-		questions []struct {
-			question     string
-			answer       string
-			questionType QuestionType
-		}
-		expectedConfig *config.Config
+		questionsCSVFilename string
+		expectedConfig       *config.Config
 	}{
-		"normal VM pki-backend": {
-			questions: []struct {
-				question     string
-				answer       string
-				questionType QuestionType
-			}{
-				{
-					question:     "What is Vault's API address?",
-					answer:       "http://localhost:8200",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What token should be used to authenticate with Vault?",
-					answer:       "root",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "Is Vault running in a VM or a container",
-					answer:       "VM",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "Do you have SSH access to the Vault server(s)",
-					answer:       "Yes",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "Is Vault running in High-Availability (HA) mode",
-					answer:       "No, just one node",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "What is the hostname of the Vault server?",
-					answer:       "localhost",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What is the SSH username to log into the Vault server?",
-					answer:       "vagrant",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What is the SSH password to log into the Vault server?",
-					answer:       "vagrant",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What is the SSH port for logging into the Vault server?",
-					answer:       "22",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "Which plugin would you like to configure",
-					answer:       "venafi-pki-backend",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "Which version of the plugin would you like to use?",
-					answer:       "v0.9.0",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "Which Vault path should the plugin be mounted at?",
-					answer:       "pki",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What should the role be called?",
-					answer:       "web",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What type of Venafi instance will be used?",
-					answer:       "Venafi-as-a-Service",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "What is the Venafi-as-a-Service API Key?",
-					answer:       "venafiAPIKey",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "What project zone should be used for issuing certificates?",
-					answer:       "projectzoneID",
-					questionType: OpenEndedQuestion,
-				},
-				{
-					question:     "You have configured 1 roles, are there more",
-					answer:       "No that's it",
-					questionType: ClosedQuestion,
-				},
-				{
-					question:     "You have configured 1 plugins, are there more",
-					answer:       "No that's it",
-					questionType: ClosedQuestion,
-				},
-			},
+		"one VM pki-backend": {
+			questionsCSVFilename: "test_fixtures/one_vm_pki-backend.csv",
 			expectedConfig: &config.Config{
 				Vault: config.VaultConfig{
 					VaultAddress: "http://localhost:8200",
@@ -170,12 +74,13 @@ func TestGenerateConfig(t *testing.T) {
 
 			questioner := new(mocks.Questioner)
 			defer questioner.AssertExpectations(t)
-			for _, question := range tc.questions {
-				expectQuestion(questioner, question.question, question.answer, question.questionType)
-			}
+
+			err := expectQuestionsInCSV(tc.questionsCSVFilename, questioner)
+			assert.NoError(t, err)
+
 			expectUnansweredQuestions(questioner)
 
-			GenerateConfig(testFileName, questioner)
+			commands.GenerateConfig(testFileName, questioner)
 
 			actualConfig, err := config.NewConfigFromFile(testFileName)
 			assert.NoError(t, err)
@@ -223,4 +128,36 @@ func expectUnansweredQuestions(questioner *mocks.Questioner) {
 	mockQuestion := new(mocks.Question)
 	questioner.On("NewOpenEndedQuestion", mock.Anything).Maybe().Return(mockQuestion)
 	questioner.On("NewClosedQuestion", mock.Anything).Maybe().Return(mockQuestion)
+}
+
+//go:embed test_fixtures
+var questionsFiles embed.FS
+
+func expectQuestionsInCSV(questionsFilename string, questioner *mocks.Questioner) error {
+	file, err := questionsFiles.Open(questionsFilename)
+	if err != nil {
+		return err
+	}
+
+	reader := csv.NewReader(file)
+	questionRows, err := reader.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	for _, question := range questionRows {
+		question, answer, questionTypeString := question[0], question[1], question[2]
+		var questionType QuestionType
+		switch questionTypeString {
+		case "OpenEndedQuestion":
+			questionType = OpenEndedQuestion
+		case "ClosedQuestion":
+			questionType = ClosedQuestion
+		default:
+			return fmt.Errorf("unexpected question type: %s", questionTypeString)
+		}
+		expectQuestion(questioner, question, answer, questionType)
+	}
+
+	return nil
 }
