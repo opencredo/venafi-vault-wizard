@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/opencredo/venafi-vault-wizard/app/questions/prompter"
 	"github.com/spf13/cobra"
 
 	"github.com/opencredo/venafi-vault-wizard/app/commands"
@@ -41,7 +42,8 @@ func NewRootCommand() *cobra.Command {
 		Short: "Generates config file based on asking questions",
 		Long:  "Builds up a config file suitable for use with the apply command by asking questions about the Vault setup",
 		Run: func(_ *cobra.Command, _ []string) {
-			commands.GenerateConfig(configFile)
+			questioner := prompter.NewPrompter()
+			commands.GenerateConfig(configFile, questioner)
 		},
 	}
 
