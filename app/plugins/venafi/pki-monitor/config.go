@@ -111,6 +111,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 		certBlock := roleBody.AppendNewBlock("root_certificate", nil)
 		r.RootCert.WriteHCL(certBlock.Body())
 	}
+
+	for _, testCert := range r.TestCerts {
+		roleBody.AppendNewline()
+		certBlock := roleBody.AppendNewBlock("test_certificate", nil)
+		testCert.WriteHCL(certBlock.Body())
+	}
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
@@ -163,27 +169,6 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		"subca_policy": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "Which policy should be used to issue the subordinate CA certificate?",
 		}),
-		"cn": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the common name (CN) of the issuing certificate be?",
-		}),
-		"ou": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the organisational unit (OU) of the issuing certificate be?",
-		}),
-		"o": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the organisation (O) of the issuing certificate be?",
-		}),
-		"l": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the locality (L) of the issuing certificate be?",
-		}),
-		"p": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the province (P) of the issuing certificate be?",
-		}),
-		"c": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the country (C) of the issuing certificate be?",
-		}),
-		"ttl": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What should the time-to-live (TTL) of the issuing certificate be?",
-		}),
 	}
 	err := questions.AskQuestions([]questions.Question{
 		q["role_name"],
@@ -215,16 +200,6 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 				q["subca_policy"],
 			},
 		},
-		q["cn"],
-		q["ou"],
-		q["o"],
-		q["l"],
-		q["p"],
-		q["c"],
-		q["ttl"],
-
-		// TODO: extra questions around default TTL, max TTL etc
-		// TODO: test certs
 	})
 	if err != nil {
 		return nil, err
@@ -259,25 +234,30 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 	}
 
 	if q["issuing_cert_type"].Answer() == "Self-signed root certificate" {
-		role.RootCert = answersToCSR(q)
+		certificateRequest, err := venafi.GenerateCertRequestConfig(questioner)
+		if err != nil {
+			return nil, err
+		}
+		role.RootCert = certificateRequest
 	} else {
+		certificateRequest, err := venafi.GenerateCertRequestConfig(questioner)
+		if err != nil {
+			return nil, err
+		}
 		role.IntermediateCert = &IntermediateCertRequest{
 			Zone:               string(q["subca_policy"].Answer()),
-			CertificateRequest: *answersToCSR(q),
+			CertificateRequest: *certificateRequest,
 		}
 	}
 
-	return role, nil
-}
+	// TODO: extra questions around default TTL, max TTL etc
 
-func answersToCSR(questions map[string]questions.Question) *venafi.CertificateRequest {
-	return &venafi.CertificateRequest{
-		CommonName:   string(questions["cn"].Answer()),
-		OU:           string(questions["ou"].Answer()),
-		Organisation: string(questions["o"].Answer()),
-		Locality:     string(questions["l"].Answer()),
-		Province:     string(questions["p"].Answer()),
-		Country:      string(questions["c"].Answer()),
-		TTL:          string(questions["ttl"].Answer()),
+	testCertificates, err := venafi.AskForTestCertificates(questioner)
+	if err != nil {
+		return nil, err
 	}
+
+	role.TestCerts = testCertificates
+
+	return role, nil
 }
