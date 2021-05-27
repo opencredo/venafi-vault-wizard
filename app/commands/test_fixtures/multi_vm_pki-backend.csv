@@ -1,0 +1,24 @@
+What is Vault's API address?,http://localhost:8200,OpenEndedQuestion
+What token should be used to authenticate with Vault?,root,OpenEndedQuestion
+Is Vault running in a VM or a container,VM,ClosedQuestion
+Do you have SSH access to the Vault server(s),Yes,ClosedQuestion
+Is Vault running in High-Availability (HA) mode,"Yes",ClosedQuestion
+What is the hostname of the Vault server?,localhost,OpenEndedQuestion
+What is the SSH username to log into the Vault server?,vagrant,OpenEndedQuestion
+What is the SSH password to log into the Vault server?,vagrant,OpenEndedQuestion
+What is the SSH port for logging into the Vault server?,22,OpenEndedQuestion
+"You have configured 1 Vault replicas, are there more",Yes,ClosedQuestion
+What is the hostname of the Vault server?,localhost2,OpenEndedQuestion
+What is the SSH username to log into the Vault server?,vagrant,OpenEndedQuestion
+What is the SSH password to log into the Vault server?,vagrant,OpenEndedQuestion
+What is the SSH port for logging into the Vault server?,23,OpenEndedQuestion
+"You have configured 2 Vault replicas, are there more","No, that's it",ClosedQuestion
+Which plugin would you like to configure,venafi-pki-backend,ClosedQuestion
+Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
+Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
+What should the role be called?,web,OpenEndedQuestion
+What type of Venafi instance will be used?,Venafi-as-a-Service,ClosedQuestion
+What is the Venafi-as-a-Service API Key?,venafiAPIKey,OpenEndedQuestion
+What project zone should be used for issuing certificates?,projectzoneID,OpenEndedQuestion
+"You have configured 1 roles, are there more",No that's it,ClosedQuestion
+"You have configured 1 plugins, are there more",No that's it,ClosedQuestion

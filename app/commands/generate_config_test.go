@@ -65,6 +65,85 @@ func TestGenerateConfig(t *testing.T) {
 				},
 			},
 		},
+		"multi VM pki-backend": {
+			questionsCSVFilename: "test_fixtures/multi_vm_pki-backend.csv",
+			expectedConfig: &config.Config{
+				Vault:   config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+					SSHConfig: []config.SSH{
+						{
+							Hostname: "localhost",
+							Username: "vagrant",
+							Password: "vagrant",
+							Port:     22,
+						},
+						{
+							Hostname: "localhost2",
+							Username: "vagrant",
+							Password: "vagrant",
+							Port:     23,
+						},
+					},
+				},
+				Plugins: []plugins.Plugin{
+					{
+						Type:      "venafi-pki-backend",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						Impl: &pki_backend.VenafiPKIBackendConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							Roles: []pki_backend.Role{
+								{
+									Name: "web",
+									Secret: venafi.VenafiSecret{
+										Name: "vaas",
+										Cloud: &venafi.VenafiCloudConnection{
+											APIKey: "venafiAPIKey",
+											Zone:   "projectzoneID",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"container pki-backend": {
+			questionsCSVFilename: "test_fixtures/container_pki-backend.csv",
+			expectedConfig: &config.Config{
+				Vault: config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+					SSHConfig:    nil,
+				},
+				Plugins: []plugins.Plugin{
+					{
+						Type:      "venafi-pki-backend",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						Impl: &pki_backend.VenafiPKIBackendConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							Roles: []pki_backend.Role{
+								{
+									Name: "web",
+									Secret: venafi.VenafiSecret{
+										Name: "vaas",
+										Cloud: &venafi.VenafiCloudConnection{
+											APIKey: "venafiAPIKey",
+											Zone:   "projectzoneID",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, tc := range testCases {
@@ -115,12 +194,12 @@ func expectQuestion(questioner *mocks.Questioner, question, answer string, quest
 		questioner.On(
 			"NewOpenEndedQuestion",
 			mock.MatchedBy(func(q *questions.OpenEndedQuestion) bool { return q.Question == question }),
-		).Return(mockQuestion)
+		).Once().Return(mockQuestion)
 	case ClosedQuestion:
 		questioner.On(
 			"NewClosedQuestion",
 			mock.MatchedBy(func(q *questions.ClosedQuestion) bool { return q.Question == question }),
-		).Return(mockQuestion)
+		).Once().Return(mockQuestion)
 	}
 }
 
