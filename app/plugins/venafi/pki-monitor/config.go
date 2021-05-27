@@ -29,7 +29,7 @@ type Role struct {
 	EnforcementPolicy *Policy `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
 
-	IntermediateCert *venafi.CertificateRequest `hcl:"intermediate_certificate,block"`
+	IntermediateCert *IntermediateCertRequest   `hcl:"intermediate_certificate,block"`
 	RootCert         *venafi.CertificateRequest `hcl:"root_certificate,block"`
 
 	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
@@ -38,6 +38,11 @@ type Role struct {
 	AllowAnyName  bool   `hcl:"allow_any_name,optional"`
 	TTL           string `hcl:"ttl,optional"`
 	MaxTTL        string `hcl:"max_ttl,optional"`
+}
+
+type IntermediateCertRequest struct {
+	Zone                      string          `hcl:"zone"`
+	venafi.CertificateRequest `hcl:",remain"` // gohcl currently ignores any field without hcl tags, even in an embedded struct with nested tagged fields
 }
 
 type Policy struct {
@@ -96,7 +101,9 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 	if r.IntermediateCert != nil {
 		roleBody.AppendNewline()
 		certBlock := roleBody.AppendNewBlock("intermediate_certificate", nil)
-		r.IntermediateCert.WriteHCL(certBlock.Body())
+		certBody := certBlock.Body()
+		certBody.SetAttributeValue("zone", cty.StringVal(r.IntermediateCert.Zone))
+		r.IntermediateCert.WriteHCL(certBody)
 	}
 
 	if r.RootCert != nil {
@@ -268,8 +275,10 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 	if q["issuing_cert_type"].Answer() == "Self-signed root certificate" {
 		role.RootCert = answersToCSR(q)
 	} else {
-		_ = q["subca_policy"].Answer() // TODO: issuing cert policy zone
-		role.IntermediateCert = answersToCSR(q)
+		role.IntermediateCert = &IntermediateCertRequest{
+			Zone:               string(q["subca_policy"].Answer()),
+			CertificateRequest: *answersToCSR(q),
+		}
 	}
 
 	return role, nil
