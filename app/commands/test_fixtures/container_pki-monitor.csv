@@ -1,0 +1,26 @@
+What is Vault's API address?,http://localhost:8200,OpenEndedQuestion
+What token should be used to authenticate with Vault?,root,OpenEndedQuestion
+Is Vault running in a VM or a container,Container,ClosedQuestion
+Are the plugin binaries already included in the server's image,Yes,ClosedQuestion
+Which plugin would you like to configure,venafi-pki-monitor,ClosedQuestion
+Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
+Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
+What should the role be called?,web,OpenEndedQuestion
+What is the URL of the TPP instance?,tpp.com,OpenEndedQuestion
+What is the username used to access the TPP instance?,admin,OpenEndedQuestion
+What is the password of the TPP user?,password,OpenEndedQuestion
+Would you like Vault to enforce a certificate policy from Venafi?,Yes,ClosedQuestion
+Which Venafi policy should be used?,policy folder\\policy,OpenEndedQuestion
+Should the same policy be used to import policies for visibility?,"No, use a separate policy",ClosedQuestion
+Which Venafi policy should be used for importing certificates into?,policy folder\\policy,OpenEndedQuestion
+What type of certificate should Vault use to issue certificates?,Intermediate certificate issued by Venafi,ClosedQuestion
+Which policy should be used to issue the subordinate CA certificate?,policy folder\\policy,OpenEndedQuestion
+What should the common name (CN) of the issuing certificate be?,cn,OpenEndedQuestion
+What should the organisational unit (OU) of the issuing certificate be?,ou,OpenEndedQuestion
+What should the organisation (O) of the issuing certificate be?,organisation,OpenEndedQuestion
+What should the locality (L) of the issuing certificate be?,l,OpenEndedQuestion
+What should the province (P) of the issuing certificate be?,p,OpenEndedQuestion
+What should the country (C) of the issuing certificate be?,c,OpenEndedQuestion
+What should the time-to-live (TTL) of the issuing certificate be?,3h,OpenEndedQuestion
+"You have configured 1 roles, are there more",No that's it,ClosedQuestion
+"You have configured 1 plugins, are there more",No that's it,ClosedQuestion
