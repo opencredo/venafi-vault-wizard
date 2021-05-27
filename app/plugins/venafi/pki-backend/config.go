@@ -53,6 +53,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 	roleBlock := hclBody.AppendNewBlock("role", []string{r.Name})
 	roleBody := roleBlock.Body()
 	r.Secret.WriteHCL(roleBody)
+
+	for _, testCert := range r.TestCerts {
+		roleBody.AppendNewline()
+		certBlock := roleBody.AppendNewBlock("test_certificate", nil)
+		testCert.WriteHCL(certBlock.Body())
+	}
 }
 
 func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
@@ -77,7 +83,6 @@ func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.
 			break
 		}
 	}
-	// TODO: test certs (loop)
 	return nil
 }
 
@@ -151,5 +156,13 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 	default:
 		panic("unimplemented Venafi secret type, expected TPP or Venafi-as-a-Service")
 	}
+
+	testCertificates, err := venafi.AskForTestCertificates(questioner)
+	if err != nil {
+		return nil, err
+	}
+
+	role.TestCerts = testCertificates
+
 	return role, nil
 }

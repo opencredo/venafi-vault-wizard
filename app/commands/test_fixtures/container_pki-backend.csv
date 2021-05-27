@@ -9,5 +9,6 @@ What should the role be called?,web,OpenEndedQuestion
 What type of Venafi instance will be used?,Venafi-as-a-Service,ClosedQuestion
 What is the Venafi-as-a-Service API Key?,venafiAPIKey,OpenEndedQuestion
 What project zone should be used for issuing certificates?,projectzoneID,OpenEndedQuestion
+Would you like to request any test certificates to check everything is working?,"No, skip",ClosedQuestion
 "You have configured 1 roles, are there more",No that's it,ClosedQuestion
 "You have configured 1 plugins, are there more",No that's it,ClosedQuestion

@@ -15,11 +15,12 @@ Should the same policy be used to import policies for visibility?,"No, use a sep
 Which Venafi policy should be used for importing certificates into?,policy folder\\policy,OpenEndedQuestion
 What type of certificate should Vault use to issue certificates?,Intermediate certificate issued by Venafi,ClosedQuestion
 Which policy should be used to issue the subordinate CA certificate?,policy folder\\policy,OpenEndedQuestion
-What should the common name (CN) of the issuing certificate be?,cn,OpenEndedQuestion
-What should the organisational unit (OU) of the issuing certificate be?,ou,OpenEndedQuestion
-What should the organisation (O) of the issuing certificate be?,organisation,OpenEndedQuestion
-What should the locality (L) of the issuing certificate be?,l,OpenEndedQuestion
-What should the province (P) of the issuing certificate be?,p,OpenEndedQuestion
-What should the country (C) of the issuing certificate be?,c,OpenEndedQuestion
-What should the time-to-live (TTL) of the issuing certificate be?,3h,OpenEndedQuestion
+What should the common name (CN) of the certificate be?,cn,OpenEndedQuestion
+What should the organisational unit (OU) of the certificate be?,ou,OpenEndedQuestion
+What should the organisation (O) of the certificate be?,organisation,OpenEndedQuestion
+What should the locality (L) of the certificate be?,l,OpenEndedQuestion
+What should the province (P) of the certificate be?,p,OpenEndedQuestion
+What should the country (C) of the certificate be?,c,OpenEndedQuestion
+What should the time-to-live (TTL) of the certificate be?,3h,OpenEndedQuestion
+Would you like to request any test certificates to check everything is working?,"No, skip",ClosedQuestion
 "You have configured 1 plugins, are there more",No that's it,ClosedQuestion
