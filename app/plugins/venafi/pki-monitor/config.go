@@ -183,7 +183,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 			Question: "What should the locality (L) of the issuing certificate be?",
 		}),
 		"p": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "Qhat should the province (P) of the issuing certificate be?",
+			Question: "What should the province (P) of the issuing certificate be?",
 		}),
 		"c": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What should the country (C) of the issuing certificate be?",
