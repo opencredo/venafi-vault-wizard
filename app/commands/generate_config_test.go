@@ -14,6 +14,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	pki_backend "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-backend"
+	pki_monitor "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/pki-monitor"
 	"github.com/opencredo/venafi-vault-wizard/app/questions"
 	mocks "github.com/opencredo/venafi-vault-wizard/mocks/app/questions"
 	"github.com/stretchr/testify/assert"
@@ -68,7 +69,7 @@ func TestGenerateConfig(t *testing.T) {
 		"multi VM pki-backend": {
 			questionsCSVFilename: "test_fixtures/multi_vm_pki-backend.csv",
 			expectedConfig: &config.Config{
-				Vault:   config.VaultConfig{
+				Vault: config.VaultConfig{
 					VaultAddress: "http://localhost:8200",
 					VaultToken:   "root",
 					SSHConfig: []config.SSH{
@@ -117,7 +118,6 @@ func TestGenerateConfig(t *testing.T) {
 				Vault: config.VaultConfig{
 					VaultAddress: "http://localhost:8200",
 					VaultToken:   "root",
-					SSHConfig:    nil,
 				},
 				Plugins: []plugins.Plugin{
 					{
@@ -136,6 +136,55 @@ func TestGenerateConfig(t *testing.T) {
 											APIKey: "venafiAPIKey",
 											Zone:   "projectzoneID",
 										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"container pki-monitor": {
+			questionsCSVFilename: "test_fixtures/container_pki-monitor.csv",
+			expectedConfig: &config.Config{
+				Vault: config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+				},
+				Plugins: []plugins.Plugin{
+					{
+						Type:      "venafi-pki-monitor",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						Impl: &pki_monitor.VenafiPKIMonitorConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							Role: pki_monitor.Role{
+								Name: "web",
+								Secret: venafi.VenafiSecret{
+									Name: "tpp",
+									TPP: &venafi.VenafiTPPConnection{
+										URL:      "tpp.com",
+										Username: "admin",
+										Password: "password",
+									},
+								},
+								EnforcementPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								ImportPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								IntermediateCert: &pki_monitor.IntermediateCertRequest{
+									Zone: "policy folder\\\\policy",
+									CertificateRequest: venafi.CertificateRequest{
+										CommonName:   "cn",
+										OU:           "ou",
+										Organisation: "organisation",
+										Locality:     "l",
+										Province:     "p",
+										Country:      "c",
+										TTL:          "3h",
 									},
 								},
 							},
