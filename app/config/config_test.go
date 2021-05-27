@@ -278,6 +278,7 @@ plugin "venafi-pki-monitor" "venafi-pki" {
     }
 
 	intermediate_certificate {
+      zone = "zone3"
 	  common_name = "Vault SubCA"
 	  ou = "VVW"
 	  organisation = "VVW"
@@ -336,14 +337,17 @@ var validPKIMonitorConfigResult = &Config{
 					ImportPolicy: &pki_monitor.Policy{
 						Zone: "zone2",
 					},
-					IntermediateCert: &venafi.CertificateRequest{
-						CommonName:   "Vault SubCA",
-						OU:           "VVW",
-						Organisation: "VVW",
-						Locality:     "London",
-						Province:     "London",
-						Country:      "GB",
-						TTL:          "1h",
+					IntermediateCert: &pki_monitor.IntermediateCertRequest{
+						Zone: "zone3",
+						CertificateRequest: venafi.CertificateRequest{
+							CommonName:   "Vault SubCA",
+							OU:           "VVW",
+							Organisation: "VVW",
+							Locality:     "London",
+							Province:     "London",
+							Country:      "GB",
+							TTL:          "1h",
+						},
 					},
 					Secret: venafi.VenafiSecret{
 						Name: "cloud",
