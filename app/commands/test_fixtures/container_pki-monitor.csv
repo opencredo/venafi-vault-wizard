@@ -22,5 +22,4 @@ What should the locality (L) of the issuing certificate be?,l,OpenEndedQuestion
 What should the province (P) of the issuing certificate be?,p,OpenEndedQuestion
 What should the country (C) of the issuing certificate be?,c,OpenEndedQuestion
 What should the time-to-live (TTL) of the issuing certificate be?,3h,OpenEndedQuestion
-"You have configured 1 roles, are there more",No that's it,ClosedQuestion
 "You have configured 1 plugins, are there more",No that's it,ClosedQuestion

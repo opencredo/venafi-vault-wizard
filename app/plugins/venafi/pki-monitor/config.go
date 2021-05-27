@@ -114,28 +114,14 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
-	for i := 1; true; i++ {
-		role, err := askForRole(questioner)
-		if err != nil {
-			return err
-		}
-
-		hclBody.AppendNewline()
-		role.WriteHCL(hclBody)
-
-		moreRolesQuestion := questioner.NewClosedQuestion(&questions.ClosedQuestion{
-			Question: fmt.Sprintf("You have configured %d roles, are there more", i),
-			Items:    []string{"Yes", "No that's it"},
-		})
-		err = moreRolesQuestion.Ask()
-		if err != nil {
-			return err
-		}
-		if moreRolesQuestion.Answer() != "Yes" {
-			break
-		}
+	role, err := askForRole(questioner)
+	if err != nil {
+		return err
 	}
-	// TODO: test certs (loop)
+
+	hclBody.AppendNewline()
+	role.WriteHCL(hclBody)
+
 	return nil
 }
 
