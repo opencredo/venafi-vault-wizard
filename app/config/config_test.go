@@ -44,6 +44,18 @@ func TestNewConfig(t *testing.T) {
 			want:    validPKIMonitorConfigResult,
 			wantErr: false,
 		},
+		"invalid venafi-pki-monitor with blank intermediate certificate zone": {
+			config:  invalidPKIMonitorConfigBlankIntermediateCertificateZone,
+			wantErr: true,
+		},
+		"invalid venafi-pki-monitor with blank enforcement policy zone": {
+			config:  invalidPKIMonitorConfigBlankEnforcementPolicyZone,
+			wantErr: true,
+		},
+		"invalid venafi-pki-monitor with blank import policy zone": {
+			config:  invalidPKIMonitorConfigBlankImportPolicyZone,
+			wantErr: true,
+		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -436,6 +448,150 @@ plugin "venafi-pki-backend" "venafi-pki" {
         policy = "Partner Dev\\TLS\\HashiCorp Vault"
       }
     }
+  }
+}`
+
+const invalidPKIMonitorConfigBlankIntermediateCertificateZone = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy {
+	  zone = "zone"
+	}
+
+    import_policy {
+      zone = "zone2"
+    }
+
+	intermediate_certificate {
+      zone = ""
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
+
+    allow_any_name = true
+    ttl = "1h"
+    max_ttl = "2h"
+  }
+}`
+
+const invalidPKIMonitorConfigBlankEnforcementPolicyZone = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy {
+	  zone = ""
+	}
+
+    import_policy {
+      zone = "zone2"
+    }
+
+	intermediate_certificate {
+      zone = "zone3"
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
+
+    allow_any_name = true
+    ttl = "1h"
+    max_ttl = "2h"
+  }
+}`
+
+const invalidPKIMonitorConfigBlankImportPolicyZone = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy {
+	  zone = "zone"
+	}
+
+    import_policy {
+      zone = ""
+    }
+
+	intermediate_certificate {
+      zone = "zone3"
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
+
+    allow_any_name = true
+    ttl = "1h"
+    max_ttl = "2h"
   }
 }`
 
