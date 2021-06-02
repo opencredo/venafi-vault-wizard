@@ -59,7 +59,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       locality = "London"
       province = "London"
       country = "GB"
-      ttl = "1h"
+      ttl = "5m"
     }
 
     test_certificate {
@@ -69,7 +69,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       locality = "London"
       province = "London"
       country = "GB"
-      ttl = "1h"
+      ttl = "5m"
     }
   }
 }
