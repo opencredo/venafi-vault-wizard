@@ -78,6 +78,18 @@ func (r *Role) Validate() error {
 		return fmt.Errorf("error, at least one of either enforcement_policy or import_policy must be provided: %w", errors.ErrBlankParam)
 	}
 
+	if intermediateCertProvided && r.IntermediateCert.Zone == "" {
+		return fmt.Errorf("error, intermediate_certificate zone cannot be an empty string: %w", errors.ErrBlankParam)
+	}
+
+	if r.EnforcementPolicy != nil && r.EnforcementPolicy.Zone == "" {
+		return fmt.Errorf("error, enforcement_policy zone cannot be an empty string: %w", errors.ErrBlankParam)
+	}
+
+	if r.ImportPolicy != nil && r.ImportPolicy.Zone == "" {
+		return fmt.Errorf("error, import_policy zone cannot be an empty string: %w", errors.ErrBlankParam)
+	}
+
 	return nil
 }
 
