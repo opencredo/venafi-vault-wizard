@@ -39,7 +39,7 @@ Feel free to also set the `VAULT_ADDR` variable to allow using the normal `vault
 
 ```shell
 $ export VAULT_TOKEN="s.dgjfnskdfgnksd"
-$ export VAULT_ADDR="http://192.168.33.10:8200"
+$ export VAULT_ADDR="http://192.168.33.20:8200"
 $ vault status
 ```
 
