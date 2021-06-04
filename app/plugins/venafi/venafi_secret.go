@@ -30,12 +30,12 @@ func ConfigureVenafiSecret(
 
 	secretParameters, err := secretValue.GetAsMap(pluginType)
 	if err != nil {
-		check.Errorf("Error getting Venafi secret values: %s", err)
+		check.Errorf("Error getting values for the Venafi secret: %s", err)
 		return err
 	}
 	_, err = vaultClient.WriteValue(secretPath, secretParameters)
 	if err != nil {
-		check.Errorf("Error configuring Venafi secret: %s", err)
+		check.Errorf("Error creating Venafi secret: %s", err)
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType) (map[string]
 		ClientId: clientID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error trying to request an access and refresh token for TPP: %w", err)
 	}
 
 	return map[string]interface{}{
