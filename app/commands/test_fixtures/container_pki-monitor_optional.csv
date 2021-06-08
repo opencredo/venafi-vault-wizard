@@ -22,6 +22,10 @@ What should the locality (L) of the certificate be?,l,OpenEndedQuestion
 What should the province (P) of the certificate be?,p,OpenEndedQuestion
 What should the country (C) of the certificate be?,c,OpenEndedQuestion
 What should the time-to-live (TTL) of the certificate be?,3h,OpenEndedQuestion
-Do you want to configure optional parameters?,"No",ClosedQuestion
+Do you want to configure optional parameters?,"Yes",ClosedQuestion
+Do you want Vault to generate leases?,"Yes",ClosedQuestion
+Do you want Vault to allow any name?,"Yes",ClosedQuestion
+What should the default TTL be? (blank to use system default),"2h",OpenEndedQuestion
+What should the max TTL be? (blank to use system default),"4h",OpenEndedQuestion
 Would you like to request any test certificates to check everything is working?,"No, skip",ClosedQuestion
 "You have configured 1 plugins, are there more",No that's it,ClosedQuestion

@@ -93,12 +93,7 @@ func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient a
 		configurePluginSection,
 		vaultClient,
 		fmt.Sprintf("%s/roles/%s", c.MountPath, c.Role.Name),
-		map[string]interface{}{
-			"ttl":            c.Role.TTL,
-			"max_ttl":        c.Role.MaxTTL,
-			"allow_any_name": c.Role.AllowAnyName,
-			"generate_lease": c.Role.GenerateLease,
-		},
+		c.Role.OptionalConfig.GetAsMap(),
 	)
 	if err != nil {
 		return err

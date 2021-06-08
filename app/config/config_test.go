@@ -300,9 +300,11 @@ plugin "venafi-pki-monitor" "venafi-pki" {
       ttl = "1h"
 	}
 
-    allow_any_name = true
-    ttl = "1h"
-    max_ttl = "2h"
+	optional_config {
+      allow_any_name = true
+      ttl = "1h"
+      max_ttl = "2h"
+	}
 
 	test_certificate {
 	  common_name = "vvw-example.test"
@@ -339,10 +341,7 @@ var validPKIMonitorConfigResult = &Config{
 				MountPath: "venafi-pki",
 				Version:   "v0.9.0",
 				Role: pki_monitor.Role{
-					Name:         "web_server",
-					AllowAnyName: true,
-					TTL:          "1h",
-					MaxTTL:       "2h",
+					Name: "web_server",
 					EnforcementPolicy: &pki_monitor.Policy{
 						Zone: "zone",
 					},
@@ -377,6 +376,11 @@ var validPKIMonitorConfigResult = &Config{
 							Country:      "GB",
 							TTL:          "1h",
 						},
+					},
+					OptionalConfig: &venafi.OptionalConfig{
+						AllowAnyName: true,
+						TTL:          "1h",
+						MaxTTL:       "2h",
 					},
 				},
 			},
