@@ -44,9 +44,11 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       ttl = "3h"
     }
 
-    allow_any_name = true
-    ttl = "1h"
-    max_ttl = "2h"
+    optional_config {
+      allow_any_name = true
+      ttl = "1h"
+      max_ttl = "2h"
+    }
 
     # An optional test certificate to request, in order to verify everything works
     test_certificate {
