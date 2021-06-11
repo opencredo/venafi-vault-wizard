@@ -34,10 +34,7 @@ type Role struct {
 
 	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
 
-	GenerateLease bool   `hcl:"generate_lease,optional"`
-	AllowAnyName  bool   `hcl:"allow_any_name,optional"`
-	TTL           string `hcl:"ttl,optional"`
-	MaxTTL        string `hcl:"max_ttl,optional"`
+	OptionalConfig *venafi.OptionalConfig `hcl:"optional_config,block"`
 }
 
 type IntermediateCertRequest struct {
@@ -63,8 +60,11 @@ func (r *Role) Validate() error {
 		return err
 	}
 
-	if r.MaxTTL < r.TTL {
-		return fmt.Errorf("max_ttl must be greater than or equal to ttl")
+	if r.OptionalConfig != nil {
+		err = r.OptionalConfig.Validate()
+		if err != nil {
+			return err
+		}
 	}
 
 	intermediateCertProvided := r.IntermediateCert != nil
@@ -122,6 +122,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 		roleBody.AppendNewline()
 		certBlock := roleBody.AppendNewBlock("root_certificate", nil)
 		r.RootCert.WriteHCL(certBlock.Body())
+	}
+
+	if r.OptionalConfig != nil {
+		roleBody.AppendNewline()
+		optionalBlock := roleBody.AppendNewBlock("optional_config", nil)
+		r.OptionalConfig.WriteHCL(optionalBlock.Body())
 	}
 
 	for _, testCert := range r.TestCerts {
@@ -182,6 +188,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 			Question: "Which policy should be used to issue the subordinate CA certificate?",
 		}),
 	}
+
 	err := questions.AskQuestions([]questions.Question{
 		q["role_name"],
 		q["tpp_url"],
@@ -262,7 +269,11 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		}
 	}
 
-	// TODO: extra questions around default TTL, max TTL etc
+	optionalConfig, err := venafi.GenerateOptionalQuestions(questioner)
+	if err != nil {
+		return nil, err
+	}
+	role.OptionalConfig = optionalConfig
 
 	testCertificates, err := venafi.AskForTestCertificates(questioner)
 	if err != nil {

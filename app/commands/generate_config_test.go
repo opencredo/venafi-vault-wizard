@@ -193,6 +193,61 @@ func TestGenerateConfig(t *testing.T) {
 				},
 			},
 		},
+		"container pki-monitor optional": {
+			questionsCSVFilename: "test_fixtures/container_pki-monitor_optional.csv",
+			expectedConfig: &config.Config{
+				Vault: config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+				},
+				Plugins: []plugins.Plugin{
+					{
+						Type:      "venafi-pki-monitor",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						Impl: &pki_monitor.VenafiPKIMonitorConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							Role: pki_monitor.Role{
+								Name: "web",
+								Secret: venafi.VenafiSecret{
+									Name: "tpp",
+									TPP: &venafi.VenafiTPPConnection{
+										URL:      "tpp.com",
+										Username: "admin",
+										Password: "password",
+									},
+								},
+								EnforcementPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								ImportPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								IntermediateCert: &pki_monitor.IntermediateCertRequest{
+									Zone: "policy folder\\\\policy",
+									CertificateRequest: venafi.CertificateRequest{
+										CommonName:   "cn",
+										OU:           "ou",
+										Organisation: "organisation",
+										Locality:     "l",
+										Province:     "p",
+										Country:      "c",
+										TTL:          "3h",
+									},
+								},
+								OptionalConfig: &venafi.OptionalConfig{
+									GenerateLease: true,
+									AllowAnyName:  true,
+									TTL:           "2h",
+									MaxTTL:        "4h",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, tc := range testCases {
