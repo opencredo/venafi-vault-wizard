@@ -50,11 +50,14 @@ type Config struct {
 }
 
 // NewClient returns an instance of the Vault API client
-func NewClient(config *Config, apiClient lib.VaultAPIWrapper) VaultAPIClient {
-	apiClient.SetAddress(config.APIAddress)
+func NewClient(config *Config, apiClient lib.VaultAPIWrapper) (VaultAPIClient, error) {
+	err := apiClient.SetAddress(config.APIAddress)
+	if err != nil {
+		return nil, err
+	}
 	apiClient.SetToken(config.Token)
 
-	return &vaultAPIClient{config, apiClient}
+	return &vaultAPIClient{config, apiClient}, nil
 }
 
 func (v *vaultAPIClient) GetPluginDir() (string, error) {

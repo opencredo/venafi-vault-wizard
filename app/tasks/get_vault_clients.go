@@ -14,14 +14,19 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSH
 	checkConnectionSection := report.AddSection("Checking connection to Vault")
 	check := checkConnectionSection.AddCheck("Checking Vault connection parameters...")
 
-	vaultClient := api.NewClient(
+	vaultClient, err := api.NewClient(
 		&api.Config{
 			APIAddress: cfg.VaultAddress,
 			Token:      cfg.VaultToken,
 		},
 		lib.NewVaultAPI(),
 	)
-	_, err := vaultClient.GetVaultConfig()
+	if err != nil {
+		check.Errorf("Error setting the Vault address for the Vault API client: %s", err)
+		return nil, nil, nil, err
+	}
+
+	_, err = vaultClient.GetVaultConfig()
 	if err != nil {
 		check.Errorf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err)
 		return nil, nil, nil, err

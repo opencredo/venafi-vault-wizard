@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	httpErrorPattern = regexp.MustCompile("Code: ([1-5]\\d{2})")
+	httpErrorPattern = regexp.MustCompile(`Code: ([1-5]\d{2})`)
 )
 
 // getHTTPStatusCode checks an error string to see if it contains "Code: XXX", in which case it assumes it is an HTTP
 // error and returns the code. Returns "" if not found.
 func getHTTPStatusCode(err error) string {
 	matches := httpErrorPattern.FindStringSubmatch(err.Error())
-	if matches != nil && len(matches) >= 2 {
+	if len(matches) >= 2 {
 		return matches[1]
 	}
 
