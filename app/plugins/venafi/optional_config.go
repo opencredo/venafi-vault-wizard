@@ -2,10 +2,11 @@ package venafi
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/questions"
 	"github.com/zclconf/go-cty/cty"
-	"time"
 )
 
 type OptionalConfig struct {
@@ -64,11 +65,11 @@ func GenerateOptionalQuestions(questioner questions.Questioner) (*OptionalConfig
 }
 
 func (oc *OptionalConfig) WriteHCL(hclBody *hclwrite.Body) {
-	if oc.GenerateLease == true {
+	if oc.GenerateLease {
 		hclBody.SetAttributeValue("generate_lease", cty.BoolVal(true))
 	}
 
-	if oc.AllowAnyName == true {
+	if oc.AllowAnyName {
 		hclBody.SetAttributeValue("allow_any_name", cty.BoolVal(true))
 	}
 

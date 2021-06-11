@@ -49,7 +49,7 @@ func getTestVaultClient(apiClient *mockVaultLib.VaultAPIWrapper) VaultAPIClient 
 	apiClient.On("SetAddress", "apiaddr").Return(nil)
 	apiClient.On("SetToken", "tok").Return(nil)
 
-	vaultClient := NewClient(
+	vaultClient, _ := NewClient(
 		&Config{
 			APIAddress: "apiaddr",
 			Token:      "tok",
