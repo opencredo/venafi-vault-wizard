@@ -25,6 +25,8 @@ type Role struct {
 	Zone      string                      `hcl:"zone,optional"`
 	Secret    venafi.VenafiSecret         `hcl:"secret,block"`
 	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
+
+	OptionalConfig *venafi.OptionalConfig `hcl:"optional_config,block"`
 }
 
 func (c *VenafiPKIBackendConfig) ValidateConfig() error {
@@ -46,6 +48,13 @@ func (r *Role) Validate() error {
 		return err
 	}
 
+	if r.OptionalConfig != nil {
+		err = r.OptionalConfig.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -53,6 +62,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 	roleBlock := hclBody.AppendNewBlock("role", []string{r.Name})
 	roleBody := roleBlock.Body()
 	r.Secret.WriteHCL(roleBody)
+
+	if r.OptionalConfig != nil {
+		roleBody.AppendNewline()
+		optionalBlock := roleBody.AppendNewBlock("optional_config", nil)
+		r.OptionalConfig.WriteHCL(optionalBlock.Body())
+	}
 
 	for _, testCert := range r.TestCerts {
 		roleBody.AppendNewline()
@@ -156,6 +171,12 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 	default:
 		panic("unimplemented Venafi secret type, expected TPP or Venafi-as-a-Service")
 	}
+
+	optionalConfig, err := venafi.GenerateOptionalQuestions(questioner)
+	if err != nil {
+		return nil, err
+	}
+	role.OptionalConfig = optionalConfig
 
 	testCertificates, err := venafi.AskForTestCertificates(questioner)
 	if err != nil {

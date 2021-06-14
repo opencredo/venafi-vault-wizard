@@ -132,6 +132,10 @@ func (oc *OptionalConfig) Validate() error {
 }
 
 func (oc *OptionalConfig) GetAsMap() map[string]interface{} {
+	if oc == nil {
+		return map[string]interface{}{}
+	}
+
 	return map[string]interface{}{
 		"ttl":            oc.TTL,
 		"max_ttl":        oc.MaxTTL,
