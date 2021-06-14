@@ -39,6 +39,7 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 			fmt.Sprintf("%s/roles/%s", c.MountPath, role.Name),
 			role.Secret.Name,
 			role.Zone,
+			role.OptionalConfig.GetAsMap(),
 		)
 		if err != nil {
 			return err
