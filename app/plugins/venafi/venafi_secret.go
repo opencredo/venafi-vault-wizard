@@ -2,12 +2,11 @@ package venafi
 
 import (
 	"fmt"
-
 	"github.com/Venafi/vcert/v4/pkg/endpoint"
-	"github.com/Venafi/vcert/v4/pkg/venafi/tpp"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
 	"github.com/opencredo/venafi-vault-wizard/app/config/generate"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -22,13 +21,14 @@ const (
 func ConfigureVenafiSecret(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
+	venafiClient venafi_wrapper.VenafiWrapper,
 	secretPath string,
 	secretValue VenafiConnectionConfig,
 	pluginType PluginType,
 ) error {
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
-	secretParameters, err := secretValue.GetAsMap(pluginType)
+	secretParameters, err := secretValue.GetAsMap(pluginType, venafiClient)
 	if err != nil {
 		check.Errorf("Error getting values for the Venafi secret: %s", err)
 		return err
@@ -51,7 +51,7 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 		check.Errorf("Error retrieving Venafi secret: %s", err)
 		return err
 	}
-	// TODO: check this better, maybe try use auth details to do something with vcert?
+	// TODO: check this better, maybe try use auth details to do something with vcert_wrapper?
 
 	check.Success("Venafi secret correctly configured at " + secretPath)
 	return nil
@@ -64,7 +64,7 @@ type VenafiSecret struct {
 }
 
 type VenafiConnectionConfig interface {
-	GetAsMap(pluginType PluginType) (map[string]interface{}, error)
+	GetAsMap(pluginType PluginType, vanafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
 }
 
 func (v *VenafiSecret) Validate(pluginType PluginType) error {
@@ -93,7 +93,7 @@ func (v *VenafiSecret) Validate(pluginType PluginType) error {
 	return nil
 }
 
-func (v VenafiSecret) GetAsMap(pluginType PluginType) (map[string]interface{}, error) {
+func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
 	if v.Cloud != nil {
 		m := map[string]interface{}{
 			"apikey": v.Cloud.APIKey,
@@ -105,7 +105,7 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType) (map[string]interface{}, e
 	}
 
 	if v.TPP != nil {
-		m, err := v.TPP.getAccessToken(pluginType)
+		m, err := v.TPP.getAccessToken(pluginType, venafiClient)
 		if err != nil {
 			return nil, err
 		}
@@ -185,14 +185,10 @@ func (c *VenafiTPPConnection) WriteHCL(hclBody *hclwrite.Body) {
 	}
 }
 
-func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType) (map[string]interface{}, error) {
-	tppClient, err := tpp.NewConnector(c.URL, c.Zone, false, nil)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
 	var scope string
 	var clientID string
+
 	if pluginType == MonitorEngine {
 		scope = "certificate:manage,discover"
 		clientID = "hashicorp-vault-monitor-by-venafi"
@@ -203,7 +199,7 @@ func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType) (map[string]
 		return nil, fmt.Errorf("unrecognised plugin type")
 	}
 
-	tokens, err := tppClient.GetRefreshToken(&endpoint.Authentication{
+	tokens, err := venafiClient.GetRefreshToken(&endpoint.Authentication{
 		User:     c.Username,
 		Password: c.Password,
 		Scope:    scope,

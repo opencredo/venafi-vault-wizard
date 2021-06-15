@@ -4,6 +4,7 @@ package mocks
 
 import (
 	venafi "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
+	venafi_wrapper "github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -12,13 +13,13 @@ type VenafiConnectionConfig struct {
 	mock.Mock
 }
 
-// GetAsMap provides a mock function with given fields: pluginType
-func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType) (map[string]interface{}, error) {
-	ret := _m.Called(pluginType)
+// GetAsMap provides a mock function with given fields: pluginType, vanafiClient
+func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType, vanafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
+	ret := _m.Called(pluginType, vanafiClient)
 
 	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(venafi.PluginType) map[string]interface{}); ok {
-		r0 = rf(pluginType)
+	if rf, ok := ret.Get(0).(func(venafi.PluginType, venafi_wrapper.VenafiWrapper) map[string]interface{}); ok {
+		r0 = rf(pluginType, vanafiClient)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]interface{})
@@ -26,8 +27,8 @@ func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType) (map[st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(venafi.PluginType) error); ok {
-		r1 = rf(pluginType)
+	if rf, ok := ret.Get(1).(func(venafi.PluginType, venafi_wrapper.VenafiWrapper) error); ok {
+		r1 = rf(pluginType, vanafiClient)
 	} else {
 		r1 = ret.Error(1)
 	}
