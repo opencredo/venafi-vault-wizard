@@ -12,8 +12,8 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-// Plugin is a generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
-type Plugin struct {
+// PluginConfig is a generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
+type PluginConfig struct {
 	// Type, the first label should specify which plugin the block refers to
 	Type string `hcl:"type,label"`
 	// MountPath, the second label should specify the Vault mount path
@@ -29,17 +29,17 @@ type Plugin struct {
 	// relevant Vault configuration tasks for the specific plugin. It is not populated by the initial HCL decoding, as
 	// the schema unique to each plugin, so it is instead populated after the fact by NewConfig, which calls
 	// plugins.LookupPlugin to find an implementation based on the Type field.
-	Impl PluginImpl
+	Impl Plugin
 }
 
-// PluginImpl is what each plugin struct should implement, along with having its config schema defined with its struct
+// Plugin is what each plugin struct should implement, along with having its config schema defined with its struct
 // fields and the relevant HCL struct tags.
-type PluginImpl interface {
-	// ParseConfig parses the Plugin.Config field (an hcl.Body) and populates its implementation-specific config struct.
+type Plugin interface {
+	// ParseConfig parses the PluginConfig.Config field (an hcl.Body) and populates its implementation-specific config struct.
 	// It takes a pointer to an hcl.EvalContext in order to provide the same config functions available to the rest of
 	// the config, and in future maybe some global variables, and then decodes the plugin-specific part of the plugin
 	// block.
-	ParseConfig(config *Plugin, evalContext *hcl.EvalContext) error
+	ParseConfig(config *PluginConfig, evalContext *hcl.EvalContext) error
 	// GetDownloadURL returns a URL to download the required version of the plugin
 	GetDownloadURL() (string, error)
 	// Configure makes the necessary changes to Vault to configure the plugin
@@ -57,15 +57,15 @@ type PluginImpl interface {
 // version, to allow the plugin to be updated without needed to remount the associated instances. However it does
 // include the mount path to allow the version of the plugin to vary independently between different mounted instances
 // of it.
-func (p *Plugin) GetCatalogName() string {
+func (p *PluginConfig) GetCatalogName() string {
 	return fmt.Sprintf("%s-%s", p.Type, p.MountPath)
 }
 
 // GetFileName returns the filename of the plugin as it will be found in the plugin directory. This includes the plugin
 // version to allow different versions of the plugin to be present on the Vault server, and for the catalog entries to
-// reference different ones depending on their mounts' use case. Alternatively, if Plugin.Filename is specified, then
+// reference different ones depending on their mounts' use case. Alternatively, if PluginConfig.Filename is specified, then
 // the default behaviour will be overridden and it will be returned instead.
-func (p *Plugin) GetFileName() string {
+func (p *PluginConfig) GetFileName() string {
 	if p.Filename != "" {
 		return p.Filename
 	}
@@ -74,7 +74,7 @@ func (p *Plugin) GetFileName() string {
 }
 
 // WriteHCL uses the hclwrite package to encode itself into HCL
-func (p *Plugin) WriteHCL(hclBody *hclwrite.Body) {
+func (p *PluginConfig) WriteHCL(hclBody *hclwrite.Body) {
 	hclBody.AppendNewline()
 	pluginConfigBlock := hclBody.AppendNewBlock("plugin", []string{p.Type, p.MountPath})
 	pluginConfigBody := pluginConfigBlock.Body()

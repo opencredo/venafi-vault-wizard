@@ -15,8 +15,8 @@ import (
 )
 
 type Config struct {
-	Vault   VaultConfig      `hcl:"vault,block"`
-	Plugins []plugins.Plugin `hcl:"plugin,block"`
+	Vault   VaultConfig            `hcl:"vault,block"`
+	Plugins []plugins.PluginConfig `hcl:"plugin,block"`
 }
 
 // NewConfig decodes an HCL configuration file into a Config struct, returning an error upon failure. It takes filename

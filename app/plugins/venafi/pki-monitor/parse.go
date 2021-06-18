@@ -7,7 +7,7 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 )
 
-func (c *VenafiPKIMonitorConfig) ParseConfig(config *plugins.Plugin, evalContext *hcl.EvalContext) error {
+func (c *VenafiPKIMonitorConfig) ParseConfig(config *plugins.PluginConfig, evalContext *hcl.EvalContext) error {
 	c.MountPath = config.MountPath
 	c.Version = config.Version
 

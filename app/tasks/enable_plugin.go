@@ -14,7 +14,7 @@ import (
 type EnablePluginInput struct {
 	VaultClient api.VaultAPIClient
 	Reporter    reporter.Report
-	Plugin      plugins.Plugin
+	Plugin      plugins.PluginConfig
 	SHA         string
 }
 

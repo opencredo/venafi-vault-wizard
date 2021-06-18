@@ -14,7 +14,7 @@ import (
 type MountPluginInput struct {
 	VaultClient api.VaultAPIClient
 	Reporter    reporter.Report
-	Plugin      plugins.Plugin
+	Plugin      plugins.PluginConfig
 }
 
 func MountPlugin(i *MountPluginInput) error {

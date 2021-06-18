@@ -17,7 +17,7 @@ import (
 func TestVerifyPluginInstalled(t *testing.T) {
 	vaultAPIClient := new(mockAPI.VaultAPIClient)
 	vaultSSHClient := new(mockSSH.VaultSSHClient)
-	pluginImpl := new(mockPlugin.PluginImpl)
+	pluginImpl := new(mockPlugin.Plugin)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
@@ -52,7 +52,7 @@ func TestVerifyPluginInstalled(t *testing.T) {
 		VaultClient: vaultAPIClient,
 		SSHClients:  []ssh.VaultSSHClient{vaultSSHClient},
 		Reporter:    report,
-		Plugin: plugins.Plugin{
+		Plugin: plugins.PluginConfig{
 			Type:      pluginType,
 			Version:   pluginVersion,
 			MountPath: pluginMountPath,
