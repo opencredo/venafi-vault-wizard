@@ -12,7 +12,7 @@ import (
 type InstallPluginToServersInput struct {
 	SSHClients    []ssh.VaultSSHClient
 	Reporter      reporter.Report
-	Plugin        plugins.Plugin
+	Plugin        plugins.PluginConfig
 	PluginFile    []byte
 	PluginDir     string
 	MlockDisabled bool

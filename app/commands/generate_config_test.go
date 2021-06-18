@@ -41,7 +41,7 @@ func TestGenerateConfig(t *testing.T) {
 						},
 					},
 				},
-				Plugins: []plugins.Plugin{
+				Plugins: []plugins.PluginConfig{
 					{
 						Type:      "venafi-pki-backend",
 						Version:   "v0.9.0",
@@ -87,7 +87,7 @@ func TestGenerateConfig(t *testing.T) {
 						},
 					},
 				},
-				Plugins: []plugins.Plugin{
+				Plugins: []plugins.PluginConfig{
 					{
 						Type:      "venafi-pki-backend",
 						Version:   "v0.9.0",
@@ -119,7 +119,7 @@ func TestGenerateConfig(t *testing.T) {
 					VaultAddress: "http://localhost:8200",
 					VaultToken:   "root",
 				},
-				Plugins: []plugins.Plugin{
+				Plugins: []plugins.PluginConfig{
 					{
 						Type:      "venafi-pki-backend",
 						Version:   "v0.9.0",
@@ -151,7 +151,7 @@ func TestGenerateConfig(t *testing.T) {
 					VaultAddress: "http://localhost:8200",
 					VaultToken:   "root",
 				},
-				Plugins: []plugins.Plugin{
+				Plugins: []plugins.PluginConfig{
 					{
 						Type:      "venafi-pki-monitor",
 						Version:   "v0.9.0",
@@ -200,7 +200,7 @@ func TestGenerateConfig(t *testing.T) {
 					VaultAddress: "http://localhost:8200",
 					VaultToken:   "root",
 				},
-				Plugins: []plugins.Plugin{
+				Plugins: []plugins.PluginConfig{
 					{
 						Type:      "venafi-pki-monitor",
 						Version:   "v0.9.0",

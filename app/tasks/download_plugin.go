@@ -9,7 +9,7 @@ import (
 type DownloadPluginInput struct {
 	Downloader downloader.PluginDownloader
 	Reporter   reporter.Report
-	Plugin     plugins.Plugin
+	Plugin     plugins.PluginConfig
 }
 
 // DownloadPlugin gets the plugin's download URL from its Impl.GetDownloadURL(), then downloads and unzips it, returning

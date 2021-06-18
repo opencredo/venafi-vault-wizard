@@ -129,7 +129,7 @@ var validPKIBackendCloudConfigResult = &Config{
 			},
 		},
 	},
-	Plugins: []plugins.Plugin{
+	Plugins: []plugins.PluginConfig{
 		{
 			Type:      "venafi-pki-backend",
 			MountPath: "venafi-pki",
@@ -218,7 +218,7 @@ var validPKIBackendTPPConfigResult = &Config{
 			},
 		},
 	},
-	Plugins: []plugins.Plugin{
+	Plugins: []plugins.PluginConfig{
 		{
 			Type:      "venafi-pki-backend",
 			MountPath: "venafi-pki",
@@ -331,7 +331,7 @@ var validPKIMonitorConfigResult = &Config{
 			},
 		},
 	},
-	Plugins: []plugins.Plugin{
+	Plugins: []plugins.PluginConfig{
 		{
 			Type:      "venafi-pki-monitor",
 			MountPath: "venafi-pki",

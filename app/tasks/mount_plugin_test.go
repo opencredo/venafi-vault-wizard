@@ -15,7 +15,7 @@ import (
 
 func TestMountPlugin_already_mounted_correctly(t *testing.T) {
 	vaultAPIClient := new(mockAPI.VaultAPIClient)
-	pluginImpl := new(mockPlugin.PluginImpl)
+	pluginImpl := new(mockPlugin.Plugin)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
@@ -27,7 +27,7 @@ func TestMountPlugin_already_mounted_correctly(t *testing.T) {
 
 	reportExpectations(report, section, check)
 
-	var pluginMock = plugins.Plugin{
+	var pluginMock = plugins.PluginConfig{
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
@@ -46,7 +46,7 @@ func TestMountPlugin_already_mounted_correctly(t *testing.T) {
 
 func TestMountPlugin_already_mounted_wrong_plugin(t *testing.T) {
 	vaultAPIClient := new(mockAPI.VaultAPIClient)
-	pluginImpl := new(mockPlugin.PluginImpl)
+	pluginImpl := new(mockPlugin.Plugin)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
@@ -59,7 +59,7 @@ func TestMountPlugin_already_mounted_wrong_plugin(t *testing.T) {
 	reportExpectations(report, section, check)
 	check.On("Errorf", mock.AnythingOfType("string"), mock.Anything)
 
-	var pluginMock = plugins.Plugin{
+	var pluginMock = plugins.PluginConfig{
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",
@@ -78,7 +78,7 @@ func TestMountPlugin_already_mounted_wrong_plugin(t *testing.T) {
 
 func TestMountPlugin_first_install(t *testing.T) {
 	vaultAPIClient := new(mockAPI.VaultAPIClient)
-	pluginImpl := new(mockPlugin.PluginImpl)
+	pluginImpl := new(mockPlugin.Plugin)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
@@ -90,7 +90,7 @@ func TestMountPlugin_first_install(t *testing.T) {
 
 	reportExpectations(report, section, check)
 
-	var pluginMock = plugins.Plugin{
+	var pluginMock = plugins.PluginConfig{
 		Type:      "venafi-pki-monitor",
 		MountPath: "venafi-pki",
 		Version:   "v0.9.0",

@@ -13,15 +13,15 @@ type PluginImplConstructor struct {
 }
 
 // Execute provides a mock function with given fields:
-func (_m *PluginImplConstructor) Execute() plugins.PluginImpl {
+func (_m *PluginImplConstructor) Execute() plugins.Plugin {
 	ret := _m.Called()
 
-	var r0 plugins.PluginImpl
-	if rf, ok := ret.Get(0).(func() plugins.PluginImpl); ok {
+	var r0 plugins.Plugin
+	if rf, ok := ret.Get(0).(func() plugins.Plugin); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(plugins.PluginImpl)
+			r0 = ret.Get(0).(plugins.Plugin)
 		}
 	}
 

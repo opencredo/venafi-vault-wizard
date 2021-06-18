@@ -14,7 +14,7 @@ type VerifyPluginInstalledInput struct {
 	VaultClient   api.VaultAPIClient
 	SSHClients    []ssh.VaultSSHClient
 	Reporter      reporter.Report
-	Plugin        plugins.Plugin
+	Plugin        plugins.PluginConfig
 	PluginDir     string
 	MlockDisabled bool
 }

@@ -10,21 +10,21 @@ import (
 
 var ErrPluginNotFound = errors.New("plugin not found")
 
-type PluginImplConstructor func() plugins.PluginImpl
+type PluginImplConstructor func() plugins.Plugin
 
 // Map of "constructors" which maps all the supported plugin types to their associated PluginImpl implementations.
 // Uses a function to force each instance to be a copy, and to allow injection of fields from the wrapper Plugin struct
 var supportedPlugins = map[string]PluginImplConstructor{
-	"venafi-pki-backend": func() plugins.PluginImpl {
+	"venafi-pki-backend": func() plugins.Plugin {
 		return &pki_backend.VenafiPKIBackendConfig{}
 	},
-	"venafi-pki-monitor": func() plugins.PluginImpl {
+	"venafi-pki-monitor": func() plugins.Plugin {
 		return &pki_monitor.VenafiPKIMonitorConfig{}
 	},
 }
 
 // GetPlugin goes from a generic config.Plugin and looks up its specific PluginImpl based on the Type field.
-func GetPlugin(pluginType string) (plugins.PluginImpl, error) {
+func GetPlugin(pluginType string) (plugins.Plugin, error) {
 	constructor, ok := supportedPlugins[pluginType]
 	if !ok {
 		return nil, ErrPluginNotFound

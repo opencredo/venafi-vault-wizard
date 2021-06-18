@@ -16,7 +16,7 @@ import (
 
 func TestInstallPlugin(t *testing.T) {
 	vaultSSHClient := new(mockSSH.VaultSSHClient)
-	pluginImpl := new(mockPlugin.PluginImpl)
+	pluginImpl := new(mockPlugin.Plugin)
 	report := new(mockReport.Report)
 	section := new(mockReport.Section)
 	check := new(mockReport.Check)
@@ -28,7 +28,7 @@ func TestInstallPlugin(t *testing.T) {
 
 	reportExpectations(report, section, check)
 
-	var pluginMock = plugins.Plugin{
+	var pluginMock = plugins.PluginConfig{
 		Type:      "venafi-pki-backend",
 		Version:   "v0.9.0",
 		MountPath: "pki",
