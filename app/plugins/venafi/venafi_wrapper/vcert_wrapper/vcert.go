@@ -44,11 +44,12 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 		}
 	}
 
+	client, err := vcert.NewClient(&config)
+	if err != nil {
+		return nil, err
+	}
+
 	if config.ConnectorType == endpoint.ConnectorTypeCloud {
-		client, err := vcert.NewClient(&config)
-		if err != nil {
-			return nil, err
-		}
 		cloudConnector, ok := client.(*cloud.Connector)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast client to Cloud Connector")
@@ -58,10 +59,6 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 			cloudConnector: cloudConnector,
 		}, nil
 	} else if config.ConnectorType == endpoint.ConnectorTypeTPP {
-		client, err := vcert.NewClient(&config)
-		if err != nil {
-			return nil, err
-		}
 		tppConnector, ok := client.(*tpp.Connector)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast client to TPP Connector")

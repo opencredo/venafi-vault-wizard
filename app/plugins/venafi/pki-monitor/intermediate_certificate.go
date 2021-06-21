@@ -76,39 +76,3 @@ func VerifyIntermediateCertificate(
 ) error {
 	return nil
 }
-
-/*func getVCertClient(secret venafi.VenafiSecret, zone *string) (venafi_wrapper.VenafiWrapper, error) {
-	var venafiClient venafi_wrapper.VenafiWrapper
-	var err error
-	if secret.Cloud != nil {
-		venafiClient, err = venafi_wrapper.NewVenafiClient(&vcert_wrapper.Config{
-			ConnectorType: endpoint.ConnectorTypeCloud,
-			Credentials: &endpoint.Authentication{
-				APIKey: secret.Cloud.APIKey,
-			},
-			Zone: *zone,
-			// Specify the DefaultClient otherwise vcert_wrapper creates its own HTTP Client and for some reason this replaces
-			// the TLSClientConfig with a non-nil value it gets from somewhere and breaks things with the following:
-			// vcert_wrapper error: server error: server unavailable: Get "https://api.venafi.cloud/v1/useraccounts": net/http: HTTP/1.x transport connection broken: malformed HTTP response
-			Client: http.DefaultClient,
-		})
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		venafiClient, err = venafi_wrapper.NewVenafiClient(&vcert_wrapper.Config{
-			ConnectorType: endpoint.ConnectorTypeTPP,
-			BaseUrl:       secret.TPP.URL,
-			Credentials: &endpoint.Authentication{
-				User:     secret.TPP.Username,
-				Password: secret.TPP.Password,
-			},
-			Zone: *zone,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return venafiClient, nil
-}*/

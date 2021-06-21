@@ -51,7 +51,6 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 		check.Errorf("Error retrieving Venafi secret: %s", err)
 		return err
 	}
-	// TODO: check this better, maybe try use auth details to do something with vcert_wrapper?
 
 	check.Success("Venafi secret correctly configured at " + secretPath)
 	return nil
@@ -64,7 +63,7 @@ type VenafiSecret struct {
 }
 
 type VenafiConnectionConfig interface {
-	GetAsMap(pluginType PluginType, vanafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
+	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
 }
 
 func (v *VenafiSecret) Validate(pluginType PluginType) error {
