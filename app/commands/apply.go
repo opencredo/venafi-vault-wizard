@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/opencredo/venafi-vault-wizard/app/config"
-	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter/pretty"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks"
 	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
@@ -18,7 +17,6 @@ func Apply(configuration *config.Config) {
 		return
 	}
 	defer closeFunc()
-	pluginDownloader := downloader.NewPluginDownloader()
 
 	// TODO: try to ascertain whether we have SSH connections to every replica
 	checkConfigSection := report.AddSection("Checking Vault server config")
@@ -36,9 +34,8 @@ func Apply(configuration *config.Config) {
 
 	for _, plugin := range configuration.Plugins {
 		pluginBytes, sha, err := tasks.DownloadPlugin(&tasks.DownloadPluginInput{
-			Downloader: pluginDownloader,
-			Reporter:   report,
-			Plugin:     plugin,
+			Reporter: report,
+			Plugin:   plugin,
 		})
 		if err != nil {
 			return

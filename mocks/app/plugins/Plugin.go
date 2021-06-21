@@ -50,6 +50,36 @@ func (_m *Plugin) Configure(report reporter.Report, vaultClient api.VaultAPIClie
 	return r0
 }
 
+// DownloadPlugin provides a mock function with given fields:
+func (_m *Plugin) DownloadPlugin() ([]byte, string, error) {
+	ret := _m.Called()
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 string
+	if rf, ok := ret.Get(1).(func() string); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func() error); ok {
+		r2 = rf()
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GenerateConfigAndWriteHCL provides a mock function with given fields: questioner, hclBody
 func (_m *Plugin) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
 	ret := _m.Called(questioner, hclBody)
@@ -62,27 +92,6 @@ func (_m *Plugin) GenerateConfigAndWriteHCL(questioner questions.Questioner, hcl
 	}
 
 	return r0
-}
-
-// GetDownloadURL provides a mock function with given fields:
-func (_m *Plugin) GetDownloadURL() (string, error) {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // ParseConfig provides a mock function with given fields: config, evalContext

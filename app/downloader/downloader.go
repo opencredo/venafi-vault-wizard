@@ -11,32 +11,21 @@ import (
 	"strings"
 )
 
-type PluginDownloader interface {
-	// DownloadPluginAndUnzip downloads the ZIP archive from the given URL, unzips it, and returns the plugin and its SHA
-	DownloadPluginAndUnzip(url string) ([]byte, string, error)
-}
-
-type downloader struct{}
-
-// NewPluginDownloader returns a new PluginDownloader
-func NewPluginDownloader() PluginDownloader {
-	return &downloader{}
-}
-
-func (_ *downloader) DownloadPluginAndUnzip(url string) ([]byte, string, error) {
-	pluginBytes, err := downloadZipFile(url)
+// DownloadPluginAndUnzip is a helper method that uses the other methods in this package. It takes a URL referring to a
+// Vault plugin ZIP file, downloads it with DownloadFile, unzips it with UnzipPluginAndSHA, verifies the SHA is as
+// expected using CheckSHAsMatch, and then returns the resulting byte slice with the plugin and string with its SHA
+func DownloadPluginAndUnzip(url string) ([]byte, string, error) {
+	pluginBytes, err := DownloadFile(url)
 	if err != nil {
 		return nil, "", err
 	}
 
-	plugin, expectedSHA, err := extractPluginAndSHA(pluginBytes)
+	plugin, expectedSHA, err := UnzipPluginAndSHA(pluginBytes)
 	if err != nil {
 		return nil, "", err
 	}
 
-	actualSHA := getSHAString(plugin)
-
-	err = checkSHAsMatch(expectedSHA, actualSHA)
+	err = CheckSHAsMatch(plugin, expectedSHA)
 	if err != nil {
 		return nil, "", err
 	}
@@ -44,7 +33,7 @@ func (_ *downloader) DownloadPluginAndUnzip(url string) ([]byte, string, error) 
 	return plugin, expectedSHA, nil
 }
 
-func downloadZipFile(url string) ([]byte, error) {
+func DownloadFile(url string) ([]byte, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -63,7 +52,10 @@ func downloadZipFile(url string) ([]byte, error) {
 	return pluginBytes, nil
 }
 
-func extractPluginAndSHA(zipFile []byte) ([]byte, string, error) {
+// UnzipPluginAndSHA reads a byte slice containing a zipped archive and returns the plugin binary file as a byte slice,
+// and the plugin SHA as a string. It expects two files inside the archive: one with "SHA256SUM" in its name, and the
+// other containing the plugin itself.
+func UnzipPluginAndSHA(zipFile []byte) ([]byte, string, error) {
 	zipReader, err := zip.NewReader(bytes.NewReader(zipFile), int64(len(zipFile)))
 	if err != nil {
 		return nil, "", err
@@ -109,15 +101,18 @@ func readZippedFile(file *zip.File) ([]byte, error) {
 	return unzipped, nil
 }
 
-func getSHAString(file []byte) string {
-	rawHash := sha256.Sum256(file)
-	return hex.EncodeToString(rawHash[:])
-}
-
-func checkSHAsMatch(expected, actual string) error {
-	if strings.Compare(expected, actual) != 0 {
+// CheckSHAsMatch takes a byte slice and an expected SHA string, and verifies that the checksum matches the byte slice
+func CheckSHAsMatch(plugin []byte, expected string) error {
+	actualSHA := GetSHAString(plugin)
+	if strings.Compare(expected, actualSHA) != 0 {
 		return fmt.Errorf("expected SHA checksums to match")
 	}
 
 	return nil
+}
+
+// GetSHAString takes a file as a byte slice and returns its SHA256 checksum
+func GetSHAString(file []byte) string {
+	rawHash := sha256.Sum256(file)
+	return hex.EncodeToString(rawHash[:])
 }

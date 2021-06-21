@@ -2,6 +2,8 @@ package pki_monitor
 
 import (
 	"fmt"
+
+	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper/vcert_wrapper"
 
@@ -11,12 +13,18 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-func (c *VenafiPKIMonitorConfig) GetDownloadURL() (string, error) {
-	return github.GetRelease(
-		"Venafi/vault-pki-monitor-venafi",
+func (c *VenafiPKIMonitorConfig) DownloadPlugin() ([]byte, string, error) {
+	// TODO: allow selecting architectures
+	downloadURL, err := github.GetRelease(
+		"Venafi/vault-pki-backend-venafi",
 		c.Version,
 		"linux_optional.zip",
 	)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return downloader.DownloadPluginAndUnzip(downloadURL)
 }
 
 func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient api.VaultAPIClient) error {

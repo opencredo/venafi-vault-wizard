@@ -2,6 +2,8 @@ package pki_backend
 
 import (
 	"fmt"
+
+	"github.com/opencredo/venafi-vault-wizard/app/downloader"
 	"github.com/opencredo/venafi-vault-wizard/app/github"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
@@ -10,13 +12,18 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
-func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, error) {
+func (c *VenafiPKIBackendConfig) DownloadPlugin() ([]byte, string, error) {
 	// TODO: allow selecting architectures
-	return github.GetRelease(
+	downloadURL, err := github.GetRelease(
 		"Venafi/vault-pki-backend-venafi",
 		c.Version,
 		"linux.zip",
 	)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return downloader.DownloadPluginAndUnzip(downloadURL)
 }
 
 func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient api.VaultAPIClient) error {

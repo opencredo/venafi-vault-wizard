@@ -40,8 +40,8 @@ type Plugin interface {
 	// the config, and in future maybe some global variables, and then decodes the plugin-specific part of the plugin
 	// block.
 	ParseConfig(config *PluginConfig, evalContext *hcl.EvalContext) error
-	// GetDownloadURL returns a URL to download the required version of the plugin
-	GetDownloadURL() (string, error)
+	// DownloadPlugin returns a byte slice with the plugin binary itself and a string with its SHA256
+	DownloadPlugin() ([]byte, string, error)
 	// Configure makes the necessary changes to Vault to configure the plugin
 	Configure(report reporter.Report, vaultClient api.VaultAPIClient) error
 	// Check is similar to Configure, except it shouldn't make any changes, only validate what is already there
