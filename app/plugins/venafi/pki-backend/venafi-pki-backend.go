@@ -2,9 +2,10 @@ package pki_backend
 
 import (
 	"fmt"
-
 	"github.com/opencredo/venafi-vault-wizard/app/github"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper/vcert_wrapper"
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
@@ -22,29 +23,51 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 	configurePluginSection := report.AddSection("Setting up venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		err := venafi.ConfigureVenafiSecret(
-			configurePluginSection,
-			vaultClient,
-			fmt.Sprintf("%s/venafi/%s", c.MountPath, role.Secret.Name),
-			role.Secret,
-			venafi.SecretsEngine,
-		)
+		venafiClient, err := vcert_wrapper.NewVenafiClient(role.Secret, "")
 		if err != nil {
 			return err
 		}
 
-		err = ConfigureVenafiRole(
-			configurePluginSection,
-			vaultClient,
-			fmt.Sprintf("%s/roles/%s", c.MountPath, role.Name),
-			role.Secret.Name,
-			role.Zone,
-			role.OptionalConfig.GetAsMap(),
-		)
+		err = role.Configure(configurePluginSection, c.MountPath, vaultClient, venafiClient)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *Role) Configure(
+	configurePluginSection reporter.Section,
+	mountPath string,
+	vaultClient api.VaultAPIClient,
+	venafiClient venafi_wrapper.VenafiWrapper,
+) error {
+	var err error
+
+	err = venafi.ConfigureVenafiSecret(
+		configurePluginSection,
+		vaultClient,
+		venafiClient,
+		fmt.Sprintf("%s/venafi/%s", mountPath, r.Secret.Name),
+		r.Secret,
+		venafi.SecretsEngine,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = ConfigureVenafiRole(
+		configurePluginSection,
+		vaultClient,
+		fmt.Sprintf("%s/roles/%s", mountPath, r.Name),
+		r.Secret.Name,
+		r.Zone,
+		r.OptionalConfig.GetAsMap(),
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
