@@ -51,6 +51,10 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 			"zone":          zone,
 		},
 	).Return(nil, nil)
+	venafiClient.On("GetRefreshToken", mock.Anything).Return(tpp.OauthGetRefreshTokenResponse{
+		Access_token:  accessToken,
+		Refresh_token: refreshToken,
+	}, nil)
 	vaultAPIClient.On("WriteValue", secretPath,
 		map[string]interface{}{
 			"access_token":  accessToken,
@@ -59,12 +63,8 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 			"zone":          zone,
 		},
 	).Return(nil, nil)
-	venafiClient.On("GetRefreshToken", mock.Anything).Return(tpp.OauthGetRefreshTokenResponse{
-		Access_token:  accessToken,
-		Refresh_token: refreshToken,
-	}, nil)
 
-	testCases := map[string] struct{
+	testCases := map[string]struct {
 		config VenafiPKIBackendConfig
 	}{
 		"pki-backend cloud config": {
@@ -94,10 +94,10 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 						Secret: venafi.VenafiSecret{
 							Name: secretName,
 							TPP: &venafi.VenafiTPPConnection{
-								URL: url,
+								URL:      url,
 								Username: username,
 								Password: password,
-								Zone: zone,
+								Zone:     zone,
 							},
 						},
 					},

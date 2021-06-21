@@ -71,7 +71,7 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 			tppConnector: tppConnector,
 		}, nil
 	} else {
-		panic(config)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
 
@@ -81,7 +81,7 @@ func (v *venafiClient) setZone(zone string) {
 	} else if v.tppConnector != nil {
 		v.tppConnector.SetZone(zone)
 	} else {
-		panic(v)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
 
@@ -92,7 +92,7 @@ func (v *venafiClient) GenerateRequest(config *endpoint.ZoneConfiguration, req *
 	} else if v.tppConnector != nil {
 		return v.tppConnector.GenerateRequest(config, req)
 	} else {
-		panic(v)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
 
@@ -103,7 +103,7 @@ func (v *venafiClient) RequestCertificate(req *certificate.Request, zone string)
 	} else if v.tppConnector != nil {
 		return v.tppConnector.RequestCertificate(req)
 	} else {
-		panic(v)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
 
@@ -114,7 +114,7 @@ func (v *venafiClient) RetrieveCertificate(req *certificate.Request, zone string
 	} else if v.tppConnector != nil {
 		return v.tppConnector.RetrieveCertificate(req)
 	} else {
-		panic(v)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
 
@@ -122,6 +122,6 @@ func (v *venafiClient) GetRefreshToken(auth *endpoint.Authentication) (resp tpp.
 	if v.tppConnector != nil {
 		return v.tppConnector.GetRefreshToken(auth)
 	} else {
-		panic(v)
+		panic("expected venafiClient to have either cloudConnector or tppConnector specified")
 	}
 }
