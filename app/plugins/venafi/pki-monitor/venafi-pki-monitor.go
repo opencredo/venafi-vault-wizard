@@ -12,10 +12,16 @@ import (
 )
 
 func (c *VenafiPKIMonitorConfig) GetDownloadURL() (string, error) {
+	var searchSubString string
+	if c.BuildArch == "" {
+		searchSubString = "linux_optional.zip"
+	} else {
+		searchSubString = fmt.Sprintf("%s_optional.zip", c.BuildArch)
+	}
 	return github.GetRelease(
 		"Venafi/vault-pki-monitor-venafi",
 		c.Version,
-		"linux_optional.zip",
+		searchSubString,
 	)
 }
 

@@ -10,6 +10,7 @@ import (
 func (c *VenafiPKIBackendConfig) ParseConfig(config *plugins.PluginConfig, evalContext *hcl.EvalContext) error {
 	c.MountPath = config.MountPath
 	c.Version = config.Version
+	c.BuildArch = config.BuildArch
 
 	diagnostics := gohcl.DecodeBody(config.Config, evalContext, c)
 	if diagnostics.HasErrors() {

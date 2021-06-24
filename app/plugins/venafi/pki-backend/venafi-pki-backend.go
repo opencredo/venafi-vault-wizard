@@ -11,11 +11,16 @@ import (
 )
 
 func (c *VenafiPKIBackendConfig) GetDownloadURL() (string, error) {
-	// TODO: allow selecting architectures
+	var searchSubString string
+	if c.BuildArch == "" {
+		searchSubString = "linux.zip"
+	} else {
+		searchSubString = fmt.Sprintf("%s.zip", c.BuildArch)
+	}
 	return github.GetRelease(
 		"Venafi/vault-pki-backend-venafi",
 		c.Version,
-		"linux.zip",
+		searchSubString,
 	)
 }
 

@@ -12,6 +12,8 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/api"
 )
 
+var archTypes = []string{"", "linux", "linux86", "windows", "windows86", "darwin"}
+
 // PluginConfig is a generic wrapper around a specific plugin implementation representing concerns common to all Vault plugins
 type PluginConfig struct {
 	// Type, the first label should specify which plugin the block refers to
@@ -24,6 +26,8 @@ type PluginConfig struct {
 	Filename string `hcl:"filename,optional"`
 	// Config allows the rest of the plugin body to be decoded separately
 	Config hcl.Body `hcl:",remain"`
+	// BuildArch allows defining the build architecture
+	BuildArch string `hcl:"build_arch,optional"`
 
 	// Impl is an implementation of the Plugin interface, defining both Configure and Check methods to perform the
 	// relevant Vault configuration tasks for the specific plugin. It is not populated by the initial HCL decoding, as
@@ -80,4 +84,13 @@ func (p *PluginConfig) WriteHCL(hclBody *hclwrite.Body) {
 	pluginConfigBody := pluginConfigBlock.Body()
 
 	pluginConfigBody.SetAttributeValue("version", cty.StringVal(p.Version))
+}
+
+func ValidateBuildArch(buildArch string) error {
+	for _, arch := range archTypes {
+		if buildArch == arch {
+			return nil
+		}
+	}
+	return fmt.Errorf("error %s is not a valid build architecture, must be one of %v", buildArch, archTypes)
 }

@@ -2,6 +2,7 @@ package pki_backend
 
 import (
 	"fmt"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
@@ -16,6 +17,8 @@ type VenafiPKIBackendConfig struct {
 	// Version is not decoded directly by using the struct tags, and is instead populated by ParseConfig
 	// when it is initialised
 	Version string
+	// BuildArch allows defining the build architecture
+	BuildArch string `hcl:"build_arch,optional"`
 
 	Roles []Role `hcl:"role,block"`
 }
@@ -30,11 +33,15 @@ type Role struct {
 }
 
 func (c *VenafiPKIBackendConfig) ValidateConfig() error {
+	err := plugins.ValidateBuildArch(c.BuildArch)
+	if err != nil {
+		return err
+	}
 	if len(c.Roles) == 0 {
 		return fmt.Errorf("error at least one role must be provided: %w", errors.ErrBlankParam)
 	}
 	for _, role := range c.Roles {
-		err := role.Validate()
+		err = role.Validate()
 		if err != nil {
 			return err
 		}
@@ -77,6 +84,7 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 }
 
 func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
+	//TODO Add question for build architecture
 	for i := 1; true; i++ {
 		role, err := askForRole(questioner)
 		if err != nil {
