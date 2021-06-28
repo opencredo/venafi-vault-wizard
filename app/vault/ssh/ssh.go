@@ -14,6 +14,8 @@ import (
 // VaultSSHClient represents a Vault server and the operations available on it over an SSH Connection. For operations
 // involving the Vault API, see the vault/api/VaultAPIClient interface instead
 type VaultSSHClient interface {
+	// CheckOSArch returns the os type and architecture
+	CheckOSArch() (string, string, error)
 	// WriteFile writes a file to the SSH server, overwriting what's already there
 	WriteFile(sourceFile io.Reader, hostDestination string) error
 	// FileExists checks whether a file exists on a server over SSH
@@ -43,6 +45,23 @@ func NewClient(address, username, password string) (VaultSSHClient, error) {
 	}
 
 	return &sshClient{conn}, nil
+}
+
+func (c *sshClient) CheckOSArch() (string, string, error){
+	session, err := c.Client.NewSession()
+	if err != nil {
+		return "", "", err
+	}
+
+	output, err := session.Output("echo $(uname -s && uname -m)")
+	if err != nil {
+		return "", "", err
+	}
+    outputSplit := strings.Split(string(output), " ")
+	osType := outputSplit[0]
+	arch := outputSplit[1]
+
+	return osType, arch, nil
 }
 
 func (c *sshClient) WriteFile(sourceFile io.Reader, hostDestination string) error {

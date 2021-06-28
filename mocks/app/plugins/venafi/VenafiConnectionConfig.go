@@ -13,13 +13,13 @@ type VenafiConnectionConfig struct {
 	mock.Mock
 }
 
-// GetAsMap provides a mock function with given fields: pluginType, vanafiClient
-func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType, vanafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
-	ret := _m.Called(pluginType, vanafiClient)
+// GetAsMap provides a mock function with given fields: pluginType, venafiClient
+func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
+	ret := _m.Called(pluginType, venafiClient)
 
 	var r0 map[string]interface{}
 	if rf, ok := ret.Get(0).(func(venafi.PluginType, venafi_wrapper.VenafiWrapper) map[string]interface{}); ok {
-		r0 = rf(pluginType, vanafiClient)
+		r0 = rf(pluginType, venafiClient)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]interface{})
@@ -28,7 +28,7 @@ func (_m *VenafiConnectionConfig) GetAsMap(pluginType venafi.PluginType, vanafiC
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(venafi.PluginType, venafi_wrapper.VenafiWrapper) error); ok {
-		r1 = rf(pluginType, vanafiClient)
+		r1 = rf(pluginType, venafiClient)
 	} else {
 		r1 = ret.Error(1)
 	}
