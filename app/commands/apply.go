@@ -35,14 +35,15 @@ func Apply(configuration *config.Config) {
 
 	checkConfigSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
 
+
 	for _, plugin := range configuration.Plugins {
-		if len(sshClients) > 0 {
-
-			err = tasks.ResolveBuildArch(sshClients[0], plugin.BuildArch)
-			if err != nil {
-				checkConfigSection.Info(fmt.Sprintf("warning %s", err))
-			}
-
+		err = tasks.ResolveBuildArch(&tasks.ResolveBuildArchInput{
+			SSHClients: sshClients,
+			PluginBuildArch: plugin.BuildArch,
+			Reporter: report,
+		})
+		if err != nil {
+			return
 		}
 
 		pluginBytes, sha, err := tasks.DownloadPlugin(&tasks.DownloadPluginInput{

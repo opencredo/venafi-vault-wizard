@@ -49,6 +49,7 @@ func NewClient(address, username, password string) (VaultSSHClient, error) {
 
 func (c *sshClient) CheckOSArch() (string, string, error){
 	session, err := c.Client.NewSession()
+	defer session.Close()
 	if err != nil {
 		return "", "", err
 	}
