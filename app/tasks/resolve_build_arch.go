@@ -29,6 +29,7 @@ func ResolveBuildArch(input *ResolveBuildArchInput) error {
 		osType, arch, err := sshClient.CheckOSArch()
 		if err != nil {
 			check.Errorf("unable to resolve client arch via SSH: %s", err)
+			return fmt.Errorf("unable to resolve client arch via SSH: %s", err)
 		}
 
 		switch osType {
@@ -44,6 +45,7 @@ func ResolveBuildArch(input *ResolveBuildArchInput) error {
 
 		if definedBuildArch != sshBuildArch {
 			check.Errorf("defined build architecture (%s) doesn't match client architecture (%s)", definedBuildArch, sshBuildArch)
+			return fmt.Errorf("defined build architecture (%s) doesn't match client architecture (%s)", definedBuildArch, sshBuildArch)
 		}
 	}
 

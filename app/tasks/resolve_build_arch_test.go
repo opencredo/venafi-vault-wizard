@@ -48,7 +48,7 @@ func TestResolveBuildArch(t *testing.T) {
 			pluginBuildArch: "linux86",
 			sshOSType:       "Linux",
 			sshArch:         "x86_64",
-			wantErr:         false,
+			wantErr:         true,
 		},
 	}
 
@@ -63,17 +63,15 @@ func TestResolveBuildArch(t *testing.T) {
 				Reporter:        report,
 			})
 
-			if test.wantErr == false && err != nil {
+			if (err != nil) != test.wantErr {
 				t.Errorf("expected no error, got: '%s'", err)
 				return
 			}
 
-			if test.wantErr == true && err == nil {
-				t.Errorf("expected error, but got none")
+			// don't bother checking config if we wanted an error
+			if test.wantErr {
 				return
 			}
-
-			return
 		})
 	}
 }
