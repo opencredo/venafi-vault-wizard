@@ -47,7 +47,7 @@ func NewClient(address, username, password string) (VaultSSHClient, error) {
 	return &sshClient{conn}, nil
 }
 
-func (c *sshClient) CheckOSArch() (string, string, error){
+func (c *sshClient) CheckOSArch() (string, string, error) {
 	session, err := c.Client.NewSession()
 	defer session.Close()
 	if err != nil {
@@ -58,7 +58,7 @@ func (c *sshClient) CheckOSArch() (string, string, error){
 	if err != nil {
 		return "", "", err
 	}
-    outputSplit := strings.Split(string(output), " ")
+	outputSplit := strings.Split(string(output), " ")
 	osType := outputSplit[0]
 	arch := outputSplit[1]
 

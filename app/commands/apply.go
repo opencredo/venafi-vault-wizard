@@ -35,12 +35,11 @@ func Apply(configuration *config.Config) {
 
 	checkConfigSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
 
-
 	for _, plugin := range configuration.Plugins {
 		err = tasks.ResolveBuildArch(&tasks.ResolveBuildArchInput{
-			SSHClients: sshClients,
+			SSHClients:      sshClients,
 			PluginBuildArch: plugin.BuildArch,
-			Reporter: report,
+			Reporter:        report,
 		})
 		if err != nil {
 			return

@@ -7,9 +7,9 @@ import (
 )
 
 type ResolveBuildArchInput struct {
-	SSHClients []ssh.VaultSSHClient
+	SSHClients      []ssh.VaultSSHClient
 	PluginBuildArch string
-	Reporter reporter.Report
+	Reporter        reporter.Report
 }
 
 func ResolveBuildArch(input *ResolveBuildArchInput) error {

@@ -20,7 +20,7 @@ func TestResolveBuildArch(t *testing.T) {
 
 	reportExpectations(report, section, check)
 
-	tests := map[string]struct{
+	tests := map[string]struct {
 		pluginBuildArch string
 		sshOSType       string
 		sshArch         string
@@ -58,9 +58,9 @@ func TestResolveBuildArch(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			vaultSSHClient.On("CheckOSArch").Return(test.sshOSType, test.sshArch, nil).Once()
 			err := ResolveBuildArch(&ResolveBuildArchInput{
-				SSHClients: []ssh.VaultSSHClient{vaultSSHClient},
+				SSHClients:      []ssh.VaultSSHClient{vaultSSHClient},
 				PluginBuildArch: test.pluginBuildArch,
-				Reporter: report,
+				Reporter:        report,
 			})
 
 			if test.wantErr == false && err != nil {
@@ -77,4 +77,3 @@ func TestResolveBuildArch(t *testing.T) {
 		})
 	}
 }
-

@@ -21,7 +21,6 @@ type VenafiPKIMonitorConfig struct {
 	// BuildArch allows defining the build architecture
 	BuildArch string
 
-
 	Role Role `hcl:"role,block"`
 }
 
