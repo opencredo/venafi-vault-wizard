@@ -26,13 +26,16 @@ $ make build
 Once this runs successfully, you can test it as follows:
 
 ```
-$  ./bin/vvw                                                                                                                  VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.
+$ ./bin/vvw 
+VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.
+
 Usage:
   vvw [command]
 
 Available Commands:
-  apply       Applies desired state as specified in config file
-  help        Help about any command
+  apply           Applies desired state as specified in config file
+  generate-config Generates config file based on asking questions
+  help            Help about any command
 
 Flags:
   -f, --configFile string   Path to config file to use to configure Venafi Vault plugin (default "vvw_config.hcl")
@@ -60,7 +63,7 @@ This directory contains a `Vagrantfile` and required scripts, as well as a sampl
 There is a `README.md` there which explains the setup in more detail.
 
 ```shell
-$ cd test_envs/single_node_cluster_vagrant
+$ cd examples/single_node_cluster_vagrant
 ```
 
 ### Multi-node Vault HA Cluster
@@ -70,7 +73,7 @@ This starts three separate VMs which interact to form an HA cluster.
 Again, there is a more detailed `README.md` in that directory.
 
 ```shell
-$ cd test_envs/integrated_storage_ha_cluster_vagrant
+$ cd examples/integrated_storage_ha_cluster_vagrant
 ```
 
 Once the VVW tool has successfully completed the installation, a certificate can be requested from either plugin through Vault.
@@ -229,7 +232,7 @@ $ make test
 The VVW tests use a number of pre-generated mocks that can be found under the `<repo root>/mocks` directory.
 These replace the implementation of interfaces used throughout the code, to allow the tests to focus on testing specific areas.
 They also provide the advantage that most unit tests run without touching real resources so are much faster and don't cause unwanted side effects.
-If any of the interfaces are changed, or new ones added, then the mocks can be regenerated with the following command:
+If any of the interfaces have changed, or new ones added, then the mocks can be regenerated with the following command:
 
 ```shell
 $ make generate-mocks
