@@ -26,13 +26,16 @@ $ make build
 Once this runs successfully, you can test it as follows:
 
 ```
-$  ./bin/vvw                                                                                                                  VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.
+$ ./bin/vvw 
+VVW is a wizard to automate the installation and verification of Venafi PKI plugins for HashiCorp Vault.
+
 Usage:
   vvw [command]
 
 Available Commands:
-  apply       Applies desired state as specified in config file
-  help        Help about any command
+  apply           Applies desired state as specified in config file
+  generate-config Generates config file based on asking questions
+  help            Help about any command
 
 Flags:
   -f, --configFile string   Path to config file to use to configure Venafi Vault plugin (default "vvw_config.hcl")
