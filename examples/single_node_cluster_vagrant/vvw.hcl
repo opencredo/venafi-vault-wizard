@@ -45,6 +45,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       province = "London"
       country = "GB"
       ttl = "1h"
+      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault SubCA"
     }
 
     optional_config {
