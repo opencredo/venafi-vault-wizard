@@ -22,6 +22,13 @@ func MountPlugin(i *MountPluginInput) error {
 
 	pluginMountCheck := mountPluginSection.AddCheck("Checking if plugin is already mounted...")
 
+	var pluginType string
+	if i.Plugin.VaultPluginType == api.PluginTypeSecrets {
+		pluginType = i.Plugin.GetCatalogName()
+	} else if i.Plugin.VaultPluginType == api.PluginTypeDatabase {
+		pluginType = "database"
+	}
+
 	pluginName, err := i.VaultClient.GetMountPluginName(i.Plugin.MountPath)
 	if err != nil {
 		if !errors.Is(err, vault.ErrPluginNotMounted) {
@@ -32,18 +39,18 @@ func MountPlugin(i *MountPluginInput) error {
 		err = checks.InstallPluginMount(
 			mountPluginSection,
 			i.VaultClient,
-			i.Plugin.GetCatalogName(),
+			pluginType,
 			i.Plugin.MountPath,
 		)
 		if err != nil {
 			return err
 		}
 
-		mountPluginSection.Info(fmt.Sprintf("Plugin %s mounted at %s/\n", i.Plugin.GetCatalogName(), i.Plugin.MountPath))
+		mountPluginSection.Info(fmt.Sprintf("Plugin %s mounted at %s/\n", pluginType, i.Plugin.MountPath))
 		return nil
 	}
 
-	if pluginName != i.Plugin.GetCatalogName() {
+	if pluginName != pluginType {
 		pluginMountCheck.Errorf("Mount path %s is using plugin %s", i.Plugin.MountPath, pluginName)
 		return vault.ErrMountPathInUse
 	}

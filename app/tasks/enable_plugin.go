@@ -25,7 +25,7 @@ func EnablePlugin(i *EnablePluginInput) error {
 
 	var pluginNeverInstalled = false
 
-	pluginInfo, err := i.VaultClient.GetPlugin(i.Plugin.GetCatalogName())
+	pluginInfo, err := i.VaultClient.GetPlugin(i.Plugin.GetCatalogName(), i.Plugin.VaultPluginType)
 	if err != nil {
 		if !errors.Is(err, vault.ErrNotFound) {
 			pluginVersionCheck.Errorf("Error checking if plugin is present in catalog: %s", err)
@@ -53,6 +53,7 @@ func EnablePlugin(i *EnablePluginInput) error {
 		i.Plugin.GetCatalogName(),
 		i.Plugin.GetFileName(),
 		i.SHA,
+		i.Plugin.VaultPluginType,
 	)
 	if err != nil {
 		return err

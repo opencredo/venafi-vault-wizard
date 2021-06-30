@@ -46,7 +46,7 @@ func VerifyPluginInstalled(input *VerifyPluginInstalledInput) error {
 
 	pluginConfSection := input.Reporter.AddSection("Checking plugin configuration in Vault")
 
-	err := checks.VerifyPluginInCatalog(pluginConfSection, input.VaultClient, pluginName, pluginFileName)
+	err := checks.VerifyPluginInCatalog(pluginConfSection, input.VaultClient, pluginName, pluginFileName, input.Plugin.VaultPluginType)
 	if err != nil {
 		return err
 	}

@@ -49,9 +49,7 @@ func (r *Role) Configure(
 	vaultClient api.VaultAPIClient,
 	venafiClient venafi_wrapper.VenafiWrapper,
 ) error {
-	var err error
-
-	err = venafi.ConfigureVenafiSecret(
+	err := venafi.ConfigureVenafiSecret(
 		configurePluginSection,
 		vaultClient,
 		venafiClient,

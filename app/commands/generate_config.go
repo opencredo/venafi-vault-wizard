@@ -151,7 +151,7 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 		}
 		pluginType, version, mountPath := string(q["type"].Answer()), string(q["version"].Answer()), string(q["mount_path"].Answer())
 
-		pluginImpl, err := lookup.GetPlugin(pluginType)
+		pluginImpl, _, err := lookup.GetPlugin(pluginType)
 		if err != nil {
 			return nil, err
 		}

@@ -61,7 +61,7 @@ func NewConfig(filename string, src []byte) (*Config, error) {
 	}
 
 	for i, plugin := range config.Plugins {
-		pluginImpl, err := lookup.GetPlugin(plugin.Type)
+		pluginImpl, pluginType, err := lookup.GetPlugin(plugin.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -77,6 +77,7 @@ func NewConfig(filename string, src []byte) (*Config, error) {
 		}
 
 		config.Plugins[i].Impl = pluginImpl
+		config.Plugins[i].VaultPluginType = pluginType
 	}
 
 	return config, nil

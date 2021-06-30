@@ -25,6 +25,8 @@ type PluginConfig struct {
 	// Config allows the rest of the plugin body to be decoded separately
 	Config hcl.Body `hcl:",remain"`
 
+	// VaultPluginType refers to whether the plugin is a secrets backend, or a database backend plugin
+	VaultPluginType api.PluginType
 	// Impl is an implementation of the Plugin interface, defining both Configure and Check methods to perform the
 	// relevant Vault configuration tasks for the specific plugin. It is not populated by the initial HCL decoding, as
 	// the schema unique to each plugin, so it is instead populated after the fact by NewConfig, which calls

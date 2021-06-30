@@ -10,15 +10,23 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/lib"
 )
 
+// PluginType represents the types of Vault plugin: "secrets" and "database"
+type PluginType vaultConsts.PluginType
+
+const (
+	PluginTypeSecrets  = PluginType(vaultConsts.PluginTypeSecrets)
+	PluginTypeDatabase = PluginType(vaultConsts.PluginTypeDatabase)
+)
+
 // VaultAPIClient represents a HashiCorp Vault instance and the operations available on it via the Vault API. For
 // operations involving SSH, see the vault/ssh/VaultSSHClient interface instead.
 type VaultAPIClient interface {
 	// GetPluginDir queries the server for the local plugin directory
 	GetPluginDir() (directory string, err error)
 	// RegisterPlugin adds the plugin to the VaultPlugin Catalog
-	RegisterPlugin(name, command, sha string) error
+	RegisterPlugin(name, command, sha string, pluginType PluginType) error
 	// GetPlugin returns information about a registered plugin (command, sha, args etc)
-	GetPlugin(name string) (map[string]interface{}, error)
+	GetPlugin(name string, pluginType PluginType) (map[string]interface{}, error)
 	// ReloadPlugin reloads a plugin (globally across a cluster if Vault is clustered) and waits for the number of
 	// completed reloads to equal the number of replicas
 	ReloadPlugin(name string) error
@@ -74,10 +82,10 @@ func (v *vaultAPIClient) GetPluginDir() (string, error) {
 	return dir, nil
 }
 
-func (v *vaultAPIClient) RegisterPlugin(name, command, sha string) error {
+func (v *vaultAPIClient) RegisterPlugin(name, command, sha string, pluginType PluginType) error {
 	err := v.VaultClient.RegisterPlugin(&vaultAPI.RegisterPluginInput{
 		Name:    name,
-		Type:    vaultConsts.PluginTypeSecrets,
+		Type:    vaultConsts.PluginType(pluginType),
 		Command: command,
 		SHA256:  sha,
 	})
@@ -88,10 +96,10 @@ func (v *vaultAPIClient) RegisterPlugin(name, command, sha string) error {
 	return nil
 }
 
-func (v *vaultAPIClient) GetPlugin(name string) (map[string]interface{}, error) {
+func (v *vaultAPIClient) GetPlugin(name string, pluginType PluginType) (map[string]interface{}, error) {
 	plugin, err := v.VaultClient.GetPlugin(&vaultAPI.GetPluginInput{
 		Name: name,
-		Type: vaultConsts.PluginTypeSecrets,
+		Type: vaultConsts.PluginType(pluginType),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error getting details for plugin %s: %w", name, err)
