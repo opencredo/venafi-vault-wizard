@@ -128,6 +128,8 @@ func generateVaultConfig(questioner questions.Questioner) (*config.VaultConfig, 
 
 func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, error) {
 	var pluginBlocks []*hclwrite.Block
+	var buildArch string
+
 	for i := 1; true; i++ {
 		q := map[string]questions.Question{
 			"type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
@@ -140,17 +142,41 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			"mount_path": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 				Question: "Which Vault path should the plugin be mounted at?",
 			}),
+			"os_type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Which OS type is Vault running on?",
+				Items: []string{"Linux", "Mac OS"},
+			}),
+			"os_arch": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Which OS architecture is used?",
+				Items: []string{"64bit", "32bit"},
+			}),
 		}
 		err := questions.AskQuestions([]questions.Question{
 			q["type"],
 			q["version"],
 			q["mount_path"],
+			&questions.QuestionBranch{
+				ConditionQuestion: q["os_type"],
+				ConditionAnswer: "Linux",
+				BranchA: []questions.Question{
+					q["os_arch"],
+				},
+			},
 		})
 		if err != nil {
 			return nil, err
 		}
 		pluginType, version, mountPath := string(q["type"].Answer()), string(q["version"].Answer()), string(q["mount_path"].Answer())
 
+		switch osType := string(q["os_type"].Answer()); osType {
+		case "Mac OS":
+			buildArch = "darwin"
+		case "Linux":
+			buildArch = "linux"
+			if string(q["os_arch"].Answer()) == "32bit" {
+				buildArch = buildArch + "86"
+			}
+		}
 		pluginImpl, err := lookup.GetPlugin(pluginType)
 		if err != nil {
 			return nil, err
@@ -159,6 +185,7 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 		pluginBlock := hclwrite.NewBlock("plugin", []string{pluginType, mountPath})
 		pluginBody := pluginBlock.Body()
 		pluginBody.SetAttributeValue("version", cty.StringVal(version))
+		pluginBody.SetAttributeValue("build_arch", cty.StringVal(buildArch))
 		err = pluginImpl.GenerateConfigAndWriteHCL(questioner, pluginBody)
 		if err != nil {
 			return nil, err
