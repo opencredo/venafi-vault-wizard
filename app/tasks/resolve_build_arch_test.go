@@ -67,11 +67,6 @@ func TestResolveBuildArch(t *testing.T) {
 				t.Errorf("expected no error, got: '%s'", err)
 				return
 			}
-
-			// don't bother checking config if we wanted an error
-			if test.wantErr {
-				return
-			}
 		})
 	}
 }
