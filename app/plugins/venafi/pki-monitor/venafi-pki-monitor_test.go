@@ -52,15 +52,14 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 	var rootCertPath = fmt.Sprintf("%s/root/generate/internal", pluginMountPath)
 	var secretPath = fmt.Sprintf("%s/venafi/%s", pluginMountPath, secretName)
 
-
 	var venafiConnectionConfig = map[string]interface{}{
 		"apikey": apiKey,
 	}
 	var venafiPolicyConfig = map[string]interface{}{
-		"defaults_roles": roleName,
+		"defaults_roles":    roleName,
 		"enforcement_roles": roleName,
-		"venafi_secret": secretName,
-		"zone": zone,
+		"venafi_secret":     secretName,
+		"zone":              zone,
 	}
 
 	var certificateRequest = venafi.CertificateRequest{
@@ -89,7 +88,7 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 		Certificate: testCert,
 	}
 
-	var importRolesMap = map[string]interface {}{
+	var importRolesMap = map[string]interface{}{
 		"import_roles":  roleName,
 		"venafi_secret": secretName,
 		"zone":          zone,
@@ -125,7 +124,7 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 						Zone: zone,
 					},
 					IntermediateCert: &IntermediateCertRequest{
-						Zone: zone,
+						Zone:               zone,
 						CertificateRequest: certificateRequest,
 					},
 				},
@@ -192,7 +191,6 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 			},
 		},
 	}
-
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {

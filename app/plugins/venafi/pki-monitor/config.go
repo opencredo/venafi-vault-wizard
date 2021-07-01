@@ -2,6 +2,7 @@ package pki_monitor
 
 import (
 	"fmt"
+	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/opencredo/venafi-vault-wizard/app/config/errors"
@@ -17,6 +18,8 @@ type VenafiPKIMonitorConfig struct {
 	// Version is not decoded directly by using the struct tags, and is instead populated by plugins.LookupPlugin
 	// when it is initialised
 	Version string
+	// BuildArch allows defining the build architecture
+	BuildArch string
 
 	Role Role `hcl:"role,block"`
 }
@@ -47,7 +50,11 @@ type Policy struct {
 }
 
 func (c *VenafiPKIMonitorConfig) ValidateConfig() error {
-	err := c.Role.Validate()
+	err := plugins.ValidateBuildArch(c.BuildArch)
+	if err != nil {
+		return err
+	}
+	err = c.Role.Validate()
 	if err != nil {
 		return err
 	}
@@ -138,6 +145,7 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
+	//TODO Add question for build architecture
 	role, err := askForRole(questioner)
 	if err != nil {
 		return err

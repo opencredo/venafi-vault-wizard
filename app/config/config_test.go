@@ -56,6 +56,24 @@ func TestNewConfig(t *testing.T) {
 			config:  invalidPKIMonitorConfigBlankImportPolicyZone,
 			wantErr: true,
 		},
+		"valid venafi-pki-backend with defined build arch": {
+			config:  validPKIBackendBuildArchConfig,
+			want:    validPKIBackendBuildArchConfigResult,
+			wantErr: false,
+		},
+		"valid venafi-pki-monitor with defined build arch": {
+			config:  validPKIMonitorBuildArchConfig,
+			want:    validPKIMonitorBuildArchConfigResult,
+			wantErr: false,
+		},
+		"invalid venafi-pki-backend with incorrect build arch": {
+			config:  invalidPKIBackendBuildArchConfig,
+			wantErr: true,
+		},
+		"invalid venafi-pki-monitor with incorrect build arch": {
+			config:  invalidPKIMonitorBuildArchConfig,
+			wantErr: true,
+		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -388,6 +406,176 @@ var validPKIMonitorConfigResult = &Config{
 	},
 }
 
+const validPKIBackendBuildArchConfig = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-backend" "venafi-pki" {
+  version = "v0.9.0"
+  build_arch = "linux86"
+  role "cloud" {
+    zone = "zone"
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+		zone = "zone1"
+      }
+    }
+  }
+}`
+
+var validPKIBackendBuildArchConfigResult = &Config{
+	Vault: VaultConfig{
+		VaultAddress: "http://localhost:8200",
+		VaultToken:   "root",
+		SSHConfig: []SSH{
+			{
+				Hostname: "localhost",
+				Username: "vagrant",
+				Password: "vagrant",
+				Port:     22,
+			},
+		},
+	},
+	Plugins: []plugins.PluginConfig{
+		{
+			Type:      "venafi-pki-backend",
+			MountPath: "venafi-pki",
+			Version:   "v0.9.0",
+			BuildArch: "linux86",
+			Config:    nil,
+			Impl: &pki_backend.VenafiPKIBackendConfig{
+				MountPath: "venafi-pki",
+				Version:   "v0.9.0",
+				BuildArch: "linux86",
+				Roles: []pki_backend.Role{
+					{
+						Name: "cloud",
+						Zone: "zone",
+						Secret: venafi.VenafiSecret{
+							Name: "cloud",
+							Cloud: &venafi.VenafiCloudConnection{
+								APIKey: "apikey",
+								Zone:   "zone1",
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
+const validPKIMonitorBuildArchConfig = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+  build_arch = "linux86"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy {
+	  zone = "zone"
+	}
+
+    import_policy {
+      zone = "zone2"
+    }
+
+	intermediate_certificate {
+      zone = "zone3"
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
+  }
+}`
+
+var validPKIMonitorBuildArchConfigResult = &Config{
+	Vault: VaultConfig{
+		VaultAddress: "http://localhost:8200",
+		VaultToken:   "root",
+		SSHConfig: []SSH{
+			{
+				Hostname: "localhost",
+				Username: "vagrant",
+				Password: "vagrant",
+				Port:     22,
+			},
+		},
+	},
+	Plugins: []plugins.PluginConfig{
+		{
+			Type:      "venafi-pki-monitor",
+			MountPath: "venafi-pki",
+			Version:   "v0.9.0",
+			BuildArch: "linux86",
+			Config:    nil,
+			Impl: &pki_monitor.VenafiPKIMonitorConfig{
+				MountPath: "venafi-pki",
+				Version:   "v0.9.0",
+				BuildArch: "linux86",
+				Role: pki_monitor.Role{
+					Name: "web_server",
+					EnforcementPolicy: &pki_monitor.Policy{
+						Zone: "zone",
+					},
+					ImportPolicy: &pki_monitor.Policy{
+						Zone: "zone2",
+					},
+					IntermediateCert: &pki_monitor.IntermediateCertRequest{
+						Zone: "zone3",
+						CertificateRequest: venafi.CertificateRequest{
+							CommonName:   "Vault SubCA",
+							OU:           "VVW",
+							Organisation: "VVW",
+							Locality:     "London",
+							Province:     "London",
+							Country:      "GB",
+							TTL:          "1h",
+						},
+					},
+					Secret: venafi.VenafiSecret{
+						Name: "cloud",
+						Cloud: &venafi.VenafiCloudConnection{
+							APIKey: "apikey",
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
 const invalidPKIBackendConfigNoRole = `
 vault {
   api_address = "http://localhost:8200"
@@ -596,6 +784,78 @@ plugin "venafi-pki-monitor" "venafi-pki" {
     allow_any_name = true
     ttl = "1h"
     max_ttl = "2h"
+  }
+}`
+
+const invalidPKIBackendBuildArchConfig = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-backend" "venafi-pki" {
+  version = "v0.9.0"
+  build_arch = "linux386"
+  role "cloud" {
+    zone = "zone"
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+		zone = "zone1"
+      }
+    }
+  }
+}`
+
+const invalidPKIMonitorBuildArchConfig = `
+vault {
+  api_address = "http://localhost:8200"
+  token = "root"
+
+  ssh {
+    hostname = "localhost"
+    username = "vagrant"
+    password = "vagrant"
+    port = 22
+  }
+}
+
+plugin "venafi-pki-monitor" "venafi-pki" {
+  version = "v0.9.0"
+  build_arch = "linux386"
+
+  role "web_server" {
+    secret "cloud" {
+      venafi_cloud {
+        apikey = "apikey"
+      }
+    }
+
+	enforcement_policy {
+	  zone = "zone"
+	}
+
+    import_policy {
+      zone = "zone2"
+    }
+
+	intermediate_certificate {
+      zone = "zone3"
+	  common_name = "Vault SubCA"
+	  ou = "VVW"
+	  organisation = "VVW"
+      locality = "London"
+      province = "London"
+      country = "GB"
+      ttl = "1h"
+	}
   }
 }`
 

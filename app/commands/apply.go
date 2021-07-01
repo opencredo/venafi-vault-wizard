@@ -18,6 +18,7 @@ func Apply(configuration *config.Config) {
 		return
 	}
 	defer closeFunc()
+
 	pluginDownloader := downloader.NewPluginDownloader()
 
 	// TODO: try to ascertain whether we have SSH connections to every replica
@@ -35,6 +36,15 @@ func Apply(configuration *config.Config) {
 	checkConfigSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
 
 	for _, plugin := range configuration.Plugins {
+		err = tasks.ResolveBuildArch(&tasks.ResolveBuildArchInput{
+			SSHClients:      sshClients,
+			PluginBuildArch: plugin.BuildArch,
+			Reporter:        report,
+		})
+		if err != nil {
+			return
+		}
+
 		pluginBytes, sha, err := tasks.DownloadPlugin(&tasks.DownloadPluginInput{
 			Downloader: pluginDownloader,
 			Reporter:   report,
