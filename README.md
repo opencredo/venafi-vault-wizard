@@ -21,7 +21,7 @@ This repository is home to the `venafi-vault-wizard` which can be used to verify
 - [Generating Config Files with the Step-by-Step Wizard](docs/config-generation.md)
 - [Example Environments](examples/README.md)
 
-## Usage
+## Introduction
 
 The tool centres around the use of a configuration file to declare what plugins should be installed to HashiCorp Vault, and how they should be configured.
 This file describes the desired state, and the tool uses it to make the required changes to achieve the desired state.
@@ -41,6 +41,7 @@ For `apply`, it specifies the configuration to read from, and to apply to the Va
 To quickly start exploring the use of the Venafi Vault Wizard, (VVW) a test environment with a VM running Vault can be easily set up using Vagrant.
 This will provide the VVW tool with a Vault server to install the [vault-pki-backend-venafi](https://github.com/Venafi/vault-pki-backend-venafi) and [vault-pki-monitor-venafi](https://github.com/Venafi/vault-pki-monitor-venafi) plugins.
 After they have been installed, certificates can be requested directly from the Vault instance.
+A Venafi TPP instance must be available, or alternatively Venafi-as-a-Service can be used with some minor modifications.
 
 First, build the Venafi Vault Wizard, (VVW) tool. The binary will be placed in `./bin` at the root of the project.
 
@@ -56,11 +57,30 @@ There is a `README.md` there which explains the setup in more detail.
 $ cd examples/single_node_cluster_vagrant
 ```
 
-Once the VVW tool has successfully completed the installation, a certificate can be requested from either plugin through Vault.
-Replace `venafi-pki/issue/tls` with whatever mount path and role name was configured in the `vvw.hcl` file used.
+Provision the test Vault server and set the required environment variables using the following commands, substituting the relevant information where appropriate.
+If using Venafi-as-a-Service, some tweaks will need to be made to the configuration file to remove the references to TPP.
+See the [configuration file documentation](docs/config-file-format.md) for more information on this.
 
 ```shell
-$ vault write venafi-pki/issue/tls common_name="test.example.com"
+$ vagrant up
+$ export VAULT_TOKEN="TOKEN PRINTED FROM VAGRANT HERE"
+$ export VAULT_ADDR="http://192.168.33.20:8200"
+$ export TPP_URL="YOUR TPP INSTANCE URL HERE"
+$ export TPP_USERNAME="YOUR TPP USERNAME HERE"
+$ export TPP_PASSWORD="YOUR TPP PASSWORD HERE"
+```
+
+When that has finished, run the VVW tool with the provided `vvw.hcl` configuration file:
+
+```shell
+$ ../../bin/vvw apply -f vvw.hcl
+```
+
+Once the VVW tool has successfully completed the installation, a certificate can be requested from either plugin through Vault.
+
+```shell
+$ vault write pki-monitor/issue/web_server common_name="test.example.com"
+$ vault write pki-backend/issue/tpp-backend common_name="test.example.com"
 ```
 
 ## Development

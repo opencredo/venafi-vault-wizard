@@ -2,6 +2,7 @@ package pki_monitor
 
 import (
 	"fmt"
+
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper/vcert_wrapper"
 
@@ -146,6 +147,8 @@ func (c *VenafiPKIMonitorConfig) Check(report reporter.Report, vaultClient api.V
 		if err != nil {
 			return err
 		}
+
+		fetchCertSection.Info(fmt.Sprintf("Certificates can be requested using:\nvault write %s common_name=\"test.example.com\"", roleIssuePath))
 	}
 	return nil
 }
