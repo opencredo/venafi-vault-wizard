@@ -7,30 +7,22 @@ vault {
 plugin "venafi-pki-monitor" "pki-monitor" {
   version = "v0.9.0"
 
-  # Uncomment if the container image names the plugin something other than the default
-  # filename = "venafi-pki-monitor-plugin"
-
   # A role called "web_server" can be used with:
   # vault write pki-monitor/issue/web_server common_name=test.test.test
   role "web_server" {
-    # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
-    secret "tpp" {
-      venafi_tpp {
-        url = env("TPP_URL")
-        username = env("TPP_USERNAME")
-        password = env("TPP_PASSWORD")
+
+    # Connection details for Venafi VaaS
+    # If using Venafi TPP, replace the venafi_cloud block with a venafi_tpp one and specify the "url", "username" and "password" attributes instead
+    secret "vaas" {
+      venafi_cloud {
+        apikey = env("VENAFI_API_KEY")
+        zone = "VVW Test\\VVW SubCA"
       }
     }
 
     # Policy to use to specify rules for issuing certificates
     enforcement_policy {
-      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault SubCA"
-    }
-
-    # Policy to send details of issued certificates to
-    import_policy {
-      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault Issued"
+      zone = "VVW Test\\VVW SubCA"
     }
 
     # Details of the root certificate with which to issue certificates
@@ -76,17 +68,16 @@ plugin "venafi-pki-monitor" "pki-monitor" {
 plugin "venafi-pki-backend" "pki-backend" {
   version = "v0.9.0"
 
-  # A role called "tpp-backend" can be used with:
+  # A role called "vaas-backend" can be used with:
   # vault write pki-backend/issue/tpp-backend common_name=test.test.test
-  role "tpp-backend" {
-    # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
-    secret "tpp" {
-      venafi_tpp {
-        url = env("TPP_URL")
-        username = env("TPP_USERNAME")
-        password = env("TPP_PASSWORD")
-        zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault PKI Backend"
+  role "vaas-backend" {
+
+    # Connection details for Venafi VaaS
+    # If using Venafi TPP, replace the venafi_cloud block with a venafi_tpp one and specify the "url", "username" and "password" attributes instead
+    secret "vaas" {
+      venafi_cloud {
+        apikey = env("VENAFI_API_KEY")
+        zone = "VVW Test\\VVW SubCA"
       }
     }
 
