@@ -16,8 +16,9 @@ plugin "venafi-pki-monitor" "pki-monitor" {
   # A role called "web_server" can be used with:
   # vault write pki-monitor/issue/web_server common_name=test.test.test
   role "web_server" {
-    # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
+
+    # Connection details for Venafi VaaS
+    # If using Venafi TPP, replace the venafi_cloud block with a venafi_tpp one and specify the "url", "username" and "password" attributes instead
     secret "vaas" {
       venafi_cloud {
         apikey = env("VENAFI_API_KEY")
@@ -73,11 +74,12 @@ plugin "venafi-pki-monitor" "pki-monitor" {
 plugin "venafi-pki-backend" "pki-backend" {
   version = "v0.9.0"
 
-  # A role called "tpp-backend" can be used with:
+  # A role called "vaas-backend" can be used with:
   # vault write pki-backend/issue/tpp-backend common_name=test.test.test
   role "vaas-backend" {
-    # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
+
+    # Connection details for Venafi VaaS
+    # If using Venafi TPP, replace the venafi_cloud block with a venafi_tpp one and specify the "url", "username" and "password" attributes instead
     secret "vaas" {
       venafi_cloud {
         apikey = env("VENAFI_API_KEY")
