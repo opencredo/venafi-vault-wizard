@@ -36,8 +36,8 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault Issued"
     }
 
-    # Details of the intermediate certificate with which to issue certificates
-    intermediate_certificate {
+    # Details of the root certificate with which to issue certificates
+    root_certificate {
       common_name = "Vault SubCA"
       ou = "OpenCredo"
       organisation = "VVW"
@@ -45,7 +45,6 @@ plugin "venafi-pki-monitor" "pki-monitor" {
       province = "London"
       country = "GB"
       ttl = "1h"
-      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault SubCA"
     }
 
     optional_config {
