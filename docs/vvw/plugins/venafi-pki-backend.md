@@ -83,15 +83,19 @@ The `secret` block must contain exactly one of the following blocks:
 * `url` - (Required)  A String specifying the URL of the API endpoint for the Venafi Trust Protection Platform, (TPP).
 * `username` - (Required) A string representing a TPP account username
 * `password` - (Required) A string representing a TPP account password
-  Avoid hardcoding this in the configuration file in case it gets leaked.
-  It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environment variable instead.
+
+~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
+It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environment variable instead.
+
 * `zone` - (Required) The path of the policy within TPP, from which certificates will be requested.
 
 ##### venafi_cloud
 
 * `apikey` - (Required) A String with an API Key with access to Venafi as a Service.
-  Avoid hardcoding this in the configuration file in case it gets leaked.
-  It is recommended to use `env("VENAFI_API_KEY")` to retrieve this from an environment variable instead.
+
+~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
+It is recommended to use `env("VENAFI_API_KEY")` to retrieve this from an environment variable instead.
+
 * `zone` - (Required) The project zone within Venafi as a Service from which certificates will be requested.
   The format is `Application Name\Issuing Template API Alias`.
 
@@ -100,10 +104,10 @@ The `secret` block must contain exactly one of the following blocks:
 An optional test certificate to request, in order to verify everything is configured correctly.
 The arguments correspond to the usual parameters found in a certificate signing request (CSR).
 
-* `common_name` - (Required)
-* `ou` - (Required)
-* `organisation` - (Required)
-* `locality` - (Required)
-* `province` - (Required)
-* `country` - (Required)
-* `ttl` - (Required)
+* `common_name` - (Required) The fully qualified domain name (FQDN) of your server.  For example `www.example.com`
+* `ou` - (Required) The legal name of your organization.
+* `organisation` - (Required) The division of your organization handling the certificate.
+* `locality` - (Required) The city where your organization is located.
+* `province` - (Required) The state/region where your organization is located
+* `country` - (Required) The two-letter code for the country where your organization is located.
+* `ttl` - (Required) The Time To Live for your certificate
