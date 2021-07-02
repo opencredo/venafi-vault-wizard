@@ -5,17 +5,17 @@ description: |-
 Venafi Vault Wizard plugin that installs the venafi-pki-backend Vault plugin to a Vault cluster.
 ---
 
-# Plugin: venfai-pki-backend
+# Plugin: venafi-pki-backend
 
-Configures the venafi-pki-backend plugin to be installed into a Vault cluster through the Venafi Vault Wizard. 
+Configures the `venafi-pki-backend` plugin to be installed into a Vault cluster through the Venafi Vault Wizard. 
 
 
 ## Example Usage
 
-The following example demonstrates the use of the venafi-pki-backend plugin configuration.
+The following example demonstrates the use of the `venafi-pki-backend` plugin configuration.
+The `version` argument is common to all plugins and is described in [the plugin block's documentation](../plugin.md).
 
 ```hcl
-
 plugin "venafi-pki-backend" "pki-backend" {
   version = "v0.9.0"
 
@@ -45,22 +45,18 @@ plugin "venafi-pki-backend" "pki-backend" {
     }
   }
 }
-
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `version` - (Required)
-
-* `role` - (Required)
-
-* `test_certificate` - (Optional) A test certificate request used to verify the plugin is configured correctly.
+* `role` - (Required) A block corresponding to a role within the plugin, from which certificates can be requested.
 
 ### role
 
-A role block is given a label that is then used to configure the plugins path
+A `role` block is given a label that specifies the role name.
+This is what will be used in the path, along with the mount path, to request certificates.
 
 ```hcl
 role "tpp-backend" {
@@ -70,29 +66,39 @@ role "tpp-backend" {
 $ vault write pki-backend/issue/tpp-backend common_name=test.test.test
 ```
 
-* `secret` - (Required)
-* `test_certificate` - (Optional)
+The `role` block supports the following blocks:
+
+* `secret` - (Required) The Venafi connection details
+* `test_certificate` - (Optional) Details to use to request a certificate from the role, in order to verify that it is configured correctly.
 
 #### secret
 
-* `venafi_tpp` - (Optional/Required for TPP backends)
-* `venafi_cloud` - (Optional/Required for Venafi Cloud)
+The `secret` block must contain exactly one of the following blocks:
+
+* `venafi_tpp` - Required when using Venafi's Trust Protection Platform
+* `venafi_cloud` - Required when using Venafi as a Service
 
 ##### venafi_tpp
 
-* `url` - (Required)  A String representing the URL endpoint for the Venafi Trust Protection Platform, (TPP).
+* `url` - (Required)  A String specifying the URL of the API endpoint for the Venafi Trust Protection Platform, (TPP).
 * `username` - (Required) A string representing a TPP account username
 * `password` - (Required) A string representing a TPP account password
-* `zone` - (Required)
+  Avoid hardcoding this in the configuration file in case it gets leaked.
+  It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environment variable instead.
+* `zone` - (Required) The path of the policy within TPP, from which certificates will be requested.
 
 ##### venafi_cloud
 
-* `apikey` - (Required) A string repsenting a Venafi Cloud generated APK Key.
-* `zone` - (Required)
+* `apikey` - (Required) A String with an API Key with access to Venafi as a Service.
+  Avoid hardcoding this in the configuration file in case it gets leaked.
+  It is recommended to use `env("VENAFI_API_KEY")` to retrieve this from an environment variable instead.
+* `zone` - (Required) The project zone within Venafi as a Service from which certificates will be requested.
+  The format is `Application Name\Issuing Template API Alias`.
 
 ### test_certificate
 
 An optional test certificate to request, in order to verify everything is configured correctly.
+The arguments correspond to the usual parameters found in a certificate signing request (CSR).
 
 * `common_name` - (Required)
 * `ou` - (Required)
