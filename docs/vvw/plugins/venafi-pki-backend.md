@@ -67,7 +67,7 @@ role "tpp-backend" {
   ...
 }
 
-vault write pki-backend/issue/tpp-backend common_name=test.test.test
+$ vault write pki-backend/issue/tpp-backend common_name=test.test.test
 ```
 
 * `secret` - (Required)
@@ -91,3 +91,13 @@ vault write pki-backend/issue/tpp-backend common_name=test.test.test
 * `zone` - (Required)
 
 ### test_certificate
+
+An optional test certificate to request, in order to verify everything is configured correctly.
+
+* `common_name` - (Required)
+* `ou` - (Required)
+* `organisation` - (Required)
+* `locality` - (Required)
+* `province` - (Required)
+* `country` - (Required)
+* `ttl` - (Required)
