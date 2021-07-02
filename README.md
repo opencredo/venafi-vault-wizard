@@ -20,6 +20,7 @@ This repository is home to the `venafi-vault-wizard` which can be used to verify
 - [Config File Syntax](docs/config-file-format.md)
 - [Generating Config Files with the Step-by-Step Wizard](docs/config-generation.md)
 - [Example Environments](examples/README.md)
+- [VVW Supported Plugins](docs/vvw/index.md)
 
 ## Introduction
 
@@ -68,12 +69,18 @@ $ export VAULT_ADDR="http://192.168.33.20:8200"
 $ export TPP_URL="YOUR TPP INSTANCE URL HERE"
 $ export TPP_USERNAME="YOUR TPP USERNAME HERE"
 $ export TPP_PASSWORD="YOUR TPP PASSWORD HERE"
+$ export VENAFI_API_KEY="YOUR VaaS API KEY"
 ```
 
 When that has finished, run the VVW tool with the provided `vvw.hcl` configuration file:
+There are two vvw HCL configuration files.  `tpp-vvw.hcl` for Trust Protection Platform and `vaas-vvw.hcl` for Venafi as a Service.
 
 ```shell
-$ ../../bin/vvw apply -f vvw.hcl
+$ ../../bin/vvw apply -f tpp-vvw.hcl
+```
+or for the Vass configuration
+```shell
+$ ../../bin/vvw apply -f vaas-vvw.hcl
 ```
 
 Once the VVW tool has successfully completed the installation, a certificate can be requested from either plugin through Vault.
@@ -81,6 +88,11 @@ Once the VVW tool has successfully completed the installation, a certificate can
 ```shell
 $ vault write pki-monitor/issue/web_server common_name="test.example.com"
 $ vault write pki-backend/issue/tpp-backend common_name="test.example.com"
+```
+or for the VaaS configuration
+```shell
+$ vault write pki-monitor/issue/web_server common_name="test.example.com"
+$ vault write pki-backend/issue/vaas-backend common_name="test.example.com"
 ```
 
 ## Development
