@@ -2,8 +2,8 @@
 
 This directory contains a number of test environments that can be used to spin up Vault clusters in various configurations.
 Each example contains a `README` explaining more about how it is built and executed.  Alongside the `README` each example also 
-contains two configuration files named `tpp-vvw.hcl` and `vaas-vvw.hcl`.  Each configuration allows VVW to be tested with either the Venafi Trust Proection Platform or Venafi as a Service.
-The aim to provide HCL configuration files that can be used as a guide and adapted to a similar scenarios.
+contains two configuration files named `tpp-vvw.hcl` and `vaas-vvw.hcl`.  Each configuration allows VVW to be tested with either the Venafi Trust Protection Platform or Venafi as a Service.
+The aim is to provide HCL configuration files that can be used as a guide and adapted to similar scenarios.
 For example, if someone wants to use the Venafi plugins with Vault running in Kubernetes, the HCL files in that example should be a good starting point.
 
 The currently supported test environments are:
