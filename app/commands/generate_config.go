@@ -128,6 +128,8 @@ func generateVaultConfig(questioner questions.Questioner) (*config.VaultConfig, 
 
 func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, error) {
 	var pluginBlocks []*hclwrite.Block
+	var buildArch string
+
 	for i := 1; true; i++ {
 		q := map[string]questions.Question{
 			"type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
@@ -140,17 +142,42 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			"mount_path": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 				Question: "Which Vault path should the plugin be mounted at?",
 			}),
+			"define_build": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Do you want to define the build architecture for the plugin?",
+				Items: []string{"Yes", "No, use default (Linux 64bit)"},
+			}),
+			"build_arch": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Which build architecture should be used?",
+				Items: []string{"Linux 64bit", "Linux 32bit", "Darwin (MacOS)"},
+			}),
 		}
 		err := questions.AskQuestions([]questions.Question{
 			q["type"],
 			q["version"],
 			q["mount_path"],
+			&questions.QuestionBranch{
+				ConditionQuestion: q["define_build"],
+				ConditionAnswer: "Yes",
+				BranchA: []questions.Question{
+					q["build_arch"],
+				},
+			},
 		})
 		if err != nil {
 			return nil, err
 		}
 		pluginType, version, mountPath := string(q["type"].Answer()), string(q["version"].Answer()), string(q["mount_path"].Answer())
 
+		if q["define_build"].Answer() == "Yes" {
+			switch osType := string(q["build_arch"].Answer()); osType {
+			case "Darwin (Mac OS)":
+				buildArch = "darwin"
+			case "Linux 64bit":
+				buildArch = "linux"
+			case "Linux 32bit":
+				buildArch = "linux86"
+			}
+		}
 		pluginImpl, err := lookup.GetPlugin(pluginType)
 		if err != nil {
 			return nil, err
@@ -159,6 +186,9 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 		pluginBlock := hclwrite.NewBlock("plugin", []string{pluginType, mountPath})
 		pluginBody := pluginBlock.Body()
 		pluginBody.SetAttributeValue("version", cty.StringVal(version))
+		if buildArch != "" {
+			pluginBody.SetAttributeValue("build_arch", cty.StringVal(buildArch))
+		}
 		err = pluginImpl.GenerateConfigAndWriteHCL(questioner, pluginBody)
 		if err != nil {
 			return nil, err

@@ -145,7 +145,6 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
-	//TODO Add question for build architecture
 	role, err := askForRole(questioner)
 	if err != nil {
 		return err
