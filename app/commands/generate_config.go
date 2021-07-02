@@ -142,13 +142,13 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			"mount_path": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 				Question: "Which Vault path should the plugin be mounted at?",
 			}),
-			"os_type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
-				Question: "Which OS type is Vault running on?",
-				Items: []string{"Linux", "Mac OS"},
+			"define_build": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Do you want to define the build architecture for the plugin?",
+				Items: []string{"Yes", "No, use default (Linux 64bit)"},
 			}),
-			"os_arch": questioner.NewClosedQuestion(&questions.ClosedQuestion{
-				Question: "Which OS architecture is used?",
-				Items: []string{"64bit", "32bit"},
+			"build_arch": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+				Question: "Which build architecture should be used?",
+				Items: []string{"Linux 64bit", "Linux 32bit", "Darwin (MacOS)"},
 			}),
 		}
 		err := questions.AskQuestions([]questions.Question{
@@ -156,10 +156,10 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			q["version"],
 			q["mount_path"],
 			&questions.QuestionBranch{
-				ConditionQuestion: q["os_type"],
-				ConditionAnswer: "Linux",
+				ConditionQuestion: q["define_build"],
+				ConditionAnswer: "Yes",
 				BranchA: []questions.Question{
-					q["os_arch"],
+					q["build_arch"],
 				},
 			},
 		})
@@ -168,13 +168,14 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 		}
 		pluginType, version, mountPath := string(q["type"].Answer()), string(q["version"].Answer()), string(q["mount_path"].Answer())
 
-		switch osType := string(q["os_type"].Answer()); osType {
-		case "Mac OS":
-			buildArch = "darwin"
-		case "Linux":
-			buildArch = "linux"
-			if string(q["os_arch"].Answer()) == "32bit" {
-				buildArch = buildArch + "86"
+		if q["define_build"].Answer() == "Yes" {
+			switch osType := string(q["build_arch"].Answer()); osType {
+			case "Darwin (Mac OS)":
+				buildArch = "darwin"
+			case "Linux 64bit":
+				buildArch = "linux"
+			case "Linux 32bit":
+				buildArch = "linux86"
 			}
 		}
 		pluginImpl, err := lookup.GetPlugin(pluginType)
@@ -185,7 +186,9 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 		pluginBlock := hclwrite.NewBlock("plugin", []string{pluginType, mountPath})
 		pluginBody := pluginBlock.Body()
 		pluginBody.SetAttributeValue("version", cty.StringVal(version))
-		pluginBody.SetAttributeValue("build_arch", cty.StringVal(buildArch))
+		if buildArch != "" {
+			pluginBody.SetAttributeValue("build_arch", cty.StringVal(buildArch))
+		}
 		err = pluginImpl.GenerateConfigAndWriteHCL(questioner, pluginBody)
 		if err != nil {
 			return nil, err

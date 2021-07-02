@@ -84,7 +84,6 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 }
 
 func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
-	//TODO Add question for build architecture
 	for i := 1; true; i++ {
 		role, err := askForRole(questioner)
 		if err != nil {

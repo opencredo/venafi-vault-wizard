@@ -5,7 +5,8 @@ Are the plugin binaries already included in the server's image,Yes,ClosedQuestio
 Which plugin would you like to configure,venafi-pki-backend,ClosedQuestion
 Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
 Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
-Do you want to define the build architecture for the plugin?,"No, use default (Linux 64bit)",ClosedQuestion
+Do you want to define the build architecture for the plugin?,Yes,ClosedQuestion
+Which build architecture should be used?,"Linux 32bit",ClosedQuestion
 What should the role be called?,web,OpenEndedQuestion
 What type of Venafi instance will be used?,Venafi-as-a-Service,ClosedQuestion
 What is the Venafi-as-a-Service API Key?,venafiAPIKey,OpenEndedQuestion

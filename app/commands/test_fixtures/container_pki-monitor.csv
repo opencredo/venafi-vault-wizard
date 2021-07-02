@@ -5,6 +5,7 @@ Are the plugin binaries already included in the server's image,Yes,ClosedQuestio
 Which plugin would you like to configure,venafi-pki-monitor,ClosedQuestion
 Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
 Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
+Do you want to define the build architecture for the plugin?,"No, use default (Linux 64bit)",ClosedQuestion
 What should the role be called?,web,OpenEndedQuestion
 What is the URL of the TPP instance?,tpp.com,OpenEndedQuestion
 What is the username used to access the TPP instance?,admin,OpenEndedQuestion

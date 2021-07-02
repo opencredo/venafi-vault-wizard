@@ -144,6 +144,40 @@ func TestGenerateConfig(t *testing.T) {
 				},
 			},
 		},
+		"container pki-backend build linux86": {
+			questionsCSVFilename: "test_fixtures/container_pki-backend_build_linux86.csv",
+			expectedConfig: &config.Config{
+				Vault: config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+				},
+				Plugins: []plugins.PluginConfig{
+					{
+						Type:      "venafi-pki-backend",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						BuildArch: "linux86",
+						Impl: &pki_backend.VenafiPKIBackendConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							BuildArch: "linux86",
+							Roles: []pki_backend.Role{
+								{
+									Name: "web",
+									Secret: venafi.VenafiSecret{
+										Name: "vaas",
+										Cloud: &venafi.VenafiCloudConnection{
+											APIKey: "venafiAPIKey",
+											Zone:   "projectzoneID",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"container pki-monitor": {
 			questionsCSVFilename: "test_fixtures/container_pki-monitor.csv",
 			expectedConfig: &config.Config{
@@ -159,6 +193,57 @@ func TestGenerateConfig(t *testing.T) {
 						Impl: &pki_monitor.VenafiPKIMonitorConfig{
 							MountPath: "pki",
 							Version:   "v0.9.0",
+							Role: pki_monitor.Role{
+								Name: "web",
+								Secret: venafi.VenafiSecret{
+									Name: "tpp",
+									TPP: &venafi.VenafiTPPConnection{
+										URL:      "tpp.com",
+										Username: "admin",
+										Password: "password",
+									},
+								},
+								EnforcementPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								ImportPolicy: &pki_monitor.Policy{
+									Zone: "policy folder\\\\policy",
+								},
+								IntermediateCert: &pki_monitor.IntermediateCertRequest{
+									Zone: "policy folder\\\\policy",
+									CertificateRequest: venafi.CertificateRequest{
+										CommonName:   "cn",
+										OU:           "ou",
+										Organisation: "organisation",
+										Locality:     "l",
+										Province:     "p",
+										Country:      "c",
+										TTL:          "3h",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"container pki-monitor build darwin": {
+			questionsCSVFilename: "test_fixtures/container_pki-monitor_build_darwin.csv",
+			expectedConfig: &config.Config{
+				Vault: config.VaultConfig{
+					VaultAddress: "http://localhost:8200",
+					VaultToken:   "root",
+				},
+				Plugins: []plugins.PluginConfig{
+					{
+						Type:      "venafi-pki-monitor",
+						Version:   "v0.9.0",
+						MountPath: "pki",
+						BuildArch: "darwin",
+						Impl: &pki_monitor.VenafiPKIMonitorConfig{
+							MountPath: "pki",
+							Version:   "v0.9.0",
+							BuildArch: "darwin",
 							Role: pki_monitor.Role{
 								Name: "web",
 								Secret: venafi.VenafiSecret{
