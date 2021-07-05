@@ -19,9 +19,9 @@ The `version` argument is common to all plugins and is described in [the plugin 
 plugin "venafi-pki-backend" "pki-backend" {
   version = "v0.9.0"
 
-  # A role called "tpp-backend" can be used with:
-  # vault write pki-backend/issue/tpp-backend common_name=test.test.test
-  role "tpp-backend" {
+  # A role called "web_server" can be used with:
+  # vault write pki-backend/issue/web_server common_name=test.test.test
+  role "web_server" {
     # Connection details for Venafi TPP
     # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
     secret "tpp" {
@@ -59,11 +59,11 @@ A `role` block is given a label that specifies the role name.
 This is what will be used in the path, along with the mount path, to request certificates.
 
 ```hcl
-role "tpp-backend" {
+role "web_server" {
   ...
 }
 
-$ vault write pki-backend/issue/tpp-backend common_name=test.test.test
+$ vault write pki-backend/issue/web_server common_name=test.test.test
 ```
 
 The `role` block supports the following blocks:

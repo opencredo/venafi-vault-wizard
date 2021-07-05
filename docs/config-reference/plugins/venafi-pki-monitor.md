@@ -85,11 +85,11 @@ A `role` block is given a label that specifies the role name.
 This is what will be used in the path, along with the mount path, to request certificates.
 
 ```hcl
-role "tpp-backend" {
+role "web_server" {
   ...
 }
 
-$ vault write pki-backend/issue/tpp-backend common_name=test.test.test
+$ vault write pki-backend/issue/web_server common_name=test.test.test
 ```
 
 The `role` block supports the following blocks:
