@@ -67,7 +67,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	testCases := map[string]struct {
 		config VenafiPKIBackendConfig
 	}{
-		"pki-backend cloud config": {
+		"pki-backend vaas config": {
 			config: VenafiPKIBackendConfig{
 				MountPath: pluginMountPath,
 				Roles: []Role{
@@ -76,7 +76,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 						Zone: zone,
 						Secret: venafi.VenafiSecret{
 							Name: secretName,
-							Cloud: &venafi.VenafiCloudConnection{
+							VAAS: &venafi.VenafiVAASConnection{
 								APIKey: apiKey,
 							},
 						},

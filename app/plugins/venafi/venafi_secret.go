@@ -57,9 +57,9 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 }
 
 type VenafiSecret struct {
-	Name  string                 `hcl:"name,label"`
-	Cloud *VenafiCloudConnection `hcl:"venafi_cloud,block"`
-	TPP   *VenafiTPPConnection   `hcl:"venafi_tpp,block"`
+	Name string                `hcl:"name,label"`
+	VAAS *VenafiVAASConnection `hcl:"venafi_vaas,block"`
+	TPP  *VenafiTPPConnection  `hcl:"venafi_tpp,block"`
 }
 
 type VenafiConnectionConfig interface {
@@ -67,19 +67,19 @@ type VenafiConnectionConfig interface {
 }
 
 func (v *VenafiSecret) Validate(pluginType PluginType) error {
-	cloudConnectionProvided := v.Cloud != nil
+	vaasConnectionProvided := v.VAAS != nil
 	tppConnectionProvided := v.TPP != nil
 
-	// Ensure only one of Cloud or TPP is defined
-	if (cloudConnectionProvided && tppConnectionProvided) || (!cloudConnectionProvided && !tppConnectionProvided) {
-		return fmt.Errorf("error, must provide exactly one of Cloud or TPP connection details: %w", errors.ErrConflictingBlocks)
+	// Ensure only one of VAAS or TPP is defined
+	if (vaasConnectionProvided && tppConnectionProvided) || (!vaasConnectionProvided && !tppConnectionProvided) {
+		return fmt.Errorf("error, must provide exactly one of VAAS or TPP connection details: %w", errors.ErrConflictingBlocks)
 	}
 
-	if cloudConnectionProvided {
-		if pluginType == SecretsEngine && v.Cloud.Zone == "" {
+	if vaasConnectionProvided {
+		if pluginType == SecretsEngine && v.VAAS.Zone == "" {
 			return fmt.Errorf("error, zone must be specified in secret")
 		}
-		return v.Cloud.Validate()
+		return v.VAAS.Validate()
 	}
 
 	if tppConnectionProvided {
@@ -93,12 +93,12 @@ func (v *VenafiSecret) Validate(pluginType PluginType) error {
 }
 
 func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
-	if v.Cloud != nil {
+	if v.VAAS != nil {
 		m := map[string]interface{}{
-			"apikey": v.Cloud.APIKey,
+			"apikey": v.VAAS.APIKey,
 		}
-		if v.Cloud.Zone != "" {
-			m["zone"] = v.Cloud.Zone
+		if v.VAAS.Zone != "" {
+			m["zone"] = v.VAAS.Zone
 		}
 		return m, nil
 	}
@@ -126,13 +126,13 @@ func (v *VenafiSecret) WriteHCL(hclBody *hclwrite.Body) {
 		v.TPP.WriteHCL(secretBody)
 		return
 	}
-	if v.Cloud != nil {
-		v.Cloud.WriteHCL(secretBody)
+	if v.VAAS != nil {
+		v.VAAS.WriteHCL(secretBody)
 		return
 	}
 }
 
-type VenafiCloudConnection struct {
+type VenafiVAASConnection struct {
 	APIKey string `hcl:"apikey"`
 	Zone   string `hcl:"zone,optional"`
 }
@@ -144,19 +144,19 @@ type VenafiTPPConnection struct {
 	Zone     string `hcl:"zone,optional"`
 }
 
-func (c *VenafiCloudConnection) Validate() error {
+func (c *VenafiVAASConnection) Validate() error {
 	if c.APIKey == "" {
 		return fmt.Errorf("error with Venafi API key: %w", errors.ErrBlankParam)
 	}
 	return nil
 }
 
-func (c *VenafiCloudConnection) WriteHCL(hclBody *hclwrite.Body) {
-	cloudBlock := hclBody.AppendNewBlock("venafi_cloud", nil)
-	cloudBody := cloudBlock.Body()
-	generate.WriteStringAttributeToHCL("apikey", c.APIKey, cloudBody)
+func (c *VenafiVAASConnection) WriteHCL(hclBody *hclwrite.Body) {
+	vaasBlock := hclBody.AppendNewBlock("venafi_vaas", nil)
+	vaasBody := vaasBlock.Body()
+	generate.WriteStringAttributeToHCL("apikey", c.APIKey, vaasBody)
 	if c.Zone != "" {
-		generate.WriteStringAttributeToHCL("zone", c.Zone, cloudBody)
+		generate.WriteStringAttributeToHCL("zone", c.Zone, vaasBody)
 	}
 }
 

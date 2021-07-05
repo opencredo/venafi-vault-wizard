@@ -109,14 +109,14 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 	testCases := map[string]struct {
 		config VenafiPKIMonitorConfig
 	}{
-		"pki-monitor cloud enforcement intermediate config": {
+		"pki-monitor VaaS enforcement intermediate config": {
 			config: VenafiPKIMonitorConfig{
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
 					Secret: venafi.VenafiSecret{
 						Name: secretName,
-						Cloud: &venafi.VenafiCloudConnection{
+						VAAS: &venafi.VenafiVAASConnection{
 							APIKey: apiKey,
 						},
 					},
@@ -130,14 +130,14 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				},
 			},
 		},
-		"pki-monitor cloud enforcement root config": {
+		"pki-monitor VaaS enforcement root config": {
 			config: VenafiPKIMonitorConfig{
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
 					Secret: venafi.VenafiSecret{
 						Name: secretName,
-						Cloud: &venafi.VenafiCloudConnection{
+						VAAS: &venafi.VenafiVAASConnection{
 							APIKey: apiKey,
 						},
 					},
@@ -148,14 +148,14 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				},
 			},
 		},
-		"pki-monitor cloud enforcement import root config": {
+		"pki-monitor VaaS enforcement import root config": {
 			config: VenafiPKIMonitorConfig{
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
 					Secret: venafi.VenafiSecret{
 						Name: secretName,
-						Cloud: &venafi.VenafiCloudConnection{
+						VAAS: &venafi.VenafiVAASConnection{
 							APIKey: apiKey,
 						},
 					},

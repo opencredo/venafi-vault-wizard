@@ -171,7 +171,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		}
 	case "Venafi-as-a-Service":
 		role.Secret.Name = "vaas"
-		role.Secret.Cloud = &venafi.VenafiCloudConnection{
+		role.Secret.VAAS = &venafi.VenafiVAASConnection{
 			APIKey: string(q["apikey"].Answer()),
 			Zone:   string(q["zone"].Answer()),
 		}
