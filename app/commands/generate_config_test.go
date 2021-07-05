@@ -54,7 +54,7 @@ func TestGenerateConfig(t *testing.T) {
 									Name: "web",
 									Secret: venafi.VenafiSecret{
 										Name: "vaas",
-										VAAS: &venafi.VenafiVAASConnection{
+										VaaS: &venafi.VenafiVaaSConnection{
 											APIKey: "venafiAPIKey",
 											Zone:   "projectzoneID",
 										},
@@ -100,7 +100,7 @@ func TestGenerateConfig(t *testing.T) {
 									Name: "web",
 									Secret: venafi.VenafiSecret{
 										Name: "vaas",
-										VAAS: &venafi.VenafiVAASConnection{
+										VaaS: &venafi.VenafiVaaSConnection{
 											APIKey: "venafiAPIKey",
 											Zone:   "projectzoneID",
 										},
@@ -132,7 +132,7 @@ func TestGenerateConfig(t *testing.T) {
 									Name: "web",
 									Secret: venafi.VenafiSecret{
 										Name: "vaas",
-										VAAS: &venafi.VenafiVAASConnection{
+										VaaS: &venafi.VenafiVaaSConnection{
 											APIKey: "venafiAPIKey",
 											Zone:   "projectzoneID",
 										},
@@ -166,7 +166,7 @@ func TestGenerateConfig(t *testing.T) {
 									Name: "web",
 									Secret: venafi.VenafiSecret{
 										Name: "vaas",
-										VAAS: &venafi.VenafiVAASConnection{
+										VaaS: &venafi.VenafiVaaSConnection{
 											APIKey: "venafiAPIKey",
 											Zone:   "projectzoneID",
 										},

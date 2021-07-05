@@ -2,6 +2,8 @@ package vcert_wrapper
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/Venafi/vcert/v4"
 	"github.com/Venafi/vcert/v4/pkg/certificate"
 	"github.com/Venafi/vcert/v4/pkg/endpoint"
@@ -9,7 +11,6 @@ import (
 	"github.com/Venafi/vcert/v4/pkg/venafi/tpp"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
-	"net/http"
 )
 
 type venafiClient struct {
@@ -20,11 +21,11 @@ type venafiClient struct {
 func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.VenafiWrapper, error) {
 	var config vcert.Config
 
-	if secret.VAAS != nil {
+	if secret.VaaS != nil {
 		config = vcert.Config{
 			ConnectorType: endpoint.ConnectorTypeCloud,
 			Credentials: &endpoint.Authentication{
-				APIKey: secret.VAAS.APIKey,
+				APIKey: secret.VaaS.APIKey,
 			},
 			Zone: zone,
 			// Specify the DefaultClient otherwise vcert_wrapper creates its own HTTP Client and for some reason this replaces
@@ -52,7 +53,7 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 	if config.ConnectorType == endpoint.ConnectorTypeCloud {
 		vaasConnector, ok := client.(*cloud.Connector)
 		if !ok {
-			return nil, fmt.Errorf("cannot cast client to VAAS Connector")
+			return nil, fmt.Errorf("cannot cast client to VaaS Connector")
 		}
 
 		return &venafiClient{

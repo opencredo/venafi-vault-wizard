@@ -2,6 +2,7 @@ package pki_backend
 
 import (
 	"fmt"
+
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -171,7 +172,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		}
 	case "Venafi-as-a-Service":
 		role.Secret.Name = "vaas"
-		role.Secret.VAAS = &venafi.VenafiVAASConnection{
+		role.Secret.VaaS = &venafi.VenafiVaaSConnection{
 			APIKey: string(q["apikey"].Answer()),
 			Zone:   string(q["zone"].Answer()),
 		}

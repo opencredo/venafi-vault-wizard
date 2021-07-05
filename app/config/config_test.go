@@ -17,9 +17,9 @@ func TestNewConfig(t *testing.T) {
 		want    *Config
 		wantErr bool
 	}{
-		"valid venafi-pki-backend with VAAS": {
-			config:  validPKIBackendVAASConfig,
-			want:    validPKIBackendVAASConfigResult,
+		"valid venafi-pki-backend with VaaS": {
+			config:  validPKIBackendVaaSConfig,
+			want:    validPKIBackendVaaSConfigResult,
 			wantErr: false,
 		},
 		"valid venafi-pki-backend with TPP": {
@@ -97,7 +97,7 @@ func TestNewConfig(t *testing.T) {
 	}
 }
 
-const validPKIBackendVAASConfig = `
+const validPKIBackendVaaSConfig = `
 vault {
   api_address = "http://localhost:8200"
   token = "root"
@@ -134,7 +134,7 @@ plugin "venafi-pki-backend" "venafi-pki" {
 }
 `
 
-var validPKIBackendVAASConfigResult = &Config{
+var validPKIBackendVaaSConfigResult = &Config{
 	Vault: VaultConfig{
 		VaultAddress: "http://localhost:8200",
 		VaultToken:   "root",
@@ -162,7 +162,7 @@ var validPKIBackendVAASConfigResult = &Config{
 						Zone: "zone",
 						Secret: venafi.VenafiSecret{
 							Name: "vaas",
-							VAAS: &venafi.VenafiVAASConnection{
+							VaaS: &venafi.VenafiVaaSConnection{
 								APIKey: "apikey",
 								Zone:   "zone1",
 							},
@@ -380,7 +380,7 @@ var validPKIMonitorConfigResult = &Config{
 					},
 					Secret: venafi.VenafiSecret{
 						Name: "vaas",
-						VAAS: &venafi.VenafiVAASConnection{
+						VaaS: &venafi.VenafiVaaSConnection{
 							APIKey: "apikey",
 						},
 					},
@@ -463,7 +463,7 @@ var validPKIBackendBuildArchConfigResult = &Config{
 						Zone: "zone",
 						Secret: venafi.VenafiSecret{
 							Name: "vaas",
-							VAAS: &venafi.VenafiVAASConnection{
+							VaaS: &venafi.VenafiVaaSConnection{
 								APIKey: "apikey",
 								Zone:   "zone1",
 							},
@@ -566,7 +566,7 @@ var validPKIMonitorBuildArchConfigResult = &Config{
 					},
 					Secret: venafi.VenafiSecret{
 						Name: "vaas",
-						VAAS: &venafi.VenafiVAASConnection{
+						VaaS: &venafi.VenafiVaaSConnection{
 							APIKey: "apikey",
 						},
 					},
