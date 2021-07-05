@@ -144,11 +144,11 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			}),
 			"define_build": questioner.NewClosedQuestion(&questions.ClosedQuestion{
 				Question: "Do you want to define the build architecture for the plugin?",
-				Items: []string{"Yes", "No, use default (Linux 64bit)"},
+				Items:    []string{"Yes", "No, use default (Linux 64bit)"},
 			}),
 			"build_arch": questioner.NewClosedQuestion(&questions.ClosedQuestion{
 				Question: "Which build architecture should be used?",
-				Items: []string{"Linux 64bit", "Linux 32bit", "Darwin (MacOS)"},
+				Items:    []string{"Linux 64bit", "Linux 32bit", "Darwin (MacOS)"},
 			}),
 		}
 		err := questions.AskQuestions([]questions.Question{
@@ -157,7 +157,7 @@ func generatePluginsConfig(questioner questions.Questioner) ([]*hclwrite.Block, 
 			q["mount_path"],
 			&questions.QuestionBranch{
 				ConditionQuestion: q["define_build"],
-				ConditionAnswer: "Yes",
+				ConditionAnswer:   "Yes",
 				BranchA: []questions.Question{
 					q["build_arch"],
 				},

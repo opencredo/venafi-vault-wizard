@@ -196,11 +196,9 @@ func TestGenerateConfig(t *testing.T) {
 							Role: pki_monitor.Role{
 								Name: "web",
 								Secret: venafi.VenafiSecret{
-									Name: "tpp",
-									TPP: &venafi.VenafiTPPConnection{
-										URL:      "tpp.com",
-										Username: "admin",
-										Password: "password",
+									Name: "vaas",
+									VaaS: &venafi.VenafiVaaSConnection{
+										APIKey: "venafiAPIKey",
 									},
 								},
 								EnforcementPolicy: &pki_monitor.Policy{
