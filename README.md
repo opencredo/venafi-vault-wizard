@@ -6,7 +6,7 @@
 -	Venafi Cloud: https://www.venafi.com/venaficloud
 -	HashiCorp Discuss: https://discuss.hashicorp.com/c/vault/30
 
-This repository is home to the `venafi-vault-wizard` which can be used to verify the setup of HashiCorp Vault with Venafi-as-a-Service and TPP.
+This repository is home to the `venafi-vault-wizard` which can be used to verify the setup of HashiCorp Vault with Venafi as a Service and TPP.
 
 ## Requirements
 
