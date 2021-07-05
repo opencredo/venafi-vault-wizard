@@ -2,6 +2,7 @@ package pki_monitor
 
 import (
 	"fmt"
+
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -161,6 +162,10 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		"role_name": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What should the role be called?",
 		}),
+		"venafi_type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
+			Question: "What type of Venafi instance will be used?",
+			Items:    []string{"TPP", "Venafi as a Service"},
+		}),
 		"tpp_url": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the URL of the TPP instance?",
 			Default:  "$TPP_URL",
@@ -172,6 +177,10 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		"tpp_password": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the password of the TPP user?",
 			Default:  "$TPP_PASSWORD",
+		}),
+		"apikey": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
+			Question: "What is the Venafi as a Service API Key?",
+			Default:  "$VENAFI_APIKEY",
 		}),
 		"enforce_policy": questioner.NewClosedQuestion(&questions.ClosedQuestion{
 			Question: "Would you like Vault to enforce a certificate policy from Venafi?",
@@ -198,9 +207,18 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 
 	err := questions.AskQuestions([]questions.Question{
 		q["role_name"],
-		q["tpp_url"],
-		q["tpp_user"],
-		q["tpp_password"],
+		&questions.QuestionBranch{
+			ConditionQuestion: q["venafi_type"],
+			ConditionAnswer:   "TPP",
+			BranchA: []questions.Question{
+				q["tpp_url"],
+				q["tpp_user"],
+				q["tpp_password"],
+			},
+			BranchB: []questions.Question{
+				q["apikey"],
+			},
+		},
 		&questions.QuestionBranch{
 			ConditionQuestion: q["enforce_policy"],
 			ConditionAnswer:   "Yes",
@@ -233,14 +251,22 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 
 	role := &Role{
 		Name: string(q["role_name"].Answer()),
-		Secret: venafi.VenafiSecret{
-			Name: "tpp",
-			TPP: &venafi.VenafiTPPConnection{
-				URL:      string(q["tpp_url"].Answer()),
-				Username: string(q["tpp_user"].Answer()),
-				Password: string(q["tpp_password"].Answer()),
-			},
-		},
+	}
+	switch q["venafi_type"].Answer() {
+	case "TPP":
+		role.Secret.Name = "tpp"
+		role.Secret.TPP = &venafi.VenafiTPPConnection{
+			URL:      string(q["tpp_url"].Answer()),
+			Username: string(q["tpp_user"].Answer()),
+			Password: string(q["tpp_password"].Answer()),
+		}
+	case "Venafi as a Service":
+		role.Secret.Name = "vaas"
+		role.Secret.VaaS = &venafi.VenafiVaaSConnection{
+			APIKey: string(q["apikey"].Answer()),
+		}
+	default:
+		panic("unimplemented Venafi secret type, expected TPP or Venafi as a Service")
 	}
 
 	if q["enforce_policy"].Answer() == "Yes" {

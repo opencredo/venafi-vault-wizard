@@ -7,9 +7,8 @@ Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
 Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
 Do you want to define the build architecture for the plugin?,"No, use default (Linux 64bit)",ClosedQuestion
 What should the role be called?,web,OpenEndedQuestion
-What is the URL of the TPP instance?,tpp.com,OpenEndedQuestion
-What is the username used to access the TPP instance?,admin,OpenEndedQuestion
-What is the password of the TPP user?,password,OpenEndedQuestion
+What type of Venafi instance will be used?,Venafi as a Service,ClosedQuestion
+What is the Venafi as a Service API Key?,venafiAPIKey,OpenEndedQuestion
 Would you like Vault to enforce a certificate policy from Venafi?,Yes,ClosedQuestion
 Which Venafi policy should be used?,policy folder\\policy,OpenEndedQuestion
 Should the same policy be used to import policies for visibility?,"No, use a separate policy",ClosedQuestion
