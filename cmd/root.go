@@ -13,6 +13,8 @@ import (
 func NewRootCommand() *cobra.Command {
 	var configFile string
 
+	cobra.EnableCommandSorting = false
+
 	rootCmd := &cobra.Command{
 		Use:   "vvw",
 		Short: "Venafi Vault Wizard",
@@ -20,6 +22,16 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	setUpGlobalFlags(rootCmd, &configFile)
+
+	generateConfigCmd := &cobra.Command{
+		Use:   "generate-config",
+		Short: "Generates config file based on asking questions",
+		Long:  "Builds up a config file suitable for use with the apply command by asking questions about the Vault setup",
+		Run: func(_ *cobra.Command, _ []string) {
+			questioner := prompter.NewPrompter()
+			commands.GenerateConfig(configFile, questioner)
+		},
+	}
 
 	applyCmd := &cobra.Command{
 		Use:   "apply",
@@ -37,18 +49,8 @@ func NewRootCommand() *cobra.Command {
 		},
 	}
 
-	generateConfigCmd := &cobra.Command{
-		Use:   "generate-config",
-		Short: "Generates config file based on asking questions",
-		Long:  "Builds up a config file suitable for use with the apply command by asking questions about the Vault setup",
-		Run: func(_ *cobra.Command, _ []string) {
-			questioner := prompter.NewPrompter()
-			commands.GenerateConfig(configFile, questioner)
-		},
-	}
-
-	rootCmd.AddCommand(applyCmd)
 	rootCmd.AddCommand(generateConfigCmd)
+	rootCmd.AddCommand(applyCmd)
 
 	return rootCmd
 }

@@ -2,6 +2,7 @@ package pki_backend
 
 import (
 	"fmt"
+
 	"github.com/opencredo/venafi-vault-wizard/app/github"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi"
 	"github.com/opencredo/venafi-vault-wizard/app/plugins/venafi/venafi_wrapper"
@@ -94,6 +95,8 @@ func (c *VenafiPKIBackendConfig) Check(report reporter.Report, vaultClient api.V
 				return err
 			}
 		}
+
+		fetchCertSection.Info(fmt.Sprintf("Certificates can be requested using:\nvault write %s common_name=\"test.example.com\"", roleIssuePath))
 	}
 	return nil
 }

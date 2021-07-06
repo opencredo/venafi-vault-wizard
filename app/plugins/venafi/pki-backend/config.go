@@ -115,7 +115,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 		}),
 		"venafi_type": questioner.NewClosedQuestion(&questions.ClosedQuestion{
 			Question: "What type of Venafi instance will be used?",
-			Items:    []string{"TPP", "Venafi-as-a-Service"},
+			Items:    []string{"TPP", "Venafi as a Service"},
 		}),
 		"tpp_url": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
 			Question: "What is the URL of the TPP instance?",
@@ -130,7 +130,7 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 			Default:  "$TPP_PASSWORD",
 		}),
 		"apikey": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
-			Question: "What is the Venafi-as-a-Service API Key?",
+			Question: "What is the Venafi as a Service API Key?",
 			Default:  "$VENAFI_APIKEY",
 		}),
 		"zone": questioner.NewOpenEndedQuestion(&questions.OpenEndedQuestion{
@@ -169,14 +169,14 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 			Password: string(q["tpp_password"].Answer()),
 			Zone:     string(q["zone"].Answer()),
 		}
-	case "Venafi-as-a-Service":
+	case "Venafi as a Service":
 		role.Secret.Name = "vaas"
 		role.Secret.Cloud = &venafi.VenafiCloudConnection{
 			APIKey: string(q["apikey"].Answer()),
 			Zone:   string(q["zone"].Answer()),
 		}
 	default:
-		panic("unimplemented Venafi secret type, expected TPP or Venafi-as-a-Service")
+		panic("unimplemented Venafi secret type, expected TPP or Venafi as a Service")
 	}
 
 	optionalConfig, err := venafi.GenerateOptionalQuestions(questioner)

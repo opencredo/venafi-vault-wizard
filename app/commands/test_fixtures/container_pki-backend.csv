@@ -7,8 +7,8 @@ Which version of the plugin would you like to use?,v0.9.0,OpenEndedQuestion
 Which Vault path should the plugin be mounted at?,pki,OpenEndedQuestion
 Do you want to define the build architecture for the plugin?,"No, use default (Linux 64bit)",ClosedQuestion
 What should the role be called?,web,OpenEndedQuestion
-What type of Venafi instance will be used?,Venafi-as-a-Service,ClosedQuestion
-What is the Venafi-as-a-Service API Key?,venafiAPIKey,OpenEndedQuestion
+What type of Venafi instance will be used?,Venafi as a Service,ClosedQuestion
+What is the Venafi as a Service API Key?,venafiAPIKey,OpenEndedQuestion
 What project zone should be used for issuing certificates?,projectzoneID,OpenEndedQuestion
 Do you want to configure optional parameters?,"No",ClosedQuestion
 Would you like to request any test certificates to check everything is working?,"No, skip",ClosedQuestion
