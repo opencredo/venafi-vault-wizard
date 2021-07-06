@@ -1,10 +1,3 @@
----
-layout: "venafi-vault-wizard"
-page_title: "VVW: venafi-pki-monitor"
-description: |-
-Venafi Vault Wizard plugin that installs the venafi-pki-monitor Vault plugin to a Vault cluster.
----
-
 # Plugin: venfai-pki-monitor
 
 Configures the `venafi-pki-monitor` plugin to be installed into a Vault cluster through the Venafi Vault Wizard.
@@ -23,7 +16,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
   # vault write pki-monitor/issue/web_server common_name=test.test.test
   role "web_server" {
     # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
+    # If using Venafi as a Service, replace the venafi_tpp block with a venafi_vaas one and specify the "apikey" attribute instead
     secret "tpp" {
       venafi_tpp {
         url = env("TPP_URL")
@@ -106,7 +99,7 @@ The `role` block supports the following blocks:
 The `secret` block must contain exactly one of the following blocks:
 
 * `venafi_tpp` - Required when using Venafi's Trust Protection Platform
-* `venafi_cloud` - Required when using Venafi as a Service
+* `venafi_vaas` - Required when using Venafi as a Service
 
 ##### venafi_tpp
 
@@ -119,7 +112,7 @@ It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environm
 
 * `zone` - (Required) The path of the policy within TPP, from which certificates will be requested.
 
-##### venafi_cloud
+##### venafi_vaas
 
 * `apikey` - (Required) A String with an API Key with access to Venafi as a Service.
 
