@@ -1,10 +1,3 @@
----
-layout: "venafi-vault-wizard"
-page_title: "VVW: vault"
-description: |-
-Venafi Vault Wizard configuration that represents a Vault cluster where Vault plugins will be installed and configured.
----
-
 # Configuration: vault
 
 Venafi Vault Wizard configuration that represents a Vault cluster where Vault plugins will be installed and configured.
