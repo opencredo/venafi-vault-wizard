@@ -32,3 +32,5 @@ release:
   draft: true
 changelog:
   skip: true
+source:
+  enabled: true
