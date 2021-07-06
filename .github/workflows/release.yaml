@@ -26,3 +26,16 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        goos:
+          - darwin
+          - freebsd
+          - linux
+          - darwin
+        archives:
+          format_overrides:
+            - goos: windows
+              format: zip
+          files:
+            - LICENSE
+            - README.md
+            - docs/*/**
