@@ -17,9 +17,9 @@ func TestNewConfig(t *testing.T) {
 		want    *Config
 		wantErr bool
 	}{
-		"valid venafi-pki-backend with Cloud": {
-			config:  validPKIBackendCloudConfig,
-			want:    validPKIBackendCloudConfigResult,
+		"valid venafi-pki-backend with VaaS": {
+			config:  validPKIBackendVaaSConfig,
+			want:    validPKIBackendVaaSConfigResult,
 			wantErr: false,
 		},
 		"valid venafi-pki-backend with TPP": {
@@ -35,11 +35,11 @@ func TestNewConfig(t *testing.T) {
 			config:  invalidPKIBackendConfigNoSecret,
 			wantErr: true,
 		},
-		"invalid venafi-pki-backend with both cloud and TPP": {
+		"invalid venafi-pki-backend with both VaaS and TPP": {
 			config:  invalidPKIBackendConfigBothConnectionTypes,
 			wantErr: true,
 		},
-		"valid venafi-pki-monitor with Cloud": {
+		"valid venafi-pki-monitor with VaaS": {
 			config:  validPKIMonitorConfig,
 			want:    validPKIMonitorConfigResult,
 			wantErr: false,
@@ -97,7 +97,7 @@ func TestNewConfig(t *testing.T) {
 	}
 }
 
-const validPKIBackendCloudConfig = `
+const validPKIBackendVaaSConfig = `
 vault {
   api_address = "http://localhost:8200"
   token = "root"
@@ -112,10 +112,10 @@ vault {
 
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
-  role "cloud" {
+  role "vaas" {
     zone = "zone"
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
 		zone = "zone1"
       }
@@ -134,7 +134,7 @@ plugin "venafi-pki-backend" "venafi-pki" {
 }
 `
 
-var validPKIBackendCloudConfigResult = &Config{
+var validPKIBackendVaaSConfigResult = &Config{
 	Vault: VaultConfig{
 		VaultAddress: "http://localhost:8200",
 		VaultToken:   "root",
@@ -158,11 +158,11 @@ var validPKIBackendCloudConfigResult = &Config{
 				Version:   "v0.9.0",
 				Roles: []pki_backend.Role{
 					{
-						Name: "cloud",
+						Name: "vaas",
 						Zone: "zone",
 						Secret: venafi.VenafiSecret{
-							Name: "cloud",
-							Cloud: &venafi.VenafiCloudConnection{
+							Name: "vaas",
+							VaaS: &venafi.VenafiVaaSConnection{
 								APIKey: "apikey",
 								Zone:   "zone1",
 							},
@@ -293,8 +293,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   version = "v0.9.0"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }
@@ -379,8 +379,8 @@ var validPKIMonitorConfigResult = &Config{
 						},
 					},
 					Secret: venafi.VenafiSecret{
-						Name: "cloud",
-						Cloud: &venafi.VenafiCloudConnection{
+						Name: "vaas",
+						VaaS: &venafi.VenafiVaaSConnection{
 							APIKey: "apikey",
 						},
 					},
@@ -422,10 +422,10 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   build_arch = "linux86"
-  role "cloud" {
+  role "vaas" {
     zone = "zone"
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
 		zone = "zone1"
       }
@@ -459,11 +459,11 @@ var validPKIBackendBuildArchConfigResult = &Config{
 				BuildArch: "linux86",
 				Roles: []pki_backend.Role{
 					{
-						Name: "cloud",
+						Name: "vaas",
 						Zone: "zone",
 						Secret: venafi.VenafiSecret{
-							Name: "cloud",
-							Cloud: &venafi.VenafiCloudConnection{
+							Name: "vaas",
+							VaaS: &venafi.VenafiVaaSConnection{
 								APIKey: "apikey",
 								Zone:   "zone1",
 							},
@@ -493,8 +493,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   build_arch = "linux86"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }
@@ -565,8 +565,8 @@ var validPKIMonitorBuildArchConfigResult = &Config{
 						},
 					},
 					Secret: venafi.VenafiSecret{
-						Name: "cloud",
-						Cloud: &venafi.VenafiCloudConnection{
+						Name: "vaas",
+						VaaS: &venafi.VenafiVaaSConnection{
 							APIKey: "apikey",
 						},
 					},
@@ -607,7 +607,7 @@ vault {
 
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
-  role "cloud" {
+  role "vaas" {
   }
 }`
 
@@ -627,9 +627,9 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
 
-  role "cloud" {
-    secret "cloud" {
-      venafi_cloud {
+  role "vaas" {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
         zone = "zone"
       }
@@ -660,8 +660,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   version = "v0.9.0"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }
@@ -708,8 +708,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   version = "v0.9.0"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }
@@ -756,8 +756,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   version = "v0.9.0"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }
@@ -803,10 +803,10 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   build_arch = "linux386"
-  role "cloud" {
+  role "vaas" {
     zone = "zone"
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
 		zone = "zone1"
       }
@@ -832,8 +832,8 @@ plugin "venafi-pki-monitor" "venafi-pki" {
   build_arch = "linux386"
 
   role "web_server" {
-    secret "cloud" {
-      venafi_cloud {
+    secret "vaas" {
+      venafi_vaas {
         apikey = "apikey"
       }
     }

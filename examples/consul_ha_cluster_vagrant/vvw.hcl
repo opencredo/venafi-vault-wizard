@@ -31,7 +31,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
   # vault write pki-monitor/issue/web_server common_name=test.test.test
   role "web_server" {
     # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
+    # If using Venafi as a Service, replace the venafi_tpp block with a venafi_vaas one and specify the "apikey" attribute instead
     secret "tpp" {
       venafi_tpp {
         url = env("TPP_URL")
@@ -97,7 +97,7 @@ plugin "venafi-pki-backend" "pki-backend" {
   # vault write pki-backend/issue/web_server common_name=test.test.test
   role "web_server" {
     # Connection details for Venafi TPP
-    # If using Venafi Cloud, replace the venafi_tpp block with a venafi_cloud one and specify the "apikey" attribute instead
+    # If using Venafi as a Service, replace the venafi_tpp block with a venafi_vaas one and specify the "apikey" attribute instead
     secret "tpp" {
       venafi_tpp {
         url = env("TPP_URL")

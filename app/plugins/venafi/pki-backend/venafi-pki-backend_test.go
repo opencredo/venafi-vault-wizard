@@ -2,9 +2,10 @@ package pki_backend
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/Venafi/vcert/v4/pkg/venafi/tpp"
 	mockVenafiWrapper "github.com/opencredo/venafi-vault-wizard/mocks/app/plugins/venafi/venafi_wrapper"
-	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -67,7 +68,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	testCases := map[string]struct {
 		config VenafiPKIBackendConfig
 	}{
-		"pki-backend cloud config": {
+		"pki-backend vaas config": {
 			config: VenafiPKIBackendConfig{
 				MountPath: pluginMountPath,
 				Roles: []Role{
@@ -76,7 +77,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 						Zone: zone,
 						Secret: venafi.VenafiSecret{
 							Name: secretName,
-							Cloud: &venafi.VenafiCloudConnection{
+							VaaS: &venafi.VenafiVaaSConnection{
 								APIKey: apiKey,
 							},
 						},
