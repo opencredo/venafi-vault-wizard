@@ -23,8 +23,16 @@ builds:
         goarch: arm64
     binary: '{{ .ProjectName }}_{{ .Version }}'
 archives:
-  - format: binary
+  - format: 'tar.gz'
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - docs/**/*
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
@@ -34,3 +42,4 @@ changelog:
   skip: true
 source:
   enabled: true
+  name_template: '{{ .ProjectName }}-{{ .Version }}_src'
