@@ -77,7 +77,8 @@ func TestNewConfig(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := NewConfig("vvwconfig.hcl", []byte(tt.config))
+			parser := NewConfigParser("vvwconfig.hcl", []byte(tt.config))
+			got, err := parser.GetConfig()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return

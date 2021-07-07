@@ -10,12 +10,32 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/tasks/checks"
 )
 
-func Apply(configuration *config.Config) {
+func Apply(configFilePath string, configBytes []byte) error {
 	report := pretty.NewReport()
+	// TODO: don't return errors if we don't want usage info printed!
 
-	sshClients, vaultClient, closeFunc, err := tasks.GetClients(&configuration.Vault, report)
+	configParser := config.NewConfigParser(configFilePath, configBytes)
+	apiAddr, token, err := configParser.GetVaultAPIDetails()
 	if err != nil {
-		return
+		return err
+	}
+
+	connectionSection := report.AddSection("Checking connection to Vault")
+	vaultClient, err := checks.GetAPIClient(connectionSection, apiAddr, token)
+	if err != nil {
+		return err
+	}
+
+	configParser.SetVaultClient(vaultClient)
+
+	configuration, err := configParser.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	sshClients, closeFunc, err := checks.GetSSHClients(connectionSection, &configuration.Vault)
+	if err != nil {
+		return err
 	}
 	defer closeFunc()
 
@@ -25,12 +45,12 @@ func Apply(configuration *config.Config) {
 	checkConfigSection := report.AddSection("Checking Vault server config")
 	pluginDir, err := checks.GetPluginDir(checkConfigSection, vaultClient)
 	if err != nil {
-		return
+		return err
 	}
 
 	mlockDisabled, err := checks.IsMlockDisabled(checkConfigSection, vaultClient)
 	if err != nil {
-		return
+		return err
 	}
 
 	checkConfigSection.Info(fmt.Sprintf("The Vault server plugin directory is configured as %s\n", pluginDir))
@@ -42,7 +62,7 @@ func Apply(configuration *config.Config) {
 			Reporter:        report,
 		})
 		if err != nil {
-			return
+			return err
 		}
 
 		pluginBytes, sha, err := tasks.DownloadPlugin(&tasks.DownloadPluginInput{
@@ -51,7 +71,7 @@ func Apply(configuration *config.Config) {
 			Plugin:     plugin,
 		})
 		if err != nil {
-			return
+			return err
 		}
 
 		err = tasks.InstallPluginToServers(&tasks.InstallPluginToServersInput{
@@ -63,7 +83,7 @@ func Apply(configuration *config.Config) {
 			MlockDisabled: mlockDisabled,
 		})
 		if err != nil {
-			return
+			return err
 		}
 
 		err = tasks.EnablePlugin(&tasks.EnablePluginInput{
@@ -73,7 +93,7 @@ func Apply(configuration *config.Config) {
 			SHA:         sha,
 		})
 		if err != nil {
-			return
+			return err
 		}
 
 		err = tasks.MountPlugin(&tasks.MountPluginInput{
@@ -82,17 +102,19 @@ func Apply(configuration *config.Config) {
 			Plugin:      plugin,
 		})
 		if err != nil {
-			return
+			return err
 		}
 
 		err = plugin.Impl.Configure(report, vaultClient)
 		if err != nil {
-			return
+			return err
 		}
 
 		err = plugin.Impl.Check(report, vaultClient)
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }

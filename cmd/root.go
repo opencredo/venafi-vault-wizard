@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/opencredo/venafi-vault-wizard/app/questions/prompter"
 	"github.com/spf13/cobra"
 
 	"github.com/opencredo/venafi-vault-wizard/app/commands"
-	"github.com/opencredo/venafi-vault-wizard/app/config"
 )
 
 func NewRootCommand() *cobra.Command {
@@ -38,14 +39,16 @@ func NewRootCommand() *cobra.Command {
 		Short: "Applies desired state as specified in config file",
 		Long:  "Reads the config file and makes necessary changes to Vault server(s) specified to install and configure plugin(s) specified",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			// Parse provided config file
-			configuration, err := config.NewConfigFromFile(configFile)
+			src, err := ioutil.ReadFile(configFile)
 			if err != nil {
-				return err
+				if os.IsNotExist(err) {
+					return fmt.Errorf("error: config file %s not found: %s", configFile, err)
+				}
+
+				return fmt.Errorf("can't read %s: %w", configFile, err)
 			}
 
-			commands.Apply(configuration)
-			return nil
+			return commands.Apply(configFile, src)
 		},
 	}
 
