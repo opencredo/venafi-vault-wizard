@@ -58,7 +58,6 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 }
 
 type VenafiSecret struct {
-	Name string                `hcl:"name,label"`
 	VaaS *VenafiVaaSConnection `hcl:"venafi_vaas,block"`
 	TPP  *VenafiTPPConnection  `hcl:"venafi_tpp,block"`
 }
@@ -77,16 +76,10 @@ func (v *VenafiSecret) Validate(pluginType PluginType) error {
 	}
 
 	if vaasConnectionProvided {
-		if pluginType == SecretsEngine && v.VaaS.Zone == "" {
-			return fmt.Errorf("error, zone must be specified in secret")
-		}
 		return v.VaaS.Validate()
 	}
 
 	if tppConnectionProvided {
-		if pluginType == SecretsEngine && v.TPP.Zone == "" {
-			return fmt.Errorf("error, zone must be specified in secret")
-		}
 		return v.TPP.Validate()
 	}
 
@@ -98,9 +91,6 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrappe
 		m := map[string]interface{}{
 			"apikey": v.VaaS.APIKey,
 		}
-		if v.VaaS.Zone != "" {
-			m["zone"] = v.VaaS.Zone
-		}
 		return m, nil
 	}
 
@@ -110,9 +100,6 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrappe
 			return nil, err
 		}
 
-		if v.TPP.Zone != "" {
-			m["zone"] = v.TPP.Zone
-		}
 		return m, nil
 	}
 
@@ -120,29 +107,24 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrappe
 }
 
 func (v *VenafiSecret) WriteHCL(hclBody *hclwrite.Body) {
-	secretBlock := hclBody.AppendNewBlock("secret", []string{v.Name})
-	secretBody := secretBlock.Body()
-
 	if v.TPP != nil {
-		v.TPP.WriteHCL(secretBody)
+		v.TPP.WriteHCL(hclBody)
 		return
 	}
 	if v.VaaS != nil {
-		v.VaaS.WriteHCL(secretBody)
+		v.VaaS.WriteHCL(hclBody)
 		return
 	}
 }
 
 type VenafiVaaSConnection struct {
 	APIKey string `hcl:"apikey"`
-	Zone   string `hcl:"zone,optional"`
 }
 
 type VenafiTPPConnection struct {
 	URL      string `hcl:"url"`
 	Username string `hcl:"username"`
 	Password string `hcl:"password"`
-	Zone     string `hcl:"zone,optional"`
 }
 
 func (c *VenafiVaaSConnection) Validate() error {
@@ -156,9 +138,6 @@ func (c *VenafiVaaSConnection) WriteHCL(hclBody *hclwrite.Body) {
 	vaasBlock := hclBody.AppendNewBlock("venafi_vaas", nil)
 	vaasBody := vaasBlock.Body()
 	generate.WriteStringAttributeToHCL("apikey", c.APIKey, vaasBody)
-	if c.Zone != "" {
-		generate.WriteStringAttributeToHCL("zone", c.Zone, vaasBody)
-	}
 }
 
 func (c *VenafiTPPConnection) Validate() error {
@@ -180,9 +159,6 @@ func (c *VenafiTPPConnection) WriteHCL(hclBody *hclwrite.Body) {
 	generate.WriteStringAttributeToHCL("url", c.URL, tppBody)
 	generate.WriteStringAttributeToHCL("username", c.Username, tppBody)
 	generate.WriteStringAttributeToHCL("password", c.Password, tppBody)
-	if c.Zone != "" {
-		generate.WriteStringAttributeToHCL("zone", c.Zone, tppBody)
-	}
 }
 
 func (c *VenafiTPPConnection) getAccessToken(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {

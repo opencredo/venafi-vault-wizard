@@ -29,7 +29,7 @@ func (c *VenafiPKIBackendConfig) Configure(report reporter.Report, vaultClient a
 	configurePluginSection := report.AddSection("Setting up venafi-pki-backend")
 
 	for _, role := range c.Roles {
-		venafiClient, err := vcert_wrapper.NewVenafiClient(role.Secret, "")
+		venafiClient, err := vcert_wrapper.NewVenafiClient(role.Secret.VenafiSecret, "")
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (r *Role) Configure(
 		vaultClient,
 		fmt.Sprintf("%s/roles/%s", mountPath, r.Name),
 		r.Secret.Name,
-		r.Zone,
+		r.Secret.Zone,
 		r.OptionalConfig.GetAsMap(),
 	)
 	if err != nil {

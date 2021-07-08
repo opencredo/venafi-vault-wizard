@@ -28,7 +28,7 @@ type VenafiPKIMonitorConfig struct {
 type Role struct {
 	Name string `hcl:"role,label"`
 
-	Secret venafi.VenafiSecret `hcl:"secret,block"`
+	Secret UnZonedSecret `hcl:"secret,block"`
 
 	EnforcementPolicy *Policy `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
@@ -48,6 +48,11 @@ type IntermediateCertRequest struct {
 
 type Policy struct {
 	Zone string `hcl:"zone"`
+}
+
+type UnZonedSecret struct {
+	Name string `hcl:"name,label"`
+	venafi.VenafiSecret `hcl:",remain"`
 }
 
 func (c *VenafiPKIMonitorConfig) ValidateConfig() error {
@@ -143,6 +148,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 		certBlock := roleBody.AppendNewBlock("test_certificate", nil)
 		testCert.WriteHCL(certBlock.Body())
 	}
+}
+
+func (s *UnZonedSecret) WriteHCL(hclBody *hclwrite.Body) {
+	secretBlock := hclBody.AppendNewBlock("secret", []string{s.Name})
+	secretBody := secretBlock.Body()
+	s.VenafiSecret.WriteHCL(secretBody)
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
