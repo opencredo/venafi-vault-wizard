@@ -59,8 +59,8 @@ func (c *sshClient) CheckOSArch() (string, string, error) {
 		return "", "", err
 	}
 	outputSplit := strings.Split(string(output), " ")
-	osType := outputSplit[0]
-	arch := outputSplit[1]
+	osType := strings.TrimSpace(outputSplit[0])
+	arch := strings.TrimSpace(outputSplit[1])
 
 	return osType, arch, nil
 }
