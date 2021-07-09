@@ -160,7 +160,7 @@ var validPKIBackendVaaSConfigResult = &Config{
 						Name: "vaas",
 						Secret: pki_backend.ZonedSecret{
 							Name: "vaas",
-							Zone:  "zone1",
+							Zone: "zone1",
 							VenafiSecret: venafi.VenafiSecret{
 								VaaS: &venafi.VenafiVaaSConnection{
 									APIKey: "apikey",
@@ -249,7 +249,7 @@ var validPKIBackendTPPConfigResult = &Config{
 						Name: "tppRole",
 						Secret: pki_backend.ZonedSecret{
 							Name: "tpptest",
-							Zone:     "zone1",
+							Zone: "zone1",
 							VenafiSecret: venafi.VenafiSecret{
 								TPP: &venafi.VenafiTPPConnection{
 									URL:      "tpp.venafitest.com",

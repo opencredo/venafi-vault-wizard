@@ -51,7 +51,7 @@ type Policy struct {
 }
 
 type UnZonedSecret struct {
-	Name string `hcl:"name,label"`
+	Name                string `hcl:"name,label"`
 	venafi.VenafiSecret `hcl:",remain"`
 }
 

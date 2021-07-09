@@ -34,8 +34,8 @@ type Role struct {
 }
 
 type ZonedSecret struct {
-	Name string         `hcl:"name,label"`
-	Zone string         `hcl:"zone,optional"`
+	Name                string `hcl:"name,label"`
+	Zone                string `hcl:"zone,optional"`
 	venafi.VenafiSecret `hcl:",remain"`
 }
 
