@@ -61,7 +61,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 			"access_token":  accessToken,
 			"refresh_token": refreshToken,
 			"url":           url,
-			//"zone":          zone, //TODO: Re-instate this after refactoring of how call to Vault for this is handled (as zone is required)
+			"zone":          zone,
 		},
 	).Return(nil, nil)
 

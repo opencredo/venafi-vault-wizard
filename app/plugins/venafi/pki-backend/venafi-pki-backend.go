@@ -57,6 +57,7 @@ func (r *Role) Configure(
 		fmt.Sprintf("%s/venafi/%s", mountPath, r.Secret.Name),
 		r.Secret,
 		venafi.SecretsEngine,
+		&r.Secret.Zone,
 	)
 	if err != nil {
 		return err

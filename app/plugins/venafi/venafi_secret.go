@@ -26,14 +26,16 @@ func ConfigureVenafiSecret(
 	secretPath string,
 	secretValue VenafiConnectionConfig,
 	pluginType PluginType,
+	zone *string,
 ) error {
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
-	secretParameters, err := secretValue.GetAsMap(pluginType, venafiClient)
+	secretParameters, err := secretValue.GetAsMap(pluginType, venafiClient, zone)
 	if err != nil {
 		check.Errorf("Error getting values for the Venafi secret: %s", err)
 		return err
 	}
+
 	_, err = vaultClient.WriteValue(secretPath, secretParameters)
 	if err != nil {
 		check.Errorf("Error creating Venafi secret: %s", err)
@@ -63,7 +65,7 @@ type VenafiSecret struct {
 }
 
 type VenafiConnectionConfig interface {
-	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
+	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper, zone *string) (map[string]interface{}, error)
 }
 
 func (v *VenafiSecret) Validate(pluginType PluginType) error {
@@ -86,7 +88,7 @@ func (v *VenafiSecret) Validate(pluginType PluginType) error {
 	return nil
 }
 
-func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
+func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper, zone *string) (map[string]interface{}, error) {
 	if v.VaaS != nil {
 		m := map[string]interface{}{
 			"apikey": v.VaaS.APIKey,
@@ -98,6 +100,9 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrappe
 		m, err := v.TPP.getAccessToken(pluginType, venafiClient)
 		if err != nil {
 			return nil, err
+		}
+		if zone != nil {
+			m["zone"] = *zone
 		}
 
 		return m, nil
