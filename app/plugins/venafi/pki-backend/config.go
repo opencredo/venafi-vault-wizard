@@ -33,9 +33,10 @@ type Role struct {
 	OptionalConfig *venafi.OptionalConfig `hcl:"optional_config,block"`
 }
 
+// ZonedSecret Used to overly the zone requirement on VenafiSecrets with PKI Backend plugin
 type ZonedSecret struct {
 	Name                string `hcl:"name,label"`
-	Zone                string `hcl:"zone,optional"`
+	Zone                string `hcl:"zone"`
 	venafi.VenafiSecret `hcl:",remain"`
 }
 
@@ -57,7 +58,7 @@ func (c *VenafiPKIBackendConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	err := r.Secret.Validate(venafi.SecretsEngine)
+	err := r.Secret.Validate()
 	if err != nil {
 		return err
 	}
@@ -67,6 +68,18 @@ func (r *Role) Validate() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *ZonedSecret) Validate() error {
+	if s.Zone == "" {
+		return fmt.Errorf("The zone cannot be blank for a ZonedSecret")
+	}
+	err := s.VenafiSecret.Validate(venafi.SecretsEngine)
+	if err != nil {
+		return err
 	}
 
 	return nil

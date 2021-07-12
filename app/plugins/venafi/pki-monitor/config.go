@@ -50,6 +50,7 @@ type Policy struct {
 	Zone string `hcl:"zone"`
 }
 
+// UnZonedSecret Used to add the label, and to maintain consistent structure with other uses of VenafiSecret.
 type UnZonedSecret struct {
 	Name                string `hcl:"name,label"`
 	venafi.VenafiSecret `hcl:",remain"`

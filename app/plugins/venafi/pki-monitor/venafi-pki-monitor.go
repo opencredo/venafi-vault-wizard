@@ -29,7 +29,7 @@ func (c *VenafiPKIMonitorConfig) GetDownloadURL() (string, error) {
 func (c *VenafiPKIMonitorConfig) Configure(report reporter.Report, vaultClient api.VaultAPIClient) error {
 	configurePluginSection := report.AddSection("Setting up venafi-pki-monitor")
 
-	venafiClient, err := vcert_wrapper.NewVenafiClient(c.Role.Secret.VenafiSecret, "")
+	venafiClient, err := vcert_wrapper.NewVenafiClient(c.Role.Secret.VenafiSecret)
 	if err != nil {
 		return err
 	}

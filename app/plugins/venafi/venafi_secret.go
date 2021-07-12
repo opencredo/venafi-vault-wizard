@@ -30,10 +30,14 @@ func ConfigureVenafiSecret(
 ) error {
 	check := reportSection.AddCheck("Adding Venafi secret...")
 
-	secretParameters, err := secretValue.GetAsMap(pluginType, venafiClient, zone)
+	secretParameters, err := secretValue.GetAsMap(pluginType, venafiClient)
 	if err != nil {
 		check.Errorf("Error getting values for the Venafi secret: %s", err)
 		return err
+	}
+
+	if zone != nil {
+		secretParameters["zone"] = *zone
 	}
 
 	_, err = vaultClient.WriteValue(secretPath, secretParameters)
@@ -59,13 +63,14 @@ func VerifyVenafiSecret(reportSection reporter.Section, vaultClient api.VaultAPI
 	return nil
 }
 
+// VenafiSecret Used to create either VaaS or TPP style secrets. This is not used directly, but extended by consuming plugins
 type VenafiSecret struct {
 	VaaS *VenafiVaaSConnection `hcl:"venafi_vaas,block"`
 	TPP  *VenafiTPPConnection  `hcl:"venafi_tpp,block"`
 }
 
 type VenafiConnectionConfig interface {
-	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper, zone *string) (map[string]interface{}, error)
+	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
 }
 
 func (v *VenafiSecret) Validate(pluginType PluginType) error {
@@ -88,7 +93,7 @@ func (v *VenafiSecret) Validate(pluginType PluginType) error {
 	return nil
 }
 
-func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper, zone *string) (map[string]interface{}, error) {
+func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error) {
 	if v.VaaS != nil {
 		m := map[string]interface{}{
 			"apikey": v.VaaS.APIKey,
@@ -100,9 +105,6 @@ func (v VenafiSecret) GetAsMap(pluginType PluginType, venafiClient venafi_wrappe
 		m, err := v.TPP.getAccessToken(pluginType, venafiClient)
 		if err != nil {
 			return nil, err
-		}
-		if zone != nil {
-			m["zone"] = *zone
 		}
 
 		return m, nil

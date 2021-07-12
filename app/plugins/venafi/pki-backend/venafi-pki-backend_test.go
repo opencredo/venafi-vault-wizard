@@ -43,6 +43,7 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	var zone = "zone ID"
 	var venafiConnectionConfig = map[string]interface{}{
 		"apikey": apiKey,
+		"zone":   zone,
 	}
 
 	vaultAPIClient.On("WriteValue", secretPath, venafiConnectionConfig).Return(nil, nil)
