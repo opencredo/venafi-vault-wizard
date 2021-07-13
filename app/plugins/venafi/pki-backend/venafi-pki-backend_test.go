@@ -50,7 +50,6 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	vaultAPIClient.On("WriteValue", rolePath,
 		map[string]interface{}{
 			"venafi_secret": secretName,
-			"zone":          zone,
 		},
 	).Return(nil, nil)
 	venafiClient.On("GetRefreshToken", mock.Anything).Return(tpp.OauthGetRefreshTokenResponse{

@@ -68,7 +68,6 @@ func (r *Role) Configure(
 		vaultClient,
 		fmt.Sprintf("%s/roles/%s", mountPath, r.Name),
 		r.Secret.Name,
-		r.Secret.Zone,
 		r.OptionalConfig.GetAsMap(),
 	)
 	if err != nil {
