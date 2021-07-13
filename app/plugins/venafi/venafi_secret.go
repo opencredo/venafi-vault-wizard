@@ -73,7 +73,7 @@ type VenafiConnectionConfig interface {
 	GetAsMap(pluginType PluginType, venafiClient venafi_wrapper.VenafiWrapper) (map[string]interface{}, error)
 }
 
-func (v *VenafiSecret) Validate(pluginType PluginType) error {
+func (v *VenafiSecret) Validate() error {
 	vaasConnectionProvided := v.VaaS != nil
 	tppConnectionProvided := v.TPP != nil
 

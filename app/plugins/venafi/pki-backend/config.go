@@ -77,7 +77,7 @@ func (s *ZonedSecret) Validate() error {
 	if s.Zone == "" {
 		return fmt.Errorf("The zone cannot be blank for a ZonedSecret")
 	}
-	err := s.VenafiSecret.Validate(venafi.SecretsEngine)
+	err := s.VenafiSecret.Validate()
 	if err != nil {
 		return err
 	}

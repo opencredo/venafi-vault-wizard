@@ -69,7 +69,7 @@ func (c *VenafiPKIMonitorConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	err := r.Secret.Validate(venafi.MonitorEngine)
+	err := r.Secret.Validate()
 	if err != nil {
 		return err
 	}
