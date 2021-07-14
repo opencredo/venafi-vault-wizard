@@ -43,13 +43,13 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 	var zone = "zone ID"
 	var venafiConnectionConfig = map[string]interface{}{
 		"apikey": apiKey,
+		"zone":   zone,
 	}
 
 	vaultAPIClient.On("WriteValue", secretPath, venafiConnectionConfig).Return(nil, nil)
 	vaultAPIClient.On("WriteValue", rolePath,
 		map[string]interface{}{
 			"venafi_secret": secretName,
-			"zone":          zone,
 		},
 	).Return(nil, nil)
 	venafiClient.On("GetRefreshToken", mock.Anything).Return(tpp.OauthGetRefreshTokenResponse{
@@ -74,11 +74,13 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 				Roles: []Role{
 					{
 						Name: roleName,
-						Zone: zone,
-						Secret: venafi.VenafiSecret{
+						Secret: ZonedSecret{
 							Name: secretName,
-							VaaS: &venafi.VenafiVaaSConnection{
-								APIKey: apiKey,
+							Zone: zone,
+							VenafiSecret: venafi.VenafiSecret{
+								VaaS: &venafi.VenafiVaaSConnection{
+									APIKey: apiKey,
+								},
 							},
 						},
 					},
@@ -91,14 +93,15 @@ func TestConfigureVenafiPKIBackend(t *testing.T) {
 				Roles: []Role{
 					{
 						Name: roleName,
-						Zone: zone,
-						Secret: venafi.VenafiSecret{
+						Secret: ZonedSecret{
 							Name: secretName,
-							TPP: &venafi.VenafiTPPConnection{
-								URL:      url,
-								Username: username,
-								Password: password,
-								Zone:     zone,
+							Zone: zone,
+							VenafiSecret: venafi.VenafiSecret{
+								TPP: &venafi.VenafiTPPConnection{
+									URL:      url,
+									Username: username,
+									Password: password,
+								},
 							},
 						},
 					},
@@ -130,7 +133,6 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 	var pluginMountPath = "pki"
 	var roleName = "roleName"
 	var roleIssuePath = fmt.Sprintf("%s/issue/%s", pluginMountPath, roleName)
-	var zone = "zone ID"
 	var testCSR = venafi.CertificateRequest{
 		CommonName:   "test.venafidemo.com",
 		OU:           "VVW",
@@ -153,7 +155,6 @@ func TestCheckVenafiPKIBackend(t *testing.T) {
 		Roles: []Role{
 			{
 				Name:      roleName,
-				Zone:      zone,
 				TestCerts: []venafi.CertificateRequest{testCSR},
 			},
 		},

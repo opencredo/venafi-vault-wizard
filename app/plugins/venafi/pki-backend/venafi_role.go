@@ -10,13 +10,12 @@ import (
 func ConfigureVenafiRole(
 	reportSection reporter.Section,
 	vaultClient api.VaultAPIClient,
-	rolePath, secretName, zone string,
+	rolePath, secretName string,
 	optionalParameters map[string]interface{},
 ) error {
 	check := reportSection.AddCheck("Adding Venafi role...")
 
 	optionalParameters["venafi_secret"] = secretName
-	optionalParameters["zone"] = zone
 
 	_, err := vaultClient.WriteValue(rolePath, optionalParameters)
 	if err != nil {

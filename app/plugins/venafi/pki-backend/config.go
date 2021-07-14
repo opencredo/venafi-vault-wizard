@@ -2,6 +2,7 @@ package pki_backend
 
 import (
 	"fmt"
+	"github.com/opencredo/venafi-vault-wizard/app/config/generate"
 
 	"github.com/opencredo/venafi-vault-wizard/app/plugins"
 
@@ -26,11 +27,17 @@ type VenafiPKIBackendConfig struct {
 
 type Role struct {
 	Name      string                      `hcl:"role,label"`
-	Zone      string                      `hcl:"zone,optional"`
-	Secret    venafi.VenafiSecret         `hcl:"secret,block"`
+	Secret    ZonedSecret                 `hcl:"secret,block"`
 	TestCerts []venafi.CertificateRequest `hcl:"test_certificate,block"`
 
 	OptionalConfig *venafi.OptionalConfig `hcl:"optional_config,block"`
+}
+
+// ZonedSecret Used to overly the zone requirement on VenafiSecrets with PKI Backend plugin
+type ZonedSecret struct {
+	Name                string `hcl:"name,label"`
+	Zone                string `hcl:"zone"`
+	venafi.VenafiSecret `hcl:",remain"`
 }
 
 func (c *VenafiPKIBackendConfig) ValidateConfig() error {
@@ -51,7 +58,7 @@ func (c *VenafiPKIBackendConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	err := r.Secret.Validate(venafi.SecretsEngine)
+	err := r.Secret.Validate()
 	if err != nil {
 		return err
 	}
@@ -61,6 +68,18 @@ func (r *Role) Validate() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *ZonedSecret) Validate() error {
+	if s.Zone == "" {
+		return fmt.Errorf("The zone cannot be blank for a ZonedSecret")
+	}
+	err := s.VenafiSecret.Validate()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -82,6 +101,13 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 		certBlock := roleBody.AppendNewBlock("test_certificate", nil)
 		testCert.WriteHCL(certBlock.Body())
 	}
+}
+
+func (s *ZonedSecret) WriteHCL(hclBody *hclwrite.Body) {
+	secretBlock := hclBody.AppendNewBlock("secret", []string{s.Name})
+	secretBody := secretBlock.Body()
+	generate.WriteStringAttributeToHCL("zone", s.Zone, secretBody)
+	s.VenafiSecret.WriteHCL(secretBody)
 }
 
 func (c *VenafiPKIBackendConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {
@@ -161,6 +187,8 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 	role := &Role{
 		Name: string(q["role_name"].Answer()),
 	}
+	role.Secret.Zone = string(q["zone"].Answer())
+
 	switch q["venafi_type"].Answer() {
 	case "TPP":
 		role.Secret.Name = "tpp"
@@ -168,13 +196,11 @@ func askForRole(questioner questions.Questioner) (*Role, error) {
 			URL:      string(q["tpp_url"].Answer()),
 			Username: string(q["tpp_user"].Answer()),
 			Password: string(q["tpp_password"].Answer()),
-			Zone:     string(q["zone"].Answer()),
 		}
 	case "Venafi as a Service":
 		role.Secret.Name = "vaas"
 		role.Secret.VaaS = &venafi.VenafiVaaSConnection{
 			APIKey: string(q["apikey"].Answer()),
-			Zone:   string(q["zone"].Answer()),
 		}
 	default:
 		panic("unimplemented Venafi secret type, expected TPP or Venafi as a Service")

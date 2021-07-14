@@ -113,11 +113,10 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   role "vaas" {
-    zone = "zone"
     secret "vaas" {
+      zone = "zone1"
       venafi_vaas {
         apikey = "apikey"
-		zone = "zone1"
       }
     }
 
@@ -159,12 +158,13 @@ var validPKIBackendVaaSConfigResult = &Config{
 				Roles: []pki_backend.Role{
 					{
 						Name: "vaas",
-						Zone: "zone",
-						Secret: venafi.VenafiSecret{
+						Secret: pki_backend.ZonedSecret{
 							Name: "vaas",
-							VaaS: &venafi.VenafiVaaSConnection{
-								APIKey: "apikey",
-								Zone:   "zone1",
+							Zone: "zone1",
+							VenafiSecret: venafi.VenafiSecret{
+								VaaS: &venafi.VenafiVaaSConnection{
+									APIKey: "apikey",
+								},
 							},
 						},
 						TestCerts: []venafi.CertificateRequest{
@@ -201,13 +201,12 @@ vault {
 plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   role "tppRole" {
-    zone = "Partner Dev\\\\TLS\\\\HashiCorp Vault"
     secret "tpptest" {
+      zone = "zone1"
       venafi_tpp {
         url = "tpp.venafitest.com"
         username = "admin"
         password = "pword234"
-		zone = "zone1"
       }
     }
 
@@ -248,14 +247,15 @@ var validPKIBackendTPPConfigResult = &Config{
 				Roles: []pki_backend.Role{
 					{
 						Name: "tppRole",
-						Zone: "Partner Dev\\\\TLS\\\\HashiCorp Vault",
-						Secret: venafi.VenafiSecret{
+						Secret: pki_backend.ZonedSecret{
 							Name: "tpptest",
-							TPP: &venafi.VenafiTPPConnection{
-								URL:      "tpp.venafitest.com",
-								Username: "admin",
-								Password: "pword234",
-								Zone:     "zone1",
+							Zone: "zone1",
+							VenafiSecret: venafi.VenafiSecret{
+								TPP: &venafi.VenafiTPPConnection{
+									URL:      "tpp.venafitest.com",
+									Username: "admin",
+									Password: "pword234",
+								},
 							},
 						},
 						TestCerts: []venafi.CertificateRequest{
@@ -378,10 +378,12 @@ var validPKIMonitorConfigResult = &Config{
 							TTL:          "1h",
 						},
 					},
-					Secret: venafi.VenafiSecret{
+					Secret: pki_monitor.UnZonedSecret{
 						Name: "vaas",
-						VaaS: &venafi.VenafiVaaSConnection{
-							APIKey: "apikey",
+						VenafiSecret: venafi.VenafiSecret{
+							VaaS: &venafi.VenafiVaaSConnection{
+								APIKey: "apikey",
+							},
 						},
 					},
 					TestCerts: []venafi.CertificateRequest{
@@ -423,11 +425,10 @@ plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   build_arch = "linux86"
   role "vaas" {
-    zone = "zone"
     secret "vaas" {
+      zone = "zone1"
       venafi_vaas {
         apikey = "apikey"
-		zone = "zone1"
       }
     }
   }
@@ -460,12 +461,13 @@ var validPKIBackendBuildArchConfigResult = &Config{
 				Roles: []pki_backend.Role{
 					{
 						Name: "vaas",
-						Zone: "zone",
-						Secret: venafi.VenafiSecret{
+						Secret: pki_backend.ZonedSecret{
 							Name: "vaas",
-							VaaS: &venafi.VenafiVaaSConnection{
-								APIKey: "apikey",
-								Zone:   "zone1",
+							Zone: "zone1",
+							VenafiSecret: venafi.VenafiSecret{
+								VaaS: &venafi.VenafiVaaSConnection{
+									APIKey: "apikey",
+								},
 							},
 						},
 					},
@@ -564,10 +566,12 @@ var validPKIMonitorBuildArchConfigResult = &Config{
 							TTL:          "1h",
 						},
 					},
-					Secret: venafi.VenafiSecret{
+					Secret: pki_monitor.UnZonedSecret{
 						Name: "vaas",
-						VaaS: &venafi.VenafiVaaSConnection{
-							APIKey: "apikey",
+						VenafiSecret: venafi.VenafiSecret{
+							VaaS: &venafi.VenafiVaaSConnection{
+								APIKey: "apikey",
+							},
 						},
 					},
 				},
@@ -629,9 +633,9 @@ plugin "venafi-pki-backend" "venafi-pki" {
 
   role "vaas" {
     secret "vaas" {
+      zone = "zone"
       venafi_vaas {
         apikey = "apikey"
-        zone = "zone"
       }
       venafi_tpp {
         url = "tpp.venafitest.com"
@@ -804,11 +808,10 @@ plugin "venafi-pki-backend" "venafi-pki" {
   version = "v0.9.0"
   build_arch = "linux386"
   role "vaas" {
-    zone = "zone"
     secret "vaas" {
+      zone = "zone1"
       venafi_vaas {
         apikey = "apikey"
-		zone = "zone1"
       }
     }
   }

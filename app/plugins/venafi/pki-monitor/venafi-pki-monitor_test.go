@@ -82,7 +82,6 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 		"url":           url,
-		"zone":          zone,
 	}
 
 	var certPEMCollection = certificate.PEMCollection{
@@ -115,10 +114,12 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
-					Secret: venafi.VenafiSecret{
+					Secret: UnZonedSecret{
 						Name: secretName,
-						VaaS: &venafi.VenafiVaaSConnection{
-							APIKey: apiKey,
+						VenafiSecret: venafi.VenafiSecret{
+							VaaS: &venafi.VenafiVaaSConnection{
+								APIKey: apiKey,
+							},
 						},
 					},
 					EnforcementPolicy: &Policy{
@@ -136,10 +137,12 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
-					Secret: venafi.VenafiSecret{
+					Secret: UnZonedSecret{
 						Name: secretName,
-						VaaS: &venafi.VenafiVaaSConnection{
-							APIKey: apiKey,
+						VenafiSecret: venafi.VenafiSecret{
+							VaaS: &venafi.VenafiVaaSConnection{
+								APIKey: apiKey,
+							},
 						},
 					},
 					EnforcementPolicy: &Policy{
@@ -154,10 +157,12 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
-					Secret: venafi.VenafiSecret{
+					Secret: UnZonedSecret{
 						Name: secretName,
-						VaaS: &venafi.VenafiVaaSConnection{
-							APIKey: apiKey,
+						VenafiSecret: venafi.VenafiSecret{
+							VaaS: &venafi.VenafiVaaSConnection{
+								APIKey: apiKey,
+							},
 						},
 					},
 					EnforcementPolicy: &Policy{
@@ -175,13 +180,14 @@ func TestConfigureVenafiPKIMonitor(t *testing.T) {
 				MountPath: pluginMountPath,
 				Role: Role{
 					Name: roleName,
-					Secret: venafi.VenafiSecret{
+					Secret: UnZonedSecret{
 						Name: secretName,
-						TPP: &venafi.VenafiTPPConnection{
-							URL:      url,
-							Username: username,
-							Password: password,
-							Zone:     zone,
+						VenafiSecret: venafi.VenafiSecret{
+							TPP: &venafi.VenafiTPPConnection{
+								URL:      url,
+								Username: username,
+								Password: password,
+							},
 						},
 					},
 					EnforcementPolicy: &Policy{

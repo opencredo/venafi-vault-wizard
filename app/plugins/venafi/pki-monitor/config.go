@@ -28,7 +28,7 @@ type VenafiPKIMonitorConfig struct {
 type Role struct {
 	Name string `hcl:"role,label"`
 
-	Secret venafi.VenafiSecret `hcl:"secret,block"`
+	Secret UnZonedSecret `hcl:"secret,block"`
 
 	EnforcementPolicy *Policy `hcl:"enforcement_policy,block"`
 	ImportPolicy      *Policy `hcl:"import_policy,block"`
@@ -50,6 +50,12 @@ type Policy struct {
 	Zone string `hcl:"zone"`
 }
 
+// UnZonedSecret Used to add the label, and to maintain consistent structure with other uses of VenafiSecret.
+type UnZonedSecret struct {
+	Name                string `hcl:"name,label"`
+	venafi.VenafiSecret `hcl:",remain"`
+}
+
 func (c *VenafiPKIMonitorConfig) ValidateConfig() error {
 	err := plugins.ValidateBuildArch(c.BuildArch)
 	if err != nil {
@@ -63,7 +69,7 @@ func (c *VenafiPKIMonitorConfig) ValidateConfig() error {
 }
 
 func (r *Role) Validate() error {
-	err := r.Secret.Validate(venafi.MonitorEngine)
+	err := r.Secret.Validate()
 	if err != nil {
 		return err
 	}
@@ -143,6 +149,12 @@ func (r *Role) WriteHCL(hclBody *hclwrite.Body) {
 		certBlock := roleBody.AppendNewBlock("test_certificate", nil)
 		testCert.WriteHCL(certBlock.Body())
 	}
+}
+
+func (s *UnZonedSecret) WriteHCL(hclBody *hclwrite.Body) {
+	secretBlock := hclBody.AppendNewBlock("secret", []string{s.Name})
+	secretBody := secretBlock.Body()
+	s.VenafiSecret.WriteHCL(secretBody)
 }
 
 func (c *VenafiPKIMonitorConfig) GenerateConfigAndWriteHCL(questioner questions.Questioner, hclBody *hclwrite.Body) error {

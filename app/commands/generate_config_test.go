@@ -52,11 +52,13 @@ func TestGenerateConfig(t *testing.T) {
 							Roles: []pki_backend.Role{
 								{
 									Name: "web",
-									Secret: venafi.VenafiSecret{
+									Secret: pki_backend.ZonedSecret{
 										Name: "vaas",
-										VaaS: &venafi.VenafiVaaSConnection{
-											APIKey: "venafiAPIKey",
-											Zone:   "projectzoneID",
+										Zone: "projectzoneID",
+										VenafiSecret: venafi.VenafiSecret{
+											VaaS: &venafi.VenafiVaaSConnection{
+												APIKey: "venafiAPIKey",
+											},
 										},
 									},
 								},
@@ -98,11 +100,13 @@ func TestGenerateConfig(t *testing.T) {
 							Roles: []pki_backend.Role{
 								{
 									Name: "web",
-									Secret: venafi.VenafiSecret{
+									Secret: pki_backend.ZonedSecret{
 										Name: "vaas",
-										VaaS: &venafi.VenafiVaaSConnection{
-											APIKey: "venafiAPIKey",
-											Zone:   "projectzoneID",
+										Zone: "projectzoneID",
+										VenafiSecret: venafi.VenafiSecret{
+											VaaS: &venafi.VenafiVaaSConnection{
+												APIKey: "venafiAPIKey",
+											},
 										},
 									},
 								},
@@ -130,11 +134,13 @@ func TestGenerateConfig(t *testing.T) {
 							Roles: []pki_backend.Role{
 								{
 									Name: "web",
-									Secret: venafi.VenafiSecret{
+									Secret: pki_backend.ZonedSecret{
 										Name: "vaas",
-										VaaS: &venafi.VenafiVaaSConnection{
-											APIKey: "venafiAPIKey",
-											Zone:   "projectzoneID",
+										Zone: "projectzoneID",
+										VenafiSecret: venafi.VenafiSecret{
+											VaaS: &venafi.VenafiVaaSConnection{
+												APIKey: "venafiAPIKey",
+											},
 										},
 									},
 								},
@@ -164,11 +170,13 @@ func TestGenerateConfig(t *testing.T) {
 							Roles: []pki_backend.Role{
 								{
 									Name: "web",
-									Secret: venafi.VenafiSecret{
+									Secret: pki_backend.ZonedSecret{
 										Name: "vaas",
-										VaaS: &venafi.VenafiVaaSConnection{
-											APIKey: "venafiAPIKey",
-											Zone:   "projectzoneID",
+										Zone: "projectzoneID",
+										VenafiSecret: venafi.VenafiSecret{
+											VaaS: &venafi.VenafiVaaSConnection{
+												APIKey: "venafiAPIKey",
+											},
 										},
 									},
 								},
@@ -195,10 +203,12 @@ func TestGenerateConfig(t *testing.T) {
 							Version:   "v0.9.0",
 							Role: pki_monitor.Role{
 								Name: "web",
-								Secret: venafi.VenafiSecret{
+								Secret: pki_monitor.UnZonedSecret{
 									Name: "vaas",
-									VaaS: &venafi.VenafiVaaSConnection{
-										APIKey: "venafiAPIKey",
+									VenafiSecret: venafi.VenafiSecret{
+										VaaS: &venafi.VenafiVaaSConnection{
+											APIKey: "venafiAPIKey",
+										},
 									},
 								},
 								EnforcementPolicy: &pki_monitor.Policy{
@@ -244,12 +254,14 @@ func TestGenerateConfig(t *testing.T) {
 							BuildArch: "darwin",
 							Role: pki_monitor.Role{
 								Name: "web",
-								Secret: venafi.VenafiSecret{
+								Secret: pki_monitor.UnZonedSecret{
 									Name: "tpp",
-									TPP: &venafi.VenafiTPPConnection{
-										URL:      "tpp.com",
-										Username: "admin",
-										Password: "password",
+									VenafiSecret: venafi.VenafiSecret{
+										TPP: &venafi.VenafiTPPConnection{
+											URL:      "tpp.com",
+											Username: "admin",
+											Password: "password",
+										},
 									},
 								},
 								EnforcementPolicy: &pki_monitor.Policy{
@@ -293,12 +305,14 @@ func TestGenerateConfig(t *testing.T) {
 							Version:   "v0.9.0",
 							Role: pki_monitor.Role{
 								Name: "web",
-								Secret: venafi.VenafiSecret{
+								Secret: pki_monitor.UnZonedSecret{
 									Name: "tpp",
-									TPP: &venafi.VenafiTPPConnection{
-										URL:      "tpp.com",
-										Username: "admin",
-										Password: "password",
+									VenafiSecret: venafi.VenafiSecret{
+										TPP: &venafi.VenafiTPPConnection{
+											URL:      "tpp.com",
+											Username: "admin",
+											Password: "password",
+										},
 									},
 								},
 								EnforcementPolicy: &pki_monitor.Policy{

@@ -18,7 +18,7 @@ type venafiClient struct {
 	tppConnector  *tpp.Connector
 }
 
-func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.VenafiWrapper, error) {
+func NewVenafiClient(secret venafi.VenafiSecret) (venafi_wrapper.VenafiWrapper, error) {
 	var config vcert.Config
 
 	if secret.VaaS != nil {
@@ -27,7 +27,7 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 			Credentials: &endpoint.Authentication{
 				APIKey: secret.VaaS.APIKey,
 			},
-			Zone: zone,
+			Zone: "",
 			// Specify the DefaultClient otherwise vcert_wrapper creates its own HTTP Client and for some reason this replaces
 			// the TLSClientConfig with a non-nil value it gets from somewhere and breaks things with the following:
 			// vcert_wrapper error: server error: server unavailable: Get "https://api.venafi.cloud/v1/useraccounts": net/http: HTTP/1.x transport connection broken: malformed HTTP response
@@ -41,7 +41,7 @@ func NewVenafiClient(secret venafi.VenafiSecret, zone string) (venafi_wrapper.Ve
 				User:     secret.TPP.Username,
 				Password: secret.TPP.Password,
 			},
-			Zone: zone,
+			Zone: "",
 		}
 	}
 
