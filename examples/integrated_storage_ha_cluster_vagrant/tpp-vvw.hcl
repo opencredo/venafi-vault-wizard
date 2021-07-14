@@ -99,11 +99,11 @@ plugin "venafi-pki-backend" "pki-backend" {
     # Connection details for Venafi TPP
     # If using Venafi as a Service, replace the venafi_tpp block with a venafi_vaas one and specify the "apikey" attribute instead
     secret "tpp" {
+      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault PKI Backend"
       venafi_tpp {
         url = env("TPP_URL")
         username = env("TPP_USERNAME")
         password = env("TPP_PASSWORD")
-        zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault PKI Backend"
       }
     }
 
