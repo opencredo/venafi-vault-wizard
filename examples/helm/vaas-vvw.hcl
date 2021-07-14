@@ -16,7 +16,6 @@ plugin "venafi-pki-monitor" "pki-monitor" {
     secret "vaas" {
       venafi_vaas {
         apikey = env("VENAFI_API_KEY")
-        zone = "VVW Test\\VVW SubCA"
       }
     }
 
@@ -75,9 +74,9 @@ plugin "venafi-pki-backend" "pki-backend" {
     # Connection details for Venafi VaaS
     # If using Venafi TPP, replace the venafi_vaas block with a venafi_tpp one and specify the "url", "username" and "password" attributes instead
     secret "vaas" {
+      zone = "VVW Test\\VVW SubCA"
       venafi_vaas {
         apikey = env("VENAFI_API_KEY")
-        zone = "VVW Test\\VVW SubCA"
       }
     }
 
