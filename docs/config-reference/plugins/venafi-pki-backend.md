@@ -21,8 +21,8 @@ plugin "venafi-pki-backend" "pki-backend" {
         url = env("TPP_URL")
         username = env("TPP_USERNAME")
         password = env("TPP_PASSWORD")
-        zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault PKI Backend"
       }
+      zone = "Partner Dev\\TLS\\Certificates\\HashiCorp Vault\\Vault PKI Backend"
     }
 
     # An optional test certificate to request, in order to verify everything works
@@ -67,6 +67,7 @@ The `role` block supports the following blocks:
 
 The `secret` block must contain exactly one of the following blocks:
 
+* `zone` - (Required) The path of the policy within TPP, or the project zone within Venafi as a Service, from which certificates will be requested.
 * `venafi_tpp` - Required when using Venafi's Trust Protection Platform
 * `venafi_vaas` - Required when using Venafi as a Service
 
@@ -79,17 +80,12 @@ The `secret` block must contain exactly one of the following blocks:
 ~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
 It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environment variable instead.
 
-* `zone` - (Required) The path of the policy within TPP, from which certificates will be requested.
-
 ##### venafi_vaas
 
 * `apikey` - (Required) A String with an API Key with access to Venafi as a Service.
 
 ~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
 It is recommended to use `env("VENAFI_API_KEY")` to retrieve this from an environment variable instead.
-
-* `zone` - (Required) The project zone within Venafi as a Service from which certificates will be requested.
-  The format is `Application Name\Issuing Template API Alias`.
 
 ### test_certificate
 
