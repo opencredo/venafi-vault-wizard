@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+
 	"github.com/opencredo/venafi-vault-wizard/app/reporter"
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
@@ -13,6 +14,7 @@ type ResolveBuildArchInput struct {
 }
 
 func ResolveBuildArch(input *ResolveBuildArchInput) error {
+	buildArchSection := input.Reporter.AddSection("Checking Vault Server OS and CPU Architecture")
 	var sshBuildArch string
 	var definedBuildArch string
 
@@ -23,9 +25,7 @@ func ResolveBuildArch(input *ResolveBuildArchInput) error {
 	}
 
 	for i, sshClient := range input.SSHClients {
-		checkSSHClient := input.Reporter.AddSection(fmt.Sprintf("Checking SSH Client #%d", i))
-
-		check := checkSSHClient.AddCheck("Checking OS Architecture")
+		check := buildArchSection.AddCheck(fmt.Sprintf("Checking Vault Server %d", i+1))
 		osType, arch, err := sshClient.CheckOSArch()
 		if err != nil {
 			check.Errorf("Unable to resolve client arch via SSH: %w", err)
@@ -47,6 +47,8 @@ func ResolveBuildArch(input *ResolveBuildArchInput) error {
 			check.Errorf("Defined build architecture (%s) doesn't match client architecture (%s)", definedBuildArch, sshBuildArch)
 			return fmt.Errorf("Defined build architecture (%s) doesn't match client architecture (%s)", definedBuildArch, sshBuildArch)
 		}
+
+		check.Successf("Requested plugin build architecture (%s) matches Vault Server %d", definedBuildArch, i+1)
 	}
 
 	return nil
