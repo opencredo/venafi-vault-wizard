@@ -110,17 +110,12 @@ The `secret` block must contain exactly one of the following blocks:
 ~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
 It is recommended to use `env("TPP_PASSWORD")` to retrieve this from an environment variable instead.
 
-* `zone` - (Required) The path of the policy within TPP, from which certificates will be requested.
-
 ##### venafi_vaas
 
 * `apikey` - (Required) A String with an API Key with access to Venafi as a Service.
 
 ~> **Warning:** Avoid hardcoding this in the configuration file in case it gets leaked.
 It is recommended to use `env("VENAFI_API_KEY")` to retrieve this from an environment variable instead.
-
-* `zone` - (Required) The project zone within Venafi as a Service from which certificates will be requested.
-  The format is `Application Name\Issuing Template API Alias`.
 
 #### enforcement_policy
 
