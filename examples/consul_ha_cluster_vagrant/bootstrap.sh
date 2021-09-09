@@ -108,6 +108,7 @@ listener "tcp" {
   cluster_addr  = "0.0.0.0:8201"
   tls_disable   = true
 }
+ui = true
 plugin_directory = "/etc/vault.d/plugins"
 storage "consul" {
   path    = "vault/"
