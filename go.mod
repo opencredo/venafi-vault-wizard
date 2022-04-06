@@ -12,7 +12,7 @@ require (
 	github.com/pkg/sftp v1.13.0
 	github.com/pterm/pterm v0.12.12
 	github.com/spf13/cobra v1.1.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/zclconf/go-cty v1.10.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )
