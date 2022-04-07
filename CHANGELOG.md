@@ -6,6 +6,7 @@ See updating [Changelog example here](https://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * Updates golang to 1.18
+* Updates mockery to 2.10.4
 
 
 ## 0.1.1 (2021/09/09)
