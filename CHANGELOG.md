@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 See updating [Changelog example here](https://keepachangelog.com/en/1.0.0/)
 
+## 0.1.2 (unreleased)
+
+### Changed
+* Updates golang to 1.18
+
+
 ## 0.1.1 (2021/09/09)
 
 ### Changed
