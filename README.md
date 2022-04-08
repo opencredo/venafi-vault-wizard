@@ -1,6 +1,6 @@
 # `venafi-vault-wizard`, (`vvw`)
 
--	Website: 
+-	Website: https://marketplace.venafi.com/details/venafi-vault-wizard
 -	Source: https://github.com/opencredo/venafi-vault-wizard
 -	Venafi Community Support: https://support.venafi.com/hc/en-us/community/topics
 -	HashiCorp Discuss: https://discuss.hashicorp.com/c/vault/30
@@ -9,9 +9,9 @@ This repository is home to the `venafi-vault-wizard` which can be used to verify
 
 ## Requirements
 
--	[Go](https://golang.org/doc/install) 1.18
--	[Vagrant](https://www.vagrantup.com/downloads)
--	[Venafi as a Service Account & Zone](https://ui.venafi.cloud/login) or TPP instance
+- [Go](https://golang.org/doc/install) 1.18
+- [Vagrant](https://www.vagrantup.com/downloads)
+- [Venafi as a Service Account & Zone](https://ui.venafi.cloud/login) or TPP instance
 
 ## Docs
 
