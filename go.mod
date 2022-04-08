@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/vault/api v1.5.0
 	github.com/hashicorp/vault/sdk v0.4.1
 	github.com/manifoldco/promptui v0.9.0
-	github.com/pkg/sftp v1.13.0
+	github.com/pkg/sftp v1.13.4
 	github.com/pterm/pterm v0.12.12
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.1
@@ -59,7 +59,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
