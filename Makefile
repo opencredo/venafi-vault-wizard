@@ -22,7 +22,7 @@ generate-mocks: $(BIN)/mockery
 
 $(BIN)/mockery:
 	@echo "Installing mockery to generate mocks...\n"
-	GOBIN=$(BIN) go install github.com/vektra/mockery/v2@v2.6.0
+	GOBIN=$(BIN) go install github.com/vektra/mockery/v2@v2.10.4
 
 .PHONY: clean
 clean:
