@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: "Lint"
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.1.0
       - name: "Format"
         uses: Jerome1337/gofmt-action@v1.0.4
         with:
