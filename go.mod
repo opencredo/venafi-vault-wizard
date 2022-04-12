@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/vault/sdk v0.4.1
 	github.com/manifoldco/promptui v0.9.0
 	github.com/pkg/sftp v1.13.4
-	github.com/pterm/pterm v0.12.40
+	github.com/pterm/pterm v0.12.41
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
 	github.com/zclconf/go-cty v1.10.0
