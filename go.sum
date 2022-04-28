@@ -22,8 +22,8 @@ github.com/MarvinJWendt/testza v0.2.12/go.mod h1:JOIegYyV7rX+7VZ9r77L/eH6CfJHHzX
 github.com/MarvinJWendt/testza v0.3.0 h1:iLAixjb8IXSgiHOk9aOITXFP33k+D4qj9ZX5PXNKO5A=
 github.com/MarvinJWendt/testza v0.3.0/go.mod h1:eFcL4I0idjtIx8P9C6KkAuLgATNKpX4/2oUqKc6bF2c=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
-github.com/Venafi/vcert/v4 v4.18.2 h1:pOX2AEDp5ozErcDC7dh9f32J3UJPBrQIJQaEnqijbHc=
-github.com/Venafi/vcert/v4 v4.18.2/go.mod h1:VcojF47VAzBnYHSRrb0SwOCmMpWJczajTuPiZNDJJSo=
+github.com/Venafi/vcert/v4 v4.19.0 h1:/zIl9+s6uIjtI/LazPplrcSgThbwJkUx1XbyET3u8Iw=
+github.com/Venafi/vcert/v4 v4.19.0/go.mod h1:VcojF47VAzBnYHSRrb0SwOCmMpWJczajTuPiZNDJJSo=
 github.com/agext/levenshtein v1.2.1 h1:QmvMAjj2aEICytGiWzmxoE0x2KZvE0fvmqMOfy2tjT8=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
