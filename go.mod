@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/Venafi/vcert/v4 v4.20.0
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/vault/api v1.5.0
 	github.com/hashicorp/vault/sdk v0.4.1
