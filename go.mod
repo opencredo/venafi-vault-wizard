@@ -3,7 +3,7 @@ module github.com/opencredo/venafi-vault-wizard
 go 1.18
 
 require (
-	github.com/Venafi/vcert/v4 v4.20.0
+	github.com/Venafi/vcert/v4 v4.20.1
 	github.com/google/go-cmp v0.5.8
 	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/hashicorp/vault/api v1.5.0
