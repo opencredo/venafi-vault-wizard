@@ -65,7 +65,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
 }
 
 plugin "venafi-pki-backend" "pki-backend" {
-  version = "v0.9.0"
+  version = "v0.10.3"
 
   # A role called "web_server" can be used with:
   # vault write pki-backend/issue/web_server common_name=test.test.test
