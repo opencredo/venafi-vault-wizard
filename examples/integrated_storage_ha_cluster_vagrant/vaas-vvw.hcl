@@ -1,23 +1,23 @@
 vault {
-  api_address = "http://192.168.33.10:8200"
+  api_address = "http://192.168.56.10:8200"
   token = env("VAULT_TOKEN")
 
   ssh {
-    hostname = "192.168.33.10"
+    hostname = "192.168.56.10"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 
   ssh {
-    hostname = "192.168.33.11"
+    hostname = "192.168.56.11"
     username = "vagrant"
     password = "vagrant"
     port = 22
   }
 
   ssh {
-    hostname = "192.168.33.12"
+    hostname = "192.168.56.12"
     username = "vagrant"
     password = "vagrant"
     port = 22
@@ -85,7 +85,7 @@ plugin "venafi-pki-monitor" "pki-monitor" {
 }
 
 plugin "venafi-pki-backend" "pki-backend" {
-  version = "v0.9.0"
+  version = "v0.10.3"
 
   # A role called "web_server" can be used with:
   # vault write pki-backend/issue/web_server common_name=test.test.test
