@@ -2,11 +2,11 @@
 
 This test environment spins up a 3-node Vault cluster on 3 VMs, and a Consul server on a 4th VM using Vagrant.
 These nodes all have the same SSH credentials for ease: `vagrant` for both the username and password.
-The Consul server's IP address is `192.168.33.8` and the Vault nodes' IP addresses are as follows:
+The Consul server's IP address is `192.168.56.8` and the Vault nodes' IP addresses are as follows:
 
-- `192.168.33.10`
-- `192.168.33.11`
-- `192.168.33.12`
+- `192.168.56.10`
+- `192.168.56.11`
+- `192.168.56.12`
 
 The first node is the leader by default, unless it is restarted, or some other re-election takes place.
 If another node becomes leader, then the `vvw.hcl` config file for this environment will need updating to set the `api_address` to the new leader's IP address.
@@ -55,7 +55,7 @@ Feel free to also set the `VAULT_ADDR` variable to allow using the normal `vault
 
 ```shell
 $ export VAULT_TOKEN="s.dgjfnskdfgnksd"
-$ export VAULT_ADDR="http://192.168.33.10:8200"
+$ export VAULT_ADDR="http://192.168.56.10:8200"
 $ vault status
 ```
 

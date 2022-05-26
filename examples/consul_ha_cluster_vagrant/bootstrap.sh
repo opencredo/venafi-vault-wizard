@@ -11,8 +11,8 @@ __node_ip=$2
 __node_num=$3
 
 # Hardcoded IPs of initial leader nodes
-__vault_leader_ip="192.168.33.10"
-__consul_leader_ip="192.168.33.8"
+__vault_leader_ip="192.168.56.10"
+__consul_leader_ip="192.168.56.8"
 
 # Called at bottom of file
 main() {
@@ -156,7 +156,7 @@ initialise_follower_node() {
   echo "Attempting to SCP the keys"
   sshpass -p vagrant \
   scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-  vagrant@192.168.33.10:/home/vagrant/init-keys.json /home/vagrant/init-keys.json
+  vagrant@192.168.56.10:/home/vagrant/init-keys.json /home/vagrant/init-keys.json
 
   unseal_vault
 }
