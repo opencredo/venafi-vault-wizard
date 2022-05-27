@@ -2,12 +2,15 @@
 All notable changes to this project will be documented in this file.
 See updating [Changelog example here](https://keepachangelog.com/en/1.0.0/)
 
-## 0.1.2 (unreleased)
+## 0.1.2 (2022/05/27)
 
 ### Changed
 * Updates golang to 1.18
 * Updates mockery to 2.10.4
-
+* Updates the IP range used within Vagrant example files
+* Bump github.com/hashicorp/vault/sdk from 0.4.1 to 0.5.0 [#79](https://github.com/opencredo/venafi-vault-wizard/pull/79)
+* Bump github.com/hashicorp/vault/api from 1.5.0 to 1.6.0 [#78](https://github.com/opencredo/venafi-vault-wizard/pull/78)
+* Updates to various build related dependencies
 
 ## 0.1.1 (2021/09/09)
 
