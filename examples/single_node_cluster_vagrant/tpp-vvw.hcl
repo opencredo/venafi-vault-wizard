@@ -1,9 +1,9 @@
 vault {
-  api_address = "http://192.168.33.20:8200"
+  api_address = "http://192.168.56.20:8200"
   token = env("VAULT_TOKEN")
 
   ssh {
-    hostname = "192.168.33.20"
+    hostname = "192.168.56.20"
     username = "vagrant"
     password = "vagrant"
     port = 22

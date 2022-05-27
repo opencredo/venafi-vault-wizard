@@ -2,7 +2,7 @@
 
 This test environment spins up a VM running a single Vault node.
 This node has the SSH credentials `vagrant` for both the username and password.
-The node's IP addresses is `192.168.33.20`
+The node's IP addresses is `192.168.56.20`
 
 ## Setup
 
@@ -47,7 +47,7 @@ Feel free to also set the `VAULT_ADDR` variable to allow using the normal `vault
 
 ```shell
 $ export VAULT_TOKEN="s.dgjfnskdfgnksd"
-$ export VAULT_ADDR="http://192.168.33.20:8200"
+$ export VAULT_ADDR="http://192.168.56.20:8200"
 $ vault status
 ```
 

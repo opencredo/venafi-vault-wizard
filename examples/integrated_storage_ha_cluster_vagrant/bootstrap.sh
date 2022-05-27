@@ -7,7 +7,7 @@ set -o nounset
 
 __node_ip=$1
 __node_num=$2
-__leader_ip="192.168.33.10"
+__leader_ip="192.168.56.10"
 
 # Called at bottom of file
 main() {
@@ -91,7 +91,7 @@ initialise_follower_node() {
   echo "Attempting to SCP the keys"
   sshpass -p vagrant \
   scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-  vagrant@192.168.33.10:/home/vagrant/init-keys.json /home/vagrant/init-keys.json
+  vagrant@192.168.56.10:/home/vagrant/init-keys.json /home/vagrant/init-keys.json
 
   echo "Got unseal key, trying to join cluster"
   vault operator raft join "http://${__leader_ip}:8200"
