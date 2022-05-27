@@ -2,7 +2,11 @@
 All notable changes to this project will be documented in this file.
 See updating [Changelog example here](https://keepachangelog.com/en/1.0.0/)
 
-## 0.1.3 (unreleased)
+## 0.1.3 (2022/05/27)
+
+### Fixed
+
+* Updates go version from 1.16 to 1.18 within release workflow [#82](https://github.com/opencredo/venafi-vault-wizard/pull/82)
 
 ## 0.1.2 (2022/05/27)
 
