@@ -6,7 +6,7 @@ require (
 	github.com/Venafi/vcert/v4 v4.20.1
 	github.com/google/go-cmp v0.5.8
 	github.com/hashicorp/hcl/v2 v2.12.0
-	github.com/hashicorp/vault/api v1.5.0
+	github.com/hashicorp/vault/api v1.6.0
 	github.com/hashicorp/vault/sdk v0.5.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/pkg/sftp v1.13.4
