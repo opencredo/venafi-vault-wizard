@@ -12,7 +12,7 @@ require (
 	github.com/pkg/sftp v1.13.4
 	github.com/pterm/pterm v0.12.41
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/zclconf/go-cty v1.10.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )
@@ -79,5 +79,5 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
