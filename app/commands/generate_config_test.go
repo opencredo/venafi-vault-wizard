@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/csv"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -362,7 +363,11 @@ func TestGenerateConfig(t *testing.T) {
 
 			commands.GenerateConfig(testFileName, questioner)
 
-			actualConfig, err := config.NewConfigFromFile(testFileName)
+			configFileBytes, err := ioutil.ReadFile(testFileName)
+			assert.NoError(t, err)
+
+			configParser := config.NewConfigParser(testFileName, configFileBytes)
+			actualConfig, err := configParser.GetConfig()
 			assert.NoError(t, err)
 
 			diff := cmp.Diff(

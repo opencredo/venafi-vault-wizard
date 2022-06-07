@@ -1,6 +1,10 @@
 package lib
 
-import vaultAPI "github.com/hashicorp/vault/api"
+import (
+	"fmt"
+
+	vaultAPI "github.com/hashicorp/vault/api"
+)
 
 // VaultAPIWrapper encapsulates the dependency on the HashiCorp Go Vault package, both to allow it to be injected, but
 // also to make its interface slightly simpler to its clients
@@ -31,7 +35,11 @@ func (v *vaultAPIClient) Read(path string) (map[string]interface{}, error) {
 		return nil, normaliseError(err)
 	}
 
-	return secret.Data, nil
+	if secret != nil {
+		return secret.Data, nil
+	} else {
+		return nil, fmt.Errorf("no data found at path %s", path)
+	}
 }
 
 func (v *vaultAPIClient) Write(path string, data map[string]interface{}) (map[string]interface{}, error) {

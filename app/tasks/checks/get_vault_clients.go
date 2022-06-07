@@ -1,4 +1,4 @@
-package tasks
+package checks
 
 import (
 	"fmt"
@@ -10,29 +10,33 @@ import (
 	"github.com/opencredo/venafi-vault-wizard/app/vault/ssh"
 )
 
-func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSHClient, api.VaultAPIClient, func(), error) {
-	checkConnectionSection := report.AddSection("Checking connection to Vault")
-	check := checkConnectionSection.AddCheck("Checking Vault connection parameters...")
+func GetAPIClient(section reporter.Section, apiAddress, token string) (api.VaultAPIClient, error) {
+	check := section.AddCheck("Checking Vault API connection parameters...")
 
 	vaultClient, err := api.NewClient(
 		&api.Config{
-			APIAddress: cfg.VaultAddress,
-			Token:      cfg.VaultToken,
+			APIAddress: apiAddress,
+			Token:      token,
 		},
 		lib.NewVaultAPI(),
 	)
 	if err != nil {
 		check.Errorf("Error setting the Vault address for the Vault API client: %s", err)
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	_, err = vaultClient.GetVaultConfig()
 	if err != nil {
-		check.Errorf("Error connecting to Vault API at %s and reading config: %s", cfg.VaultAddress, err)
-		return nil, nil, nil, err
+		check.Errorf("Error connecting to Vault API at %s and reading config: %s", apiAddress, err)
+		return nil, err
 	}
 
-	check.UpdateStatus("Successfully connected to Vault API, establishing SSH connection...")
+	check.Success("Connected to Vault API")
+	return vaultClient, nil
+}
+
+func GetSSHClients(section reporter.Section, cfg *config.VaultConfig) ([]ssh.VaultSSHClient, func(), error) {
+	check := section.AddCheck("Checking Vault SSH connection parameters...")
 
 	var sshClients []ssh.VaultSSHClient
 	var closeFuncs []func()
@@ -48,7 +52,7 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSH
 		if err != nil {
 			check.Errorf("Error connecting to Vault server at %s over SSH: %s", s.Hostname, err)
 			closeFunc()
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		closeFuncs = append(closeFuncs, func() {
 			_ = sshClient.Close()
@@ -56,7 +60,11 @@ func GetClients(cfg *config.VaultConfig, report reporter.Report) ([]ssh.VaultSSH
 		sshClients = append(sshClients, sshClient)
 	}
 
-	check.Success("Connected to Vault via its API and SSH")
+	if len(sshClients) > 0 {
+		check.Success("Connected to Vault via SSH")
+	} else {
+		check.Success("No SSH parameters given, skipped check")
+	}
 
-	return sshClients, vaultClient, closeFunc, nil
+	return sshClients, closeFunc, nil
 }
