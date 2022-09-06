@@ -1,0 +1,28 @@
+name: "Venafi Vault Wizard CI"
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    name: "Build and Test"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/helm
+    steps:
+      - name: "Check out source code"
+        uses: actions/checkout@v3
+      - name: "Set up Go 1.18"
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: "Build"
+        env:
+          GOPROXY: "https://proxy.golang.org"
+        run: make build
+      - name: "Helm Dependency Update"
+        run: helm dependency update
+      - name: "Helm Install Cluster"
+        run: helm install vvwtestcluster .
+      - name: "Kubectl Exec Cluster"
+        run: kubectl exec -it vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json

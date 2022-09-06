@@ -23,3 +23,8 @@ bin
 
 # direnv config files
 **/.envrc
+
+# Keys
+init-keys.json
+examples/helm/charts/**
+venafi-vault-wizard
