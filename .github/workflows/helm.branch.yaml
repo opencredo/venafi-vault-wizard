@@ -31,4 +31,4 @@ jobs:
       - name: "Helm Install Cluster"
         run: helm install vvwtestcluster .
       - name: "Kubectl Exec Cluster"
-        run: kubectl exec -it vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
+        run: kubectl exec -i vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
