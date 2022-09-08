@@ -3,9 +3,6 @@ on:
   push:
   pull_request:
 jobs:
-  root:
-    name: "Build and Copy VVW binary"
-
   example:
     name: "Build and Run Example"
     runs-on: ubuntu-latest
