@@ -28,3 +28,4 @@ bin
 init-keys.json
 examples/helm/charts/**
 venafi-vault-wizard
+minikube-darwin-amd64
