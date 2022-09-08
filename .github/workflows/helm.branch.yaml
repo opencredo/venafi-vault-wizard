@@ -22,11 +22,12 @@ jobs:
           cat /etc/rancher/k3s/k3s.yaml
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+      - name: "Check k3"
+        run: kubectl cluster-info   
       - name: "Build"
         env:
           GOPROXY: "https://proxy.golang.org"
         run: make build
-
       - name: "Helm Dependency Update"
         run: helm dependency update
       - name: "Helm Install Cluster"
