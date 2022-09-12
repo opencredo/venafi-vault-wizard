@@ -4,6 +4,7 @@ vault:
     image:
       repository: "vault-with-venafi-plugins"
       tag: "latest"
+      pullPolicy: Never
 
     # Disable the default pod affinity rules (not a production cluster so doesn't matter which nodes things are on)
     affinity: null

@@ -1,6 +1,0 @@
-version: "3.9"
-services:
-  vault-plugin:
-    build: .
-    ports:
-      - "8200:8200"
