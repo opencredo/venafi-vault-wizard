@@ -22,7 +22,7 @@ jobs:
         uses: azure/setup-helm@v1
         with: 
           version: v3.8.2 
-        run: helm version
+      - run: helm version
       - name: "Build"
         env:
           GOPROXY: "https://proxy.golang.org"
