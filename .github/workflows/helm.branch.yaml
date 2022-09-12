@@ -33,8 +33,7 @@ jobs:
         run: helm dependency update
       - name: "Check cluster info"
         run: kubectl cluster-info
-      - run: sleep 10
-      - run: kind load docker-image vault-with-venafi-plugins --name vvwtestcluster
+      - run: kind load docker-image vault-with-venafi-plugins
       - name: "Helm Install Cluster"
         run: helm install vvwtestcluster .
       - name: "Get pods"
