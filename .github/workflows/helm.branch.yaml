@@ -17,8 +17,8 @@ jobs:
         env:
           GOPROXY: "https://proxy.golang.org"
         run: make build
-      - run: |
-          cp ./bin/vvw ./examples/helm 
+      # - run: |
+      #     cp ./bin/vvw ./examples/helm 
       - name: "install k8s"
         uses: helm/kind-action@v1.2.0
         with: 
@@ -53,5 +53,6 @@ jobs:
           echo "Root token: $(jq -r '.root_token' init-keys.json)"
           export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
           kubectl exec vvwtestcluster-vault-0 -- vault status
-          vvw apply -f tpp-vvw.hcl
-          vvw apply -f vaas-vvw.hcl
+          pwd
+          ../../bin/vvw apply -f tpp-vvw.hcl
+          ../../bin/vvw apply -f vaas-vvw.hcl
