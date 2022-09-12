@@ -55,5 +55,5 @@ jobs:
           kubectl exec vvwtestcluster-vault-0 -- vault status
           pwd
           ls -la
-          ./bin/vvw apply -f tpp-vvw.hcl
-          ./bin/vvw apply -f vaas-vvw.hcl
+          ./bin/vvw apply -f ./examples/helm/tpp-vvw.hcl
+          ./bin/vvw apply -f ./examples/helm/vaas-vvw.hcl
