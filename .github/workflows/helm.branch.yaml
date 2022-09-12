@@ -38,5 +38,6 @@ jobs:
       - run: sleep 30
       - name: "Get pods"
         run: kubectl get pods
+      - run: kubectl describe pod vvwtestcluster-vault-0
       - name: "Run pod"
         run: kubectl exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
