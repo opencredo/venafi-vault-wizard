@@ -18,6 +18,8 @@ jobs:
           go-version: 1.18
       - name: "install k8s"
         uses: helm/kind-action@v1.2.0
+        with: 
+          cluster_name: kind
       - name: "setup helm"
         uses: azure/setup-helm@v1
         with: 
