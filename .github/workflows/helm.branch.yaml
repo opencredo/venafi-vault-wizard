@@ -47,3 +47,9 @@ jobs:
       - run: kubectl exec vvwtestcluster-vault-0 -- vault operator unseal $(jq -r '.unseal_keys_b64 | first' init-keys.json)
       - run: |
           echo "Root token: $(jq -r '.root_token' init-keys.json)"
+          export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
+          kubectl port-forward service/vvwtestcluster-vault 8200
+          export VAULT_ADDR="http://localhost:8200"
+          vault status
+          ../../bin/vvw apply -f tpp-vvw.hcl
+          ../../bin/vvw apply -f vaas-vvw.hcl

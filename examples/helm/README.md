@@ -64,7 +64,7 @@ $ echo "Root token: $(jq -r '.root_token' init-keys.json)"
 When this has completed, copy the root token printed out and set the `VAULT_TOKEN` variable.
 
 ```shell
-$ export VAULT_TOKEN="s.dgjfnskdfgnksd"
+$ export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
 ```
 
 The Helm chart will create a number of Kubernetes services to reference the Vault pods.
