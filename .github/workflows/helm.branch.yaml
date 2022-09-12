@@ -33,7 +33,5 @@ jobs:
         run: kubectl cluster-info
       - name: "Helm Install Cluster"
         run: helm install vvwtestcluster .
-      - name: "Kubectl Exec Cluster"
-        uses: actions-hub/kubectl@master
-        with:
-          args: exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
+      - name: "Run pod"
+        run: kubectl exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
