@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: examples/helm
+        working-directory: ./examples/helm
     steps:
       - name: "install k8s"
         uses: helm/kind-action@v1.2.0
@@ -34,7 +34,9 @@ jobs:
         uses: azure/setup-helm@v1
         with: 
           version: v3.8.2 
-      - run: helm version
+      - name: "Check helm version"
+        run: helm version
+        working-directory: ./examples/helm
       - name: "Build"
         env:
           GOPROXY: "https://proxy.golang.org"
@@ -52,10 +54,12 @@ jobs:
       - name: "Get pods"
         run: kubectl get pods
       - run: kubectl describe pod vvwtestcluster-vault-0
-      - name: "Run pod"
-        run: kubectl exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
-      - run: kubectl exec vvwtestcluster-vault-0 -- vault operator unseal $(jq -r '.unseal_keys_b64 | first' init-keys.json)
-      - run: |
+      - name: "Run pod to init and unseeal the keys"
+        run: |
+          kubectl exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
+          kubectl exec vvwtestcluster-vault-0 -- vault operator unseal $(jq -r '.unseal_keys_b64 | first' init-keys.json)
+      - name: "Get root token and apply vvw"
+        run: |
           echo "Root token: $(jq -r '.root_token' init-keys.json)"
           export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
           kubectl exec vvwtestcluster-vault-0 -- vault status
