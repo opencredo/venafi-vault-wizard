@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./examples/helm
+        working-directory: ../examples/helm
     steps:
       - name: "install k8s"
         uses: helm/kind-action@v1.2.0
@@ -36,7 +36,7 @@ jobs:
           version: v3.8.2 
       - name: "Check helm version"
         run: helm version
-        working-directory: ./examples/helm
+        working-directory: ../examples/helm
       - name: "Build"
         env:
           GOPROXY: "https://proxy.golang.org"
