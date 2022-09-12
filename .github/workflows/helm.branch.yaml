@@ -48,6 +48,6 @@ jobs:
       - run: |
           echo "Root token: $(jq -r '.root_token' init-keys.json)"
           export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
-          vault status
+          kubectl exec vvwtestcluster-vault-0 -- vault status
           ../../bin/vvw apply -f tpp-vvw.hcl
           ../../bin/vvw apply -f vaas-vvw.hcl
