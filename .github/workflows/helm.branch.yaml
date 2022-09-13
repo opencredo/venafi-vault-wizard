@@ -54,5 +54,5 @@ jobs:
           export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
           kubectl exec vvwtestcluster-vault-0 -- vault status
           cd examples/helm
-          ./bin/vvw apply -f tpp-vvw.hcl
-          ./bin/vvw apply -f vaas-vvw.hcl
+          ../../bin/vvw apply -f tpp-vvw.hcl
+          ../../bin/vvw apply -f vaas-vvw.hcl
