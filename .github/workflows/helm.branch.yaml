@@ -50,10 +50,10 @@ jobs:
         run: |
           echo "Root token: $(jq -r '.root_token' init-keys.json)"
           export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
-          export TPP_URL="https://localhost"
-          export TPP_USERNAME="test"
-          export TPP_PASSWORD="pwd"
           kubectl exec vvwtestcluster-vault-0 -- vault status
           cd examples/helm
+      - name: "Apply VVW to tpp and vaas"
+        if: ${{ (env(TPP_URL) != null) && (env(TPP_USERNAME) != null) && (env(TPP_PASSWORD)!= null) }}
+        run: |
           ../../bin/vvw apply -f tpp-vvw.hcl
           ../../bin/vvw apply -f vaas-vvw.hcl
