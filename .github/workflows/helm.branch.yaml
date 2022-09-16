@@ -53,7 +53,7 @@ jobs:
           kubectl exec vvwtestcluster-vault-0 -- vault status
           cd examples/helm
       - name: "Apply VVW to tpp and vaas"
-        if: ${{ (env(TPP_URL) != null) && (env(TPP_USERNAME) != null) && (env(TPP_PASSWORD)!= null) }}
+        if: ${{ (TPP_URL != null) && ((TPP_USERNAME) != null && (TPP_PASSWORD)!= null) }}
         run: |
           ../../bin/vvw apply -f tpp-vvw.hcl
           ../../bin/vvw apply -f vaas-vvw.hcl
