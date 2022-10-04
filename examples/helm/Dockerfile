@@ -6,7 +6,7 @@ ARG PKI_BACKEND_PLUGIN_VERSION=0.9.0
 RUN set -eux; \
     apkArch="$(apk --print-arch)"; \
     case "$apkArch" in \
-        x86_64) ARCH='' ;; \
+        x86_64|aarch64) ARCH='' ;; \
         x86) ARCH='86' ;; \
         *) echo >&2 "error: unsupported architecture: $apkArch"; exit 1 ;; \
     esac && \

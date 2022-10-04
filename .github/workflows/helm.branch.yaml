@@ -1,0 +1,53 @@
+name: "Venafi Vault Wizard Helm Example"
+on:
+  push:
+  pull_request:
+jobs:
+  build_vvw:
+    name: "Build VVW"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out source code"
+        uses: actions/checkout@v3
+      - name: "Set up Go 1.18"
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: "Build"
+        env:
+          GOPROXY: "https://proxy.golang.org"
+        run: make build
+      - name: "install k8s"
+        uses: helm/kind-action@v1.2.0
+        with: 
+          cluster_name: kind
+      - name: "setup helm"
+        uses: azure/setup-helm@v1
+        with: 
+          version: v3.8.2 
+      - name: "Build"
+        env:
+          GOPROXY: "https://proxy.golang.org"
+        run: | 
+          helm version
+          make build
+          helm dependency update
+          kubectl cluster-info
+          kind load docker-image vault-with-venafi-plugins
+          helm install vvwtestcluster .
+          kubectl get pods
+        working-directory: examples/helm
+      - run: sleep 30
+      - name: "Get pods"
+        run: |
+          kubectl get pods --output wide
+          kubectl describe pod vvwtestcluster-vault-0
+      - name: "Run pod to init and unseeal the keys"
+        run: |
+          kubectl exec vvwtestcluster-vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init-keys.json
+          kubectl exec vvwtestcluster-vault-0 -- vault operator unseal $(jq -r '.unseal_keys_b64 | first' init-keys.json)
+      - name: "Get root token and apply vvw"
+        run: |
+          echo "Root token: $(jq -r '.root_token' init-keys.json)"
+          export VAULT_TOKEN=$(jq -r '.root_token' init-keys.json)
+          kubectl exec vvwtestcluster-vault-0 -- vault status

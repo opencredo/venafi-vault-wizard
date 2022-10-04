@@ -23,3 +23,10 @@ bin
 
 # direnv config files
 **/.envrc
+
+# Keys
+init-keys.json
+examples/helm/charts/**
+venafi-vault-wizard
+minikube-darwin-amd64
+.DS_Store

@@ -1,11 +1,12 @@
-# `venafi-vault-wizard`, (`vvw`)
+# `venafi-vault-wizard` (`vvw`)
+
+This repository is home to the `venafi-vault-wizard` which can be used to verify the setup of HashiCorp Vault with Venafi as a Service and TPP.
 
 -	Website: https://marketplace.venafi.com/details/venafi-vault-wizard
 -	Source: https://github.com/opencredo/venafi-vault-wizard
 -	Venafi Community Support: https://support.venafi.com/hc/en-us/community/topics
 -	HashiCorp Discuss: https://discuss.hashicorp.com/c/vault/30
 
-This repository is home to the `venafi-vault-wizard` which can be used to verify the setup of HashiCorp Vault with Venafi as a Service and TPP.
 
 ## Requirements
 
