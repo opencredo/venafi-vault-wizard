@@ -17,7 +17,7 @@ jobs:
       - name: "Lint"
         uses: golangci/golangci-lint-action@v3.2.0
       - name: "Format"
-        uses: Jerome1337/gofmt-action@v1.0.4
+        uses: Jerome1337/gofmt-action@v1.0.5
         with:
           gofmt-flags: '-l -d'
   test:
