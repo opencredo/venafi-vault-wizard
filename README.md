@@ -1,5 +1,8 @@
 # `venafi-vault-wizard`, (`vvw`)
 
+> [!NOTE]
+> This repo has been archived and is no longer under development. OpenCredo is now part of [Trifork](https://github.com/trifork).
+
 -	Website: https://marketplace.venafi.com/details/venafi-vault-wizard
 -	Source: https://github.com/opencredo/venafi-vault-wizard
 -	Venafi Community Support: https://support.venafi.com/hc/en-us/community/topics
